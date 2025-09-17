@@ -1,0 +1,10 @@
+Initial commit: Multi-language development environment setup
+
+- Create project structure with C, Ada, and Python 
+- Implement basic communication framework 
+- Establish build system with GNAT, GCC, and Python3
+- Verified cross-language execution pipeline
+- C as controller calls both Ada and Python successfully
+- currently only works on Ubuntu/Linux command line (no GUI yet)
+
+Basic AirLume foundation for lightning prediction development.

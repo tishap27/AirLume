@@ -1,0 +1,18 @@
+[GENERATED OBJECT FILE]
+b__main.o
+[PROJECT FILES]
+C:\CST8234\AirLume\ada_src\flight.gpr
+20250916231552 a8333b5c9e20c7fc96b59083510eba67
+[BOUND OBJECT FILES]
+C:\CST8234\AirLume\ada_src\obj\main.o
+[GENERATED SOURCE FILES]
+b__main.ads
+b__main.adb
+b__main.ali
+[RESULTING OPTIONS]
+-LC:\CST8234\AirLume\ada_src\obj\
+-LC:\CST8234\AirLume\ada_src\obj\
+-LC:/users/tisha/appdata/local/alire/cache/toolchains/gnat_native_15.1.2_85aa1632/lib/gcc/x86_64-w64-mingw32/15.1.0/adalib/
+-static
+C:/users/tisha/appdata/local/alire/cache/toolchains/gnat_native_15.1.2_85aa1632/lib/gcc/x86_64-w64-mingw32/15.1.0/adalib/libgnat.a
+-Wl,--stack=0x2000000
