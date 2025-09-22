@@ -1,5 +1,8 @@
-Add basic GUI with cross-platform fallback
+feat: Add physics-based lightning risk calculations
 
-- Works with GUI on Windows
-- Falls back to console in Linux/Ubuntu terminal 
-- No more tkinter crashes
+- Created riskcalc.c for atmospheric physics calculations
+- Parses weather data from Python API into C structures
+- Calculates atmospheric conductivity, charge density, and electric field
+- Generates lightning probability percentage from real weather conditions
+
+Real atmospheric data now used in the physics-based calculations.

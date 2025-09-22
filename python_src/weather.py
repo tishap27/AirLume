@@ -34,14 +34,19 @@ def get_weather():
      temp = data['main']['temp']
      humidity = data['main']['humidity']
      pressure = data['main']['pressure']
+     wind_speed = data['wind']['speed']
         
      print(f"Temperature: {temp}°C")
      print(f"Humidity: {humidity}%")
      print(f"Pressure: {pressure} hPa")
-     print("Real weather data received!")
+     print(f"Wind Speed: {wind_speed} m/s")
+
+     #output for C to read 
+     print(f"WEATHER_DATA:{temp},{humidity},{pressure},{wind_speed}")
         
         
     except Exception as e:
+        print(f"Weather API Error: {e}")
         print(f"Error: {e}")
 
 def main():
