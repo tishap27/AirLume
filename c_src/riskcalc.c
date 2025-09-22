@@ -150,3 +150,14 @@ void print_risk_assessment(LightningRisk risk) {
     // Output for Ada to read
     printf("LIGHTNING_RISK:%.2f\n", risk.lightning_probability);
 }
+
+void write_risk_to_file(double lightning_risk) {
+    FILE *risk_file = fopen("lightning_risk.txt", "w");
+    if (risk_file != NULL) {
+        fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", lightning_risk);
+        fclose(risk_file);
+        printf("Risk data written to file for Ada system\n");
+    } else {
+        printf("Error: Could not write risk file for Ada\n");
+    }
+}

@@ -51,7 +51,8 @@ int main() {
     print_risk_assessment(risk);
 
 
-
+    //Writing risk to file for Ada
+    write_risk_to_file(risk.lightning_probability);
 
 
     // Call Ada 

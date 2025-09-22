@@ -1,8 +1,7 @@
-feat: Add physics-based lightning risk calculations
+feat: Add Ada safety system
 
-- Created riskcalc.c for atmospheric physics calculations
-- Parses weather data from Python API into C structures
-- Calculates atmospheric conductivity, charge density, and electric field
-- Generates lightning probability percentage from real weather conditions
+- Implement lightning risk assessment reading from main.c
+- Add automated flight level changes
+- Create basic fuel calculation algorithms for altitude/route changes
 
-Real atmospheric data now used in the physics-based calculations.
+Ada now takes input from C and makes safety decisions based on real-time weather obtained from python. Core working, Data still constant and basic calculations only
