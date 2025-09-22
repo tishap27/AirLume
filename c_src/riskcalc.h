@@ -6,6 +6,7 @@ typedef struct {
     double humidity;       // Percentage
     double pressure;       // hPa
     double wind_speed;     // m/s
+    double altitude;       //meters(flight alt) -- fixed in C code for now 
 } WeatherData;
 
 typedef struct {
@@ -13,11 +14,17 @@ typedef struct {
     double charge_density;        // C/m³ 
     double electric_field;        // V/m
     double lightning_probability; // Percentage 
+    double breakdown_voltage;     // V (Paschen's law)
+    double air_density;          // kg/m³ (altitude corrected)
 } LightningRisk;
 
 // Function prototypes
 WeatherData parse_weather_data(const char* weather_line);
 LightningRisk calculate_lightning_risk(WeatherData weather);
 void print_risk_assessment(LightningRisk risk);
+
+double calculate_paschen_breakdown(double pressure, double gap_distance);
+double calculate_air_density(double pressure, double temperature, double altitude);
+double charge_separation(WeatherData weather, double air_density);
 
 #endif

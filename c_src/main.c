@@ -46,7 +46,7 @@ int main() {
     pclose(weather_pipe);
 
     // Calculate lightning risk using physics
-    printf("\n2. Analyzing Lightning Risk (Physics Engine)...\n");
+    printf("\n Analyzing Lightning Risk...\n");
     LightningRisk risk = calculate_lightning_risk(weather_data);
     print_risk_assessment(risk);
 
