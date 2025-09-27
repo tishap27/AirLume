@@ -1,7 +1,5 @@
-feat: Add Ada safety system
-
-- Implement lightning risk assessment reading from main.c
-- Add automated flight level changes
-- Create basic fuel calculation algorithms for altitude/route changes
-
-Ada now takes input from C and makes safety decisions based on real-time weather obtained from python. Core working, Data still constant and basic calculations only
+Add: Initial Jakarta EE web application setup 
+- Created airlume-web NetBeans project structure
+- Set up Jakarta EE web project with proper package structure (airlume.web.*)
+- Only updated index.xhtml with flight analysis form and basic styling, just to check
+- Ready for backend integration with C/Ada/Python system
