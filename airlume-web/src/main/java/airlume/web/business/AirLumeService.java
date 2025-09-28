@@ -4,6 +4,7 @@
  */
 package airlume.web.business;
 
+import airlume.web.entity.FlightAnalysis;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.LocalBean;
 
@@ -12,9 +13,14 @@ import jakarta.ejb.LocalBean;
  * @author Tisha
  */
 @Stateless
-@LocalBean
 public class AirLumeService {
 
-    // Add business logic below. (Right-click in editor and choose
-    // "Insert Code > Add Business Method")
+    public FlightAnalysis analyzeFlight(String origin, String destination) {
+        // Mock data for initial testing
+        FlightAnalysis analysis = new FlightAnalysis();
+        analysis.setLightningProbability(9.87);
+        analysis.setRiskLevel("HIGH");
+        analysis.setRecommendation("Route modification recommended");
+        return analysis;
+    }
 }
