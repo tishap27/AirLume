@@ -50,7 +50,7 @@ public class AirLumeService {
         FlightAnalysis analysis = new FlightAnalysis();
         
         // Parse weather data
-        Pattern tempPattern = Pattern.compile("Temperature: ([0-9.]+)°C");
+        Pattern tempPattern = Pattern.compile("Temperature: ([0-9.]+)");
         Matcher tempMatcher = tempPattern.matcher(output);
         if (tempMatcher.find()) {
             analysis.setTemperature(Double.parseDouble(tempMatcher.group(1)));
