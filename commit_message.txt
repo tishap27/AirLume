@@ -1,5 +1,6 @@
-Add: Initial Jakarta EE web application setup 
-- Created airlume-web NetBeans project structure
-- Set up Jakarta EE web project with proper package structure (airlume.web.*)
-- Only updated index.xhtml with flight analysis form and basic styling, just to check
-- Ready for backend integration with C/Ada/Python system
+Add: basic FlightAnalysis data model and FlightRoute entity
+
+- Created FlightRoute entity for database persistence
+- Added basic fields: id, origin, destination airports
+- Created simple FlightAnalysis class for lightning risk results
+- Added core fields: probability, risk level, recommendation

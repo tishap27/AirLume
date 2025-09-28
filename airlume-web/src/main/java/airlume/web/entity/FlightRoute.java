@@ -8,6 +8,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 
 /**
@@ -15,13 +18,36 @@ import java.io.Serializable;
  * @author Tisha
  */
 @Entity
+@Table(name = "flight_routes")
 public class FlightRoute implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
+    
+    @NotNull
+    @Size(min=3 , max= 4 )
+    private String origin ; 
+    
+    @NotNull 
+    @Size(min= 3 , max = 4 )
+    private String destination ; 
+    
+    //constructor
+    public FlightRoute(){}
+    
+    public FlightRoute(String origin , String destination){
+        this.origin = origin;
+        this.destination = destination ; 
+    }
+   
+    @Override
+    public String toString() {
+        return "airlume.web.entity.FlightRoute[ id=" + id + " ]";
+    }
+    
+    //Getters and setters
     public Long getId() {
         return id;
     }
@@ -29,30 +55,18 @@ public class FlightRoute implements Serializable {
     public void setId(Long id) {
         this.id = id;
     }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    
+    public String getOrigin(){
+        return origin ; 
     }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof FlightRoute)) {
-            return false;
-        }
-        FlightRoute other = (FlightRoute) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+    public void setOrigin(String origin){
+        this.origin = origin; 
     }
-
-    @Override
-    public String toString() {
-        return "airlume.web.entity.FlightRoute[ id=" + id + " ]";
+     public String getDestination(){
+        return origin ; 
+    }
+    public void setDestination(String destination){
+        this.destination = destination; 
     }
     
 }
