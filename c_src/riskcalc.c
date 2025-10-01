@@ -44,18 +44,55 @@ LightningRisk calculate_lightning_risk(WeatherData weather) {
     risk.conductivity = base_conductivity * temp_factor * pressure_factor;
 
     //Electric field calculation
-    risk.electric_field = FAIR_WEATHER_FIELD + fabs(risk.charge_density / VACUUM_PERMITTIVITY);
+    risk.electric_field = charge_separation(weather, risk.air_density);
     
+    //Calculate electric field based on atmospheric conditions
+    double base_field = FAIR_WEATHER_FIELD;
+    // Humidity effect (high humidity enables charge accumulation)
+    if (weather.humidity > 70.0) {
+        base_field += (weather.humidity - 70.0) * 15.0;  // 15 V/m per 1% above 70%
+    }
+    
+    // Pressure effect (low pressure = storms = higher fields)
+    if (weather.pressure < 1010.0) {
+        base_field += (1010.0 - weather.pressure) * 25.0;  // 25 V/m per hPa below 1010
+    }
+    
+    // Temperature effect (convection drives charge separation)
+    if (weather.temperature > 25.0) {
+        base_field += (weather.temperature - 25.0) * 12.0;  // 12 V/m per degree above 25°C
+    }
+    
+    // Wind effect (stronger winds = more charge separation)
+    if (weather.wind_speed > 5.0) {
+        base_field += (weather.wind_speed - 5.0) * 30.0;  // 30 V/m per m/s above 5 m/s
+    }
+
+    //charge density
+     risk.electric_field = base_field + (risk.charge_density / VACUUM_PERMITTIVITY) * 1e-8;
+
+
+
     // Paschen's Law breakdown voltage (assume 1cm gap for aircraft surface)
     risk.breakdown_voltage = calculate_paschen_breakdown(weather.pressure, 0.01);
     
      double field_risk = 0.0;
-    if (risk.electric_field > FAIR_WEATHER_FIELD) {
-        field_risk = (risk.electric_field - FAIR_WEATHER_FIELD) / 10000.0;
+    if (risk.electric_field < 200) {
+        field_risk = 0.05;  // Very low
+    } else if (risk.electric_field < 500) {
+        field_risk = 0.15;  // Low
+    } else if (risk.electric_field < 1000) {
+        field_risk = 0.35;  // Moderate
+    } else if (risk.electric_field < 2500) {
+        field_risk = 0.60;  // Elevated
+    } else if (risk.electric_field < 5000) {
+        field_risk = 0.80;  // High
+    } else {
+        field_risk = 0.95;  // Critical
     }
     
-    double humidity_risk = fmax(0, (weather.humidity - 80.0) / 20.0);
-    double pressure_risk = fmax(0, (1013.25 - weather.pressure) / 200.0);
+    double humidity_risk = fmax(0, (weather.humidity - 75.0) / 25.0);
+    double pressure_risk = fmax(0, (1013.25 - weather.pressure) / 300.0);
     double breakdown_risk = 0.0;
     
     if (risk.breakdown_voltage < 500000.0) { // Less than 500kV is concerning
@@ -63,10 +100,10 @@ LightningRisk calculate_lightning_risk(WeatherData weather) {
     }
     
     // Weighted combination of risk factors
-    double total_risk = (field_risk * 0.4 + humidity_risk * 0.3 + 
-                        pressure_risk * 0.2 + breakdown_risk * 0.1);
+    double total_risk = (field_risk * 0.5 + humidity_risk * 0.25 + 
+                        pressure_risk * 0.15 + breakdown_risk * 0.1);
     
-    risk.lightning_probability = fmax(0, fmin(total_risk * 100, 15.0)); // Cap at 15%
+    risk.lightning_probability = fmax(0, fmin(total_risk * 100, 100.0)); // Cap at 15%
     
     return risk;
 
@@ -104,7 +141,7 @@ double charge_separation(WeatherData weather, double air_density) {
    
     
     // Base charge density
-    double base_charge = 1.0e-18; // C/m³
+    double base_charge = 1.0e-10; // C/m³
     
     // Wind-driven charge separation (stronger winds = more separation)
     double wind_factor = 1.0 + pow(weather.wind_speed / 10.0, 1.5);
@@ -118,6 +155,9 @@ double charge_separation(WeatherData weather, double air_density) {
     double temp_gradient_factor = 1.0;
     if (weather.temperature > 25.0) {
         temp_gradient_factor = 1.0 + (weather.temperature - 25.0) / 50.0;
+    } else if (weather.temperature < 0.0) {
+        // Cold air can also have charge separation (ice crystal effects)
+        temp_gradient_factor = 1.0 + fabs(weather.temperature) / 100.0;
     }
     
     // Air density effect (thinner air = less charge retention)
@@ -139,13 +179,16 @@ void print_risk_assessment(LightningRisk risk) {
     printf("Lightning Probability: %.2f%%\n", risk.lightning_probability);
     
     // Risk categories
-    if (risk.lightning_probability < 0.5) {
+    if (risk.lightning_probability < 15.0) {
         printf("Risk Level: LOW - Safe to fly\n");
-    } else if (risk.lightning_probability < 2.0) {
+    } else if (risk.lightning_probability < 40.0) {
         printf("Risk Level: MODERATE - Monitor conditions\n");
-    } else {
+    } else if (risk.lightning_probability < 70.0) {
         printf("Risk Level: HIGH - Consider route change\n");
+    }else {
+        printf("Risk Level: CRITICAL - Immediate reroute required\n");
     }
+    
     
     // Output for Ada to read
     printf("LIGHTNING_RISK:%.2f\n", risk.lightning_probability);
