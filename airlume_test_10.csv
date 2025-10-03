@@ -1,0 +1,11 @@
+timestamp,latitude,longitude,altitude_ft,e_field_total_V_m,e_field_vertical_V_m,e_field_horizontal_V_m,temperature_C,pressure_hPa,humidity_percent,ion_density_per_cm3,weather_condition,route_name
+2025-09-30 14:30,45.3202,-75.6656,30000,135.5,101.62,89.75,-42.3,308.45,88,120,clear,Ottawa-Toronto
+2025-09-30 14:45,45.15,-76.2,35000,450.2,337.65,299.64,-48.1,277.1,65.2,425,partly_cloudy,Ottawa-Toronto
+2025-09-30 15:00,44.88,-77,35000,890.75,668.06,593.99,-50.5,277.1,72.8,892,cloudy,Ottawa-Toronto
+2025-09-30 15:15,44.5,-78,40000,3200.4,2400.3,2133.6,-55.2,230.26,55.1,3205,storm_developing,Ottawa-Toronto
+2025-09-30 15:30,44.2,-78.8,35000,7850.15,5887.61,5232.6,-47.8,277.1,82.3,7856,thunderstorm,Ottawa-Toronto
+2025-09-30 15:45,43.85,-79.2,30000,12500.8,9375.6,8333.87,-43.5,308.45,91.5,12503,severe_storm,Ottawa-Toronto
+2025-09-30 16:00,43.6532,-79.3832,25000,145.3,108.98,96.85,-35.1,401.31,78.9,152,clear,Ottawa-Toronto
+2025-09-30 16:15,45.5017,-73.5673,35000,2850.6,2137.95,1900.4,-49.3,277.1,68.4,2853,storm_developing,Montreal-Toronto
+2025-09-30 16:30,49.9,-97.1,40000,580.25,435.19,386.84,-58.7,230.26,48.2,586,cloudy,Winnipeg-Toronto
+2025-09-30 16:45,51.0447,-114.0719,30000,220.9,165.68,147.27,-44.8,308.45,35.7,228,partly_cloudy,Calgary-Edmonton

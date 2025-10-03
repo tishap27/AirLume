@@ -1,6 +1,11 @@
-Add: basic AirLumeService with mock data and FlightController for JSF integration
+Add: CSV-based E-field data integration for enhanced predictions
 
-- Created AirLumeService EJB for business logic
-- Added mock lightning analysis for initial testing
-- Created FlightController backing bean with CDI injection
-- Connected form inputs to service layer
+- Created csv_reader.c/h for reading atmospheric E-field measurements
+- Implemented Haversine distance calculation for nearest data lookup
+- Added calculate_lightning_risk_from_efield() function in riskcalc.c
+- Updated main.c to integrate CSV data with real-time weather API
+- Enhanced risk calculation using measured E-field values from CSV
+- Generated airlume_test_10.csv with physics-based atmospheric data
+- System now combines OpenWeatherMap API + historical E-field database
+
+This improves prediction accuracy by using measured E-field values

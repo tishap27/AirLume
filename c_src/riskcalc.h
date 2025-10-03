@@ -1,3 +1,7 @@
+
+
+#include "csv_reader.h" 
+
 #ifndef RISKCALC_H
 #define RISKCALC_H
 
@@ -27,5 +31,7 @@ void write_risk_to_file(double lightning_risk);
 double calculate_paschen_breakdown(double pressure, double gap_distance);
 double calculate_air_density(double pressure, double temperature, double altitude);
 double charge_separation(WeatherData weather, double air_density);
+
+LightningRisk calculate_lightning_risk_from_efield(WeatherData weather, EFieldRecord efield); 
 
 #endif

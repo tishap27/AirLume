@@ -108,6 +108,57 @@ LightningRisk calculate_lightning_risk(WeatherData weather) {
     return risk;
 
 }
+
+
+
+LightningRisk calculate_lightning_risk_from_efield(WeatherData weather, EFieldRecord efield_data) {
+    LightningRisk risk;
+    
+    // Use REAL E-field from CSV instead of calculating it
+    risk.electric_field = efield_data.e_field_total_V_m;
+    
+    // Calculate air density
+    risk.air_density = calculate_air_density(weather.pressure, weather.temperature, weather.altitude);
+    
+    // Atmospheric conductivity
+    double base_conductivity = 3.0e-15;
+    double temp_factor = exp((weather.temperature - 15.0) / 100.0);
+    double pressure_factor = 1013.25 / weather.pressure;
+    risk.conductivity = base_conductivity * temp_factor * pressure_factor;
+    
+    // Charge density from CSV ion density
+    risk.charge_density = efield_data.ion_density_per_cm3 * 1.6e-19 * 1e6;
+    
+    // Paschen's Law breakdown voltage
+    risk.breakdown_voltage = calculate_paschen_breakdown(weather.pressure, 0.01);
+    
+    // Risk calculation based on REAL E-field
+    double field_risk = 0.0;
+    if (risk.electric_field < 200) {
+        field_risk = 0.05;  // Very low
+    } else if (risk.electric_field < 500) {
+        field_risk = 0.15;  // Low
+    } else if (risk.electric_field < 1000) {
+        field_risk = 0.35;  // Moderate
+    } else if (risk.electric_field < 2500) {
+        field_risk = 0.60;  // Elevated
+    } else if (risk.electric_field < 5000) {
+        field_risk = 0.80;  // High
+    } else {
+        field_risk = 0.95;  // Critical
+    }
+    
+    double humidity_risk = fmax(0, (weather.humidity - 75.0) / 25.0);
+    double pressure_risk = fmax(0, (1013.25 - weather.pressure) / 300.0);
+    
+    // Heavy weight on E-field (it's the most important factor)
+    double total_risk = (field_risk * 0.70 + humidity_risk * 0.20 + pressure_risk * 0.10);
+    risk.lightning_probability = total_risk * 100.0;
+    
+    return risk;
+}
+
+
 double calculate_paschen_breakdown(double pressure, double gap_distance) {
     // Paschen's Law: V_b = (A * p * d) / ln(B * p * d) ; A and B constants
     // where p = pressure in Pa, d = gap distance in meters
