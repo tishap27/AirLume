@@ -22,11 +22,12 @@ int main() {
     FILE* weather_pipe; 
    // char weather_output[1024];
     char command[256];
+    char weather_output[1024];
 
     #ifdef _WIN32
-        system("python python_src\\weather.py");
+        snprintf(command, sizeof(command), "python python_src\\weather.py");
     #else
-        system("python3 python_src/weather.py");
+        snprintf(command, sizeof(command), "python3 python_src/weather.py");
     #endif
 
     weather_pipe = popen(command, "r");
@@ -35,21 +36,35 @@ int main() {
         return 1;
     }
     WeatherData weather_data = {20.0, 60.0, 1013.0, 5.0}; // defaults
-    char weather_output[1024];
+    //char weather_output[1024];
     double query_lat = 45.3202;  // Ottawa (will come from API)
     double query_lon = -75.6656;
     int query_altitude = 30000;  // feet
     
     // Read Python output and parse weather data
     while (fgets(weather_output, sizeof(weather_output), weather_pipe)) {
-        printf("%s", weather_output); // Show Python output
-        
-        if (strstr(weather_output, "WEATHER_DATA:")) {
-            weather_data = parse_weather_data(weather_output);
+    printf("%s", weather_output);
+    if (strstr(weather_output, "WEATHER_DATA:")) {
+        // Direct parsing right here
+        double temp, hum, pres, wind;
+        if (sscanf(weather_output, "WEATHER_DATA:%lf,%lf,%lf,%lf", 
+                   &temp, &hum, &pres, &wind) == 4) {
+            weather_data.temperature = temp;
+            weather_data.humidity = hum;
+            weather_data.pressure = pres;
+            weather_data.wind_speed = wind;
+            weather_data.altitude = 10000.0;
+            printf("[DEBUG] Direct parse SUCCESS: %.2f, %.2f, %.2f, %.2f\n",
+                   temp, hum, pres, wind);
+        } else {
+            printf("[DEBUG] Direct parse FAILED\n");
+            printf("[DEBUG] Line was: '%s'\n", weather_output);
         }
     }
+}
     pclose(weather_pipe);
-    
+    printf("\n[DEBUG] After parsing: temp=%.2f, humidity=%.2f, pressure=%.2f\n", 
+       weather_data.temperature, weather_data.humidity, weather_data.pressure);
 
     // Calculate lightning risk using physics
     printf("\n Analyzing Lightning Risk via the CSV ...\n");
@@ -69,12 +84,12 @@ int main() {
     
     if (efield_data.e_field_total_V_m < 0) {
         // CSV not available, use calculation
-        printf("\n[STEP 3] CSV not found - Using Calculated E-Field Model\n");
+        printf("\n[] CSV not found - Using Calculated E-Field Model\n");
         risk = calculate_lightning_risk(weather_data);
         print_risk_assessment(risk);
     } else {
         // CSV available, use enhanced prediction
-        printf("\n[STEP 3] Calculating Risk with CSV-Enhanced Model\n");
+        printf("\n[] Calculating Risk with CSV-Enhanced Model\n");
         risk = calculate_lightning_risk_from_efield(weather_data, efield_data);
         
         // Enhanced output

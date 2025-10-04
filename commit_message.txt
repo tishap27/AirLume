@@ -1,11 +1,11 @@
-Add: CSV-based E-field data integration for enhanced predictions
+fix: Resolve weather data parsing from Python API output
 
-- Created csv_reader.c/h for reading atmospheric E-field measurements
-- Implemented Haversine distance calculation for nearest data lookup
-- Added calculate_lightning_risk_from_efield() function in riskcalc.c
-- Updated main.c to integrate CSV data with real-time weather API
-- Enhanced risk calculation using measured E-field values from CSV
-- Generated airlume_test_10.csv with physics-based atmospheric data
-- System now combines OpenWeatherMap API + historical E-field database
+Issue: Weather data was not being parsed correctly from Python subprocess.
+The system() call was executing Python before popen(), and the command
+variable was uninitialized when passed to popen(), resulting in no data
+in the pipe.
 
-This improves prediction accuracy by using measured E-field values
+- Removed redundant system() call that executed Python incorrectly
+- Properly initialized command string with snprintf() before popen()
+- Added direct sscanf parsing in main.c instead of relying on separate function
+

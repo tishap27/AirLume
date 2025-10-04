@@ -15,22 +15,31 @@
 #define PASCHEN_B 2737.50               // Paschen constant for air (V/(Pa·m))
 
 WeatherData parse_weather_data(const char* weather_line) {
-    WeatherData weather = {20.0, 60.0, 1013.0, 5.0}; // defaults
+    WeatherData weather = {20.0, 60.0, 1013.0, 5.0, 10000.0};
     
-    // Look for WEATHER_DATA: prefix
     const char* data_start = strstr(weather_line, "WEATHER_DATA:");
     if (data_start) {
-        data_start += 13; // Skip "WEATHER_DATA:"
-        sscanf(data_start, "%lf,%lf,%lf,%lf", 
-               &weather.temperature, &weather.humidity, 
-               &weather.pressure, &weather.wind_speed);
-        // For NOW, assuming cruise altitude of 10km
-        weather.altitude = 10000.0;
+        data_start += 13;
+        
+        // Parse and verify
+        int count = sscanf(data_start, "%lf,%lf,%lf,%lf", 
+                          &weather.temperature, 
+                          &weather.humidity, 
+                          &weather.pressure, 
+                          &weather.wind_speed);
+        
+        if (count == 4) {
+            weather.altitude = 10000.0;
+            printf("[DEBUG] Successfully parsed: %.2f, %.2f, %.2f, %.2f\n",
+                   weather.temperature, weather.humidity, 
+                   weather.pressure, weather.wind_speed);
+        } else {
+            printf("[DEBUG] Parse failed: only got %d values\n", count);
+        }
     }
     
     return weather;
 }
-
 LightningRisk calculate_lightning_risk(WeatherData weather) {
     LightningRisk risk;
     
