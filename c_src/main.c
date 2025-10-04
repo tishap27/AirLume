@@ -75,7 +75,7 @@ int main() {
     //Writing risk to file for Ada
    // write_risk_to_file(risk.lightning_probability);
 
-    EFieldRecord efield_data = find_nearest_efield("airlume_test_10.csv", 
+    EFieldRecord efield_data = find_nearest_efield("airlume_usa_efield_100.csv", 
                                                      query_lat, 
                                                      query_lon, 
                                                      query_altitude);

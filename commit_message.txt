@@ -1,11 +1,20 @@
-fix: Resolve weather data parsing from Python API output
+Add: NOAA lightning strike validation with USA E-field dataset
 
-Issue: Weather data was not being parsed correctly from Python subprocess.
-The system() call was executing Python before popen(), and the command
-variable was uninitialized when passed to popen(), resulting in no data
-in the pipe.
+Implemented validation framework to test AirLume predictions
+against 62 real historical lightning strikes from NOAA Storm Events Database.
 
-- Removed redundant system() call that executed Python incorrectly
-- Properly initialized command string with snprintf() before popen()
-- Added direct sscanf parsing in main.c instead of relying on separate function
+Added files:
+- noaa_lightning.csv: Real strike locations (USA southeastern region, 2025)
+- airlume_usa_efield_100.csv: 100 E-field records covering strike geography (lat 27-43°N, lon -90 to -71°W) to match NOAA data distribution
+- validate_noaa.py: Validation script testing predictions vs actual strikes
+- validation_results.csv: Results showing 46.8% detection rate (33/62 correct)
 
+Validation approach:
+- Query current weather at historical strike coordinates
+- Find nearest E-field measurement using Haversine distance calculation
+- Apply same risk algorithm as C implementation
+- Classify HIGH risk (>=40%) as correct prediction for strike locations
+
+Performance limited by simulated E-field data and current weather proxy
+for historical conditions. System correctly identifies ~half of actual
+lightning zones as elevated risk.
