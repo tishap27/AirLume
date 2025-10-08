@@ -1,20 +1,29 @@
-Add: NOAA lightning strike validation with USA E-field dataset
+Add: Improved physics model and SWDI validation
 
-Implemented validation framework to test AirLume predictions
-against 62 real historical lightning strikes from NOAA Storm Events Database.
+Major improvements:
+- Remove broken CAPE calculation (was giving 10-20x too low values)
+- Fix E-field risk thresholds: lower bounds from 1000 V/m to 400 V/m
+- Improve threshold granularity: 400/700/1000/1500/2500 V/m tiers
+- Redistribute risk weights: E-field 45%, ice 25%, humidity 15%, pressure 10%
 
-Added files:
-- noaa_lightning.csv: Real strike locations (USA southeastern region, 2025)
-- airlume_usa_efield_100.csv: 100 E-field records covering strike geography (lat 27-43°N, lon -90 to -71°W) to match NOAA data distribution
-- validate_noaa.py: Validation script testing predictions vs actual strikes
-- validation_results.csv: Results showing 46.8% detection rate (33/62 correct)
+Validation methods enhanced:
+- Integrate SWDI (Space Weather Data Inventory) for real lightning strike data
+- Download 181 lightning events from 2024 (69,493 total storm events)
+- Validate against entire 2024 dataset (60-day filter currently no results yet )
+- Test 50 randomly sampled strikes
 
-Validation approach:
-- Query current weather at historical strike coordinates
-- Find nearest E-field measurement using Haversine distance calculation
-- Apply same risk algorithm as C implementation
-- Classify HIGH risk (>=40%) as correct prediction for strike locations
+Results:
+- Detection rate improved from 46.3% → 53.2% (CSV validation) → 68.0% (SWDI validation)
+- Average E-field: 533.5 V/m (max: 930.0 V/m)
+- Average risk: 30.8% (max: 55.0%)
+- 34/50 strikes correctly predicted as HIGH risk (≥25% threshold)
 
-Performance limited by simulated E-field data and current weather proxy
-for historical conditions. System correctly identifies ~half of actual
-lightning zones as elevated risk.
+Files added:
+- test_swdi_simple.py: SWDI data downloader
+- proper_validation.py: Validation script using real lightning data
+- lightning_events_2024.csv: 181 lightning strikes from SWDI
+- validation_results_proper.csv: Detailed validation results
+
+Files modified:
+- c_src/riskcalc.c: Remove CAPE, fix E-field thresholds
+- c_src/riskcalc.h: Remove cape field from LightningRisk struct

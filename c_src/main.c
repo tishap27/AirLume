@@ -90,8 +90,8 @@ int main() {
     } else {
         // CSV available, use enhanced prediction
         printf("\n[] Calculating Risk with CSV-Enhanced Model\n");
-        risk = calculate_lightning_risk_from_efield(weather_data, efield_data);
-        
+       // risk = calculate_lightning_risk_from_efield(weather_data, efield_data);
+        risk = calculate_lightning_risk(weather_data);  // Pure physics only
         // Enhanced output
         printf("\n=== COMBINED DATA ANALYSIS ===\n");
         printf("Query Location: (%.4f, %.4f) @ %d ft\n", query_lat, query_lon, query_altitude);

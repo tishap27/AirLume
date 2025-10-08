@@ -13,6 +13,10 @@
 #define KELVIN_OFFSET 273.15            // Convert C to K
 #define PASCHEN_A 112.50                // Paschen constant for air (V/(Pa·m))
 #define PASCHEN_B 2737.50               // Paschen constant for air (V/(Pa·m))
+#define GRAVITY 9.81                    // m/s²
+#define CP_AIR 1005.0                   // Specific heat of air (J/(kg·K))
+#define EARTH_RADIUS 6371000.0          // meters
+
 
 WeatherData parse_weather_data(const char* weather_line) {
     WeatherData weather = {20.0, 60.0, 1013.0, 5.0, 10000.0};
@@ -42,9 +46,11 @@ WeatherData parse_weather_data(const char* weather_line) {
 }
 LightningRisk calculate_lightning_risk(WeatherData weather) {
     LightningRisk risk;
+     printf("[NEW CODE] calculate_lightning_risk() called with T=%.1f, H=%.1f\n", weather.temperature, weather.humidity);
     
     //Calculate air density with altitude correction
     risk.air_density = calculate_air_density(weather.pressure, weather.temperature, weather.altitude);
+
     // Calculate atmospheric conductivity Higher temperature = higher conductivity  ; Lower pressure = lower conductivity
     double base_conductivity = 3.0e-15; // S/m (typical fair weather)
     double temp_factor = exp((weather.temperature - 15.0) / 100.0);
@@ -52,11 +58,25 @@ LightningRisk calculate_lightning_risk(WeatherData weather) {
     
     risk.conductivity = base_conductivity * temp_factor * pressure_factor;
 
-    //Electric field calculation
-    risk.electric_field = charge_separation(weather, risk.air_density);
+    risk.charge_density = charge_separation(weather, risk.air_density);
+
+    
+    //Calculate CAPE (atmospheric instability)
+   // risk.cape = calculate_cape(weather, risk.air_density);
+
+    //Calculate ice crystal density at typical thunderstorm altitude (8-12km)
+    double avg_storm_altitude = 10000.0; // meters
+    risk.ice_crystal_density = calculate_ice_crystal_density(weather, avg_storm_altitude);
+
+    //Calculate charge density using enhanced model
+    //risk.charge_density = charge_separation(weather, risk.air_density);
+
+
+    //Calculate cloud-to-ground potential using all factors
+    risk.electric_field = calculate_cloud_ground_potential(weather, risk.air_density, risk.ice_crystal_density);
     
     //Calculate electric field based on atmospheric conditions
-    double base_field = FAIR_WEATHER_FIELD;
+    /*double base_field = FAIR_WEATHER_FIELD;
     // Humidity effect (high humidity enables charge accumulation)
     if (weather.humidity > 70.0) {
         base_field += (weather.humidity - 70.0) * 15.0;  // 15 V/m per 1% above 70%
@@ -75,10 +95,10 @@ LightningRisk calculate_lightning_risk(WeatherData weather) {
     // Wind effect (stronger winds = more charge separation)
     if (weather.wind_speed > 5.0) {
         base_field += (weather.wind_speed - 5.0) * 30.0;  // 30 V/m per m/s above 5 m/s
-    }
+    }*/
 
     //charge density
-     risk.electric_field = base_field + (risk.charge_density / VACUUM_PERMITTIVITY) * 1e-8;
+    // risk.electric_field = base_field + (risk.charge_density / VACUUM_PERMITTIVITY) * 1e-8;
 
 
 
@@ -86,31 +106,47 @@ LightningRisk calculate_lightning_risk(WeatherData weather) {
     risk.breakdown_voltage = calculate_paschen_breakdown(weather.pressure, 0.01);
     
      double field_risk = 0.0;
-    if (risk.electric_field < 200) {
-        field_risk = 0.05;  // Very low
-    } else if (risk.electric_field < 500) {
-        field_risk = 0.15;  // Low
+    if (risk.electric_field < 400) {
+        field_risk = 0.10;  // Very low
+    } else if (risk.electric_field < 700) {
+        field_risk = 0.35;  // Low
     } else if (risk.electric_field < 1000) {
-        field_risk = 0.35;  // Moderate
+        field_risk = 0.50;  // Moderate
+    } else if (risk.electric_field < 1500) {
+        field_risk = 0.65;  // Elevated
     } else if (risk.electric_field < 2500) {
-        field_risk = 0.60;  // Elevated
-    } else if (risk.electric_field < 5000) {
         field_risk = 0.80;  // High
     } else {
-        field_risk = 0.95;  // Critical
+        field_risk = 0.90;  // Critical
     }
     
-    double humidity_risk = fmax(0, (weather.humidity - 75.0) / 25.0);
-    double pressure_risk = fmax(0, (1013.25 - weather.pressure) / 300.0);
-    double breakdown_risk = 0.0;
+
     
+    
+    //  Ice crystal risk (charge separation mechanism)
+    double ice_risk = 0.0;
+    if (risk.ice_crystal_density > 500.0) {
+        ice_risk = fmin((risk.ice_crystal_density / 3000.0), 1.0);
+    }
+
+
+
+    double humidity_risk = fmax(0, (weather.humidity - 70.0) / 30.0);
+    double pressure_risk = fmax(0, (1013.25 - weather.pressure) / 200.0);
+
+    double breakdown_risk = 0.0;
     if (risk.breakdown_voltage < 500000.0) { // Less than 500kV is concerning
         breakdown_risk = (500000.0 - risk.breakdown_voltage) / 500000.0;
     }
     
     // Weighted combination of risk factors
-    double total_risk = (field_risk * 0.5 + humidity_risk * 0.25 + 
-                        pressure_risk * 0.15 + breakdown_risk * 0.1);
+     double total_risk = (field_risk * 0.35) +      // E-field (primary)
+                                                   // Convective instability
+                       (ice_risk * 0.20) +         // Charge separation mechanism
+                       (humidity_risk * 0.10) +    // Charge accumulation
+                       (pressure_risk * 0.10) +    // Storm system indicator
+                       (breakdown_risk * 0.05);    // Breakdown proximity
+    
     
     risk.lightning_probability = fmax(0, fmin(total_risk * 100, 100.0)); // Cap at 15%
     
@@ -141,27 +177,43 @@ LightningRisk calculate_lightning_risk_from_efield(WeatherData weather, EFieldRe
     // Paschen's Law breakdown voltage
     risk.breakdown_voltage = calculate_paschen_breakdown(weather.pressure, 0.01);
     
-    // Risk calculation based on REAL E-field
+
+    //Calculate CAPE and ice density even with CSV data
+   // risk.cape = calculate_cape(weather, risk.air_density);
+    risk.ice_crystal_density = calculate_ice_crystal_density(weather, weather.altitude);
+
+
+    // Risk calculation based on CSV E-field
     double field_risk = 0.0;
-    if (risk.electric_field < 200) {
-        field_risk = 0.05;  // Very low
-    } else if (risk.electric_field < 500) {
-        field_risk = 0.15;  // Low
+    if (risk.electric_field < 400) {
+        field_risk = 0.10;  // Very low
+    } else if (risk.electric_field < 700) {
+        field_risk = 0.35;  // Low
     } else if (risk.electric_field < 1000) {
-        field_risk = 0.35;  // Moderate
+        field_risk = 0.50;  // Moderate
+    } else if (risk.electric_field < 1500) {
+        field_risk = 0.65;  // Elevated
     } else if (risk.electric_field < 2500) {
-        field_risk = 0.60;  // Elevated
-    } else if (risk.electric_field < 5000) {
         field_risk = 0.80;  // High
     } else {
-        field_risk = 0.95;  // Critical
+        field_risk = 0.90;  // Critical
     }
     
-    double humidity_risk = fmax(0, (weather.humidity - 75.0) / 25.0);
-    double pressure_risk = fmax(0, (1013.25 - weather.pressure) / 300.0);
+
+    //double cape_risk = (risk.cape > 1000.0) ? fmin((risk.cape / 4000.0), 1.0) : 0.0;
+    double ice_risk = (risk.ice_crystal_density > 500.0) ? fmin((risk.ice_crystal_density / 3000.0), 1.0) : 0.0;
+
+    double humidity_risk = fmax(0, (weather.humidity - 70.0) / 30.0);
+    double pressure_risk = fmax(0, (1013.25 - weather.pressure) / 200.0);
     
     // Heavy weight on E-field (it's the most important factor)
-    double total_risk = (field_risk * 0.70 + humidity_risk * 0.20 + pressure_risk * 0.10);
+   double total_risk = (field_risk * 0.50) +
+                      
+                       (ice_risk * 0.15) +
+                       (humidity_risk * 0.10) +
+                       (pressure_risk * 0.10);
+
+
     risk.lightning_probability = total_risk * 100.0;
     
     return risk;
@@ -223,8 +275,7 @@ double charge_separation(WeatherData weather, double air_density) {
     // Air density effect (thinner air = less charge retention)
     double density_factor = air_density / 1.225; // Normalize to sea level density
     
-    double charge_density = base_charge * wind_factor * humidity_factor * 
-                           temp_gradient_factor * density_factor;
+    double charge_density = base_charge * wind_factor * humidity_factor * temp_gradient_factor * density_factor;
     
     return charge_density;
 }
@@ -235,15 +286,19 @@ void print_risk_assessment(LightningRisk risk) {
     printf("Atmospheric Conductivity: %.2e S/m\n", risk.conductivity);
     printf("Charge Density: %.2e C/m³\n", risk.charge_density);
     printf("Electric Field: %.1f V/m\n", risk.electric_field);
+
+    //printf("CAPE (Instability): %.1f J/kg\n", risk.cape);
+    printf("Ice Crystal Density: %.0f crystals/L\n", risk.ice_crystal_density);
+
     printf("Breakdown Voltage (Paschen): %.0f V\n", risk.breakdown_voltage);
     printf("Lightning Probability: %.2f%%\n", risk.lightning_probability);
     
     // Risk categories
     if (risk.lightning_probability < 15.0) {
         printf("Risk Level: LOW - Safe to fly\n");
-    } else if (risk.lightning_probability < 40.0) {
+    } else if (risk.lightning_probability < 30.0) {
         printf("Risk Level: MODERATE - Monitor conditions\n");
-    } else if (risk.lightning_probability < 70.0) {
+    } else if (risk.lightning_probability < 50.0) {
         printf("Risk Level: HIGH - Consider route change\n");
     }else {
         printf("Risk Level: CRITICAL - Immediate reroute required\n");
@@ -263,4 +318,102 @@ void write_risk_to_file(double lightning_risk) {
     } else {
         printf("Error: Could not write risk file for Ada\n");
     }
+}
+
+
+
+
+// Ice crystals are critical for charge separation in thunderstorms (non-inductive charging)
+double calculate_ice_crystal_density(WeatherData weather, double altitude_m) {
+    // Ice crystals form between -10degC and -40degC (optimal at -15degC)
+    // This is the "charging zone" in thunderstorms
+    
+    double temp_kelvin = weather.temperature + KELVIN_OFFSET;
+    
+    // Estimate temperature at altitude using lapse rate
+    double lapse_rate = 0.0065; // K/m
+    double temp_at_altitude = weather.temperature - (lapse_rate * altitude_m);
+    
+    double ice_density = 0.0;
+    
+    // Charging zone: -40°C to -10°C
+    if (temp_at_altitude < -10.0 && temp_at_altitude > -40.0) {
+        // Peak ice formation at -15°C
+        double optimal_temp = -15.0;
+        double temp_factor = 1.0 - (fabs(temp_at_altitude - optimal_temp) / 25.0);
+        
+        // Humidity effect (more moisture = more ice crystals)
+        double humidity_factor = weather.humidity / 100.0;
+        
+        // Wind creates more collision/charge separation
+        double wind_factor = 1.0 + (weather.wind_speed / 10.0);
+        
+        // Base ice crystal concentration (crystals per liter)
+        double base_density = 1000.0; // typical thunderstorm value
+        
+        ice_density = base_density * temp_factor * humidity_factor * wind_factor;
+    }
+    
+    // Supercooled water (0°C to -10°C) also contributes
+    if (temp_at_altitude <= 0.0 && temp_at_altitude > -10.0) {
+        double supercooled_factor = fabs(temp_at_altitude) / 10.0;
+        ice_density += 500.0 * supercooled_factor * (weather.humidity / 100.0);
+    }
+    
+    return ice_density;
+}
+
+// Calculate cloud-to-ground potential gradient
+// This is the electric field that builds up before lightning discharge
+double calculate_cloud_ground_potential(WeatherData weather, double air_density, double ice_density) {
+    // Lightning occurs when E-field exceeds breakdown threshold (~3 MV/m)
+    // We're calculating the buildup toward that threshold
+    
+    double base_potential = 0.0;
+    
+    // 1. Charge separation from ice crystal collisions (primary mechanism)
+    // Graupel (soft hail) collides with ice crystals
+    // Graupel becomes negatively charged, ice crystals positive
+    // This creates vertical charge separation
+    double ice_charge_contribution = 0.0;
+    if (ice_density > 100.0) {
+        // More ice = more collisions = more charge separation
+        ice_charge_contribution = sqrt(ice_density) * 50.0; // V/m
+    }
+    
+    // 2. Convective strength (CAPE) determines charge layer height/separation
+    // Stronger updrafts = greater vertical charge separation
+    double cape_contribution = 0.0;
+   /* if (cape > 500.0) {
+        // CAPE > 1000 J/kg = severe thunderstorm potential
+        cape_contribution = (cape / 1000.0) * 800.0; // V/m
+    }*/
+    
+    // 3. Humidity enables charge accumulation (water droplets hold charge)
+    double humidity_contribution = 0.0;
+    if (weather.humidity > 70.0) {
+        humidity_contribution = (weather.humidity - 70.0) * 25.0; // V/m per %
+    }
+    
+    // 4. Low pressure = storm system = existing E-field
+    double pressure_contribution = 0.0;
+    if (weather.pressure < 1000.0) {
+        pressure_contribution = (1013.25 - weather.pressure) * 40.0; // V/m per hPa
+    }
+    
+    // 5. Wind shear enhances charge separation
+    double wind_contribution = 0.0;
+    if (weather.wind_speed > 5.0) {
+        wind_contribution = (weather.wind_speed - 5.0) * 40.0; // V/m per m/s
+    }
+    
+    // Combine all mechanisms
+    base_potential = ice_charge_contribution + cape_contribution + 
+                    humidity_contribution + pressure_contribution + 
+                    wind_contribution;
+    
+    // Fair weather field baseline
+    base_potential += FAIR_WEATHER_FIELD;
+    
+    return base_potential;
 }

@@ -20,6 +20,8 @@ typedef struct {
     double lightning_probability; // Percentage 
     double breakdown_voltage;     // V (Paschen's law)
     double air_density;          // kg/m³ (altitude corrected)
+   // double cape;                  // J/kg (Convective Available Potential Energy)
+   double ice_crystal_density;   // crystals/L
 } LightningRisk;
 
 // Function prototypes
@@ -33,5 +35,12 @@ double calculate_air_density(double pressure, double temperature, double altitud
 double charge_separation(WeatherData weather, double air_density);
 
 LightningRisk calculate_lightning_risk_from_efield(WeatherData weather, EFieldRecord efield); 
+
+double calculate_ice_crystal_density(WeatherData weather, double altitude_m);
+double calculate_cloud_ground_potential(WeatherData weather, double air_density, double ice_density);
+
+//CAPE stuff
+
+
 
 #endif
