@@ -1,9 +1,9 @@
-Add: Route waypoint generation system 
+Add: Implementwaypoint risk assessment (c_src/route_risk.c c_src/route_risk.h)
 
-- moved haversine distance calculation from csv_reader.c to route_planning.c
-- Add generate_waypoints() using spherical interpolation (slerp)
-- Support ICAO airport code lookup (10 major airports included)
-- Generate waypoints at configurable intervals (default: 50km)
+- Add WaypointRisk structure to store risk data per waypoint
+- Implement assess_route_risk() to analyze entire flight path
+- Calculate max risk, average risk, and identify critical segments
+- Generate flight recommendations based on route-wide analysis
+- Add visual risk profile display with ASCII bar chart
 
-Example: CYOW-->CYYZ generates 8 waypoints over 350km route
-This enables multi-point lightning risk assessment along flight paths.
+will help to identify specific high-risk segments along route.
