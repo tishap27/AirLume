@@ -1,29 +1,9 @@
-Add: Improved physics model and SWDI validation
+Add: Route waypoint generation system 
 
-Major improvements:
-- Remove broken CAPE calculation (was giving 10-20x too low values)
-- Fix E-field risk thresholds: lower bounds from 1000 V/m to 400 V/m
-- Improve threshold granularity: 400/700/1000/1500/2500 V/m tiers
-- Redistribute risk weights: E-field 45%, ice 25%, humidity 15%, pressure 10%
+- moved haversine distance calculation from csv_reader.c to route_planning.c
+- Add generate_waypoints() using spherical interpolation (slerp)
+- Support ICAO airport code lookup (10 major airports included)
+- Generate waypoints at configurable intervals (default: 50km)
 
-Validation methods enhanced:
-- Integrate SWDI (Space Weather Data Inventory) for real lightning strike data
-- Download 181 lightning events from 2024 (69,493 total storm events)
-- Validate against entire 2024 dataset (60-day filter currently no results yet )
-- Test 50 randomly sampled strikes
-
-Results:
-- Detection rate improved from 46.3% → 53.2% (CSV validation) → 68.0% (SWDI validation)
-- Average E-field: 533.5 V/m (max: 930.0 V/m)
-- Average risk: 30.8% (max: 55.0%)
-- 34/50 strikes correctly predicted as HIGH risk (≥25% threshold)
-
-Files added:
-- test_swdi_simple.py: SWDI data downloader
-- proper_validation.py: Validation script using real lightning data
-- lightning_events_2024.csv: 181 lightning strikes from SWDI
-- validation_results_proper.csv: Detailed validation results
-
-Files modified:
-- c_src/riskcalc.c: Remove CAPE, fix E-field thresholds
-- c_src/riskcalc.h: Remove cape field from LightningRisk struct
+Example: CYOW-->CYYZ generates 8 waypoints over 350km route
+This enables multi-point lightning risk assessment along flight paths.

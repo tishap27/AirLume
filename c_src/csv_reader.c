@@ -13,7 +13,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-double haversine_distance(double lat1, double lon1, double lat2, double lon2) {
+/*double haversine_distance(double lat1, double lon1, double lat2, double lon2) {
     double lat1_rad = lat1 * M_PI / 180.0;
     double lon1_rad = lon1 * M_PI / 180.0;
     double lat2_rad = lat2 * M_PI / 180.0;
@@ -27,7 +27,7 @@ double haversine_distance(double lat1, double lon1, double lat2, double lon2) {
     double c = 2 * atan2(sqrt(a), sqrt(1-a));
     
     return EARTH_RADIUS_KM * c;
-}
+}*/
 
 EFieldRecord find_nearest_efield(const char* csv_filename, double lat, double lon, int altitude_ft) {
     FILE* file = fopen(csv_filename, "r");
