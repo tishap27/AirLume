@@ -1,9 +1,13 @@
-Add: Implementwaypoint risk assessment (c_src/route_risk.c c_src/route_risk.h)
+Add: route analysis mode to main application
 
-- Add WaypointRisk structure to store risk data per waypoint
-- Implement assess_route_risk() to analyze entire flight path
-- Calculate max risk, average risk, and identify critical segments
-- Generate flight recommendations based on route-wide analysis
-- Add visual risk profile display with ASCII bar chart
+- Support command-line route input: ./airlume CYOW CYYZ
+- Automatic airport code lookup and coordinate resolution
+- Generate and analyze waypoints along great circle route
+- Display comprehensive risk profile with visual indicators
+- Export route risk data for Ada safety integration
+- Analyzing throughout the route 
 
-will help to identify specific high-risk segments along route.
+Usage:
+  Route mode:  ./airlume CYOW CYYZ
+  Single mode: ./airlume
+

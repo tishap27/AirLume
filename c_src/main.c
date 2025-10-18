@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "riskcalc.h"
+#include "route_planning.h"
+#include "route_risk.h"
 
 #ifdef _WIN32
     #define PYTHON_CMD "python"
@@ -11,9 +13,64 @@
     #define PATH_SEP "/"
 #endif
 
-int main() {
+int main(int argc, char *argv[]) {
     printf("=== AirLume Lightning Strike Prediction System ===\n");
+
+     // Check if running in route mode
+    if (argc >= 3) {
+        printf("\n=== ROUTE ANALYSIS MODE ===\n");
+        
+        FlightRoute route;
+        
+        // Look up origin
+        if (lookup_airport_coordinates(argv[1], &route.origin_lat, &route.origin_lon)) {
+            strcpy(route.origin_name, argv[1]);
+            printf("Origin: %s (%.4f, %.4f)\n", argv[1], route.origin_lat, route.origin_lon);
+        } else {
+            printf("Error: Unknown airport code '%s'\n", argv[1]);
+            printf("Available codes: CYOW, CYYZ, CYUL, CYVR, CYYC, KJFK, KORD, KLAX, KATL, KDFW\n");
+            return 1;
+        }
+        
+        // Look up destination
+        if (lookup_airport_coordinates(argv[2], &route.dest_lat, &route.dest_lon)) {
+            strcpy(route.destination_name, argv[2]);
+            printf("Destination: %s (%.4f, %.4f)\n", argv[2], route.dest_lat, route.dest_lon);
+        } else {
+            printf("Error: Unknown airport code '%s'\n", argv[2]);
+            return 1;
+        }
+        
+        // Generate waypoints
+        generate_waypoints(&route, 50.0);
+        print_route_summary(&route);
+        
+        // Assess risk along route
+        RouteRiskAssessment assessment;
+        assess_route_risk(&assessment, &route);
+        
+        // Print results
+        print_route_risk_profile(&assessment);
+        
+        // Write for Ada
+        FILE* route_file = fopen("route_risk.txt", "w");
+        if (route_file) {
+            fprintf(route_file, "ROUTE:%s->%s\n", route.origin_name, route.destination_name);
+            fprintf(route_file, "MAX_RISK:%.2f\n", assessment.max_risk);
+            fprintf(route_file, "AVG_RISK:%.2f\n", assessment.avg_risk);
+            fclose(route_file);
+        }
+        
+        printf("\n=== Route analysis complete ===\n");
+        return 0;  // Exit after route mode
+    }
+    // END OF ROUTE MODE SECTION ###
+
+
     printf("Trying CSV\n");
+    printf("\nNote: For route analysis, use: ./airlume ORIGIN DEST\n");
+    printf("Example: ./airlume CYOW CYYZ\n");
+    printf("Running single-point mode...\n\n");
     
     // Call Python 
     printf("\n1. Calling Python Weather API...\n");
