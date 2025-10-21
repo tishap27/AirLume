@@ -1,15 +1,8 @@
 <?xml version="1.0"?>
 <Locations >
-  <Project >
-    <file_marker column=" 1" line=" 1" >
-      <vfs_project />
-      <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
-    </file_marker>
-    <file_marker column=" 1" line=" 1" >
-      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
-      <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
-    </file_marker>
-    <file_marker current="true" column=" 1" line=" 1" >
+  <Project>
+    <vfs_file />
+    <file_marker current="true" column=" 32" line=" 33" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
     </file_marker>
