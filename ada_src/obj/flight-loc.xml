@@ -2,9 +2,17 @@
 <Locations >
   <Project>
     <vfs_file />
-    <file_marker current="true" column=" 32" line=" 33" >
+    <file_marker column=" 32" line=" 33" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 18" line=" 21" >
+      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\safety_types.ads</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 23" line=" 22" >
+      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\physics_validator.ads</vfs_file>
     </file_marker>
   </Project>
 </Locations>
