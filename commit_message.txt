@@ -1,13 +1,20 @@
-Add: route analysis mode to main application
+Add: historical weather fetcher using Open-Meteo Archive API
 
-- Support command-line route input: ./airlume CYOW CYYZ
-- Automatic airport code lookup and coordinate resolution
-- Generate and analyze waypoints along great circle route
-- Display comprehensive risk profile with visual indicators
-- Export route risk data for Ada safety integration
-- Analyzing throughout the route 
+Fix for Validation:
+- Previous validation was using TODAY's weather for historical strikes (wrong)
+- Now fetches weather from EXACT date/time of each strike event
+- Uses Open-Meteo Archive API (free, no API key required)
+- Parses NOAA BEGIN_YEARMONTH, BEGIN_DAY, BEGIN_TIME fields
+- Finds closest hourly weather data to strike timestamp
+- Stores results in historical_weather_strikes.csv
 
-Usage:
-  Route mode:  ./airlume CYOW CYYZ
-  Single mode: ./airlume
+Data Retrieved:
+- Temperature at strike time
+- Humidity at strike time  
+- Pressure at strike time
+- Wind speed at strike time
+- Time match quality (how close hourly data is to exact strike time)
 
+This fixes the fundamental validation flaw: was comparing current weather (Oct 2024)
+against historical strikes (Jan-Sep 2024). Now we use weather FROM when strike
+actually occurred.
