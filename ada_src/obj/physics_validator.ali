@@ -1,0 +1,90 @@
+V "GNAT Lib v15"
+A -gnatA
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_FLOATING_POINT
+RV NO_IO
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U physics_validator%b	physics_validator.adb	7be48321 NE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.float_text_io%s	a-flteio.ads		a-flteio.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W ada.text_io%s		a-textio.adb		a-textio.ali
+
+U physics_validator%s	physics_validator.ads	19d29191 EE NE OO PK
+W safety_types%s	safety_types.ads	safety_types.ali
+
+D ada.ads		20250425081800 76789da1 ada%s
+D a-except.ads		20250425081800 e7970cd9 ada.exceptions%s
+D a-flteio.ads		20250425081800 e18a47a0 ada.float_text_io%s
+D a-ioexce.ads		20250425081800 40018c65 ada.io_exceptions%s
+D a-stream.ads		20250425081800 17477cbd ada.streams%s
+D a-string.ads		20250425081800 90ac6797 ada.strings%s
+D a-sttebu.ads		20250425081800 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20250425081800 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250425081800 fbca0ad5 ada.tags%s
+D a-textio.ads		20250425081800 34ef47de ada.text_io%s
+D a-tiflio.ads		20250425081800 48a0360d ada.text_io.float_io%s
+D a-unccon.ads		20250425081800 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20250425081800 9111f9c1 interfaces%s
+D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
+D physics_validator.ads	20251021174504 e3056d02 physics_validator%s
+D physics_validator.adb	20251021174520 4d84ee5d physics_validator%b
+D safety_types.ads	20251021173732 fad7fc93 safety_types%s
+D system.ads		20250425081800 a869df9e system%s
+D s-crtl.ads		20250425081800 beb39b9e system.crtl%s
+D s-exctab.ads		20250425081800 91bef6ef system.exception_table%s
+D s-ficobl.ads		20250425081800 dc5161d4 system.file_control_block%s
+D s-parame.ads		20250425081800 3597fc11 system.parameters%s
+D s-putima.ads		20250425081800 17291fe4 system.put_images%s
+D s-secsta.ads		20250425081800 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250425081800 5d88fdea system.soft_links%s
+D s-stache.ads		20250425081800 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250425081800 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250425081800 ccded4e8 system.storage_elements%s
+D s-traent.ads		20250425081800 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250425081800 fa2a7f59 system.unsigned_types%s
+D s-wchcon.ads		20250425081800 d9032363 system.wch_con%s
+G a e
+G c Z s b [validate_calculation physics_validator 6 13 none]
+G c Z s b [calculate_ada_risk physics_validator 15 13 none]
+X 1 ada.ads
+18K9*Ada 22e8 16|1r6 1r23 2r6 2r29
+X 3 a-flteio.ads
+20K13*Float_Text_IO[11|46] 16|2w10 2r33
+X 10 a-textio.ads
+58K13*Text_IO 785e16 16|1w10 1r27
+89I12*Field{integer}
+515U14*Put 16|64s7 66s7 68s7
+565U14*Put_Line 16|71s10 72s10 75s10
+X 11 a-tiflio.ads
+88U14*Put 16|65s7[3|20] 67s7[3|20]
+90i7 Fore{10|89I12} 16|65r19[3|20] 67r21[3|20]
+91i7 Aft{10|89I12} 16|65r30[3|20] 67r32[3|20]
+X 15 physics_validator.ads
+3K9*Physics_Validator 22l5 22e22 16|4b14 80l5 80t22
+6V13*Validate_Calculation{boolean} 7>7 8>7 9>7 10>7 11>7 16|51b13 78l8 78t28
+7f7 Temperature{float} 16|52b7 61r38
+8f7 Humidity{float} 16|53b7 61r51
+9f7 Pressure{float} 16|54b7 61r61
+10f7 Wind_Speed{float} 16|55b7 61r71
+11f7 C_Risk{float} 16|56b7 62r36 65r11
+15V13*Calculate_Ada_Risk{float} 16>7 17>7 18>7 19>7 16|6b13 49l8 49t26 61s19
+16f7 Temperature{float} 16|7b7 26r10 27r32
+17f7 Humidity{float} 16|8b7 16r10 17r32
+18f7 Pressure{float} 16|9b7 21r10 22r42
+19f7 Wind_Speed{float} 16|10b7 31r10 32r32
+X 16 physics_validator.adb
+12f7 E_Field{float} 17m10 17r21 22m10 22r21 27m10 27r21 32m10 32r21 36r10
+. 38r13 40r13 42r13
+13f7 Field_Risk{float} 37m10 39m10 41m10 43m10 45m10 48r14
+58f7 Ada_Risk{float} 61m7 62r25 67r11
+59f7 Difference{float} 62m7 70r10
+X 17 safety_types.ads
+2K9*Safety_Types 15|1w6 1r24 17|21e17
+19f4*VALIDATION_TOLERANCE{float} 16|70r23
+

@@ -32,7 +32,11 @@ package body ada_main is
    E132 : Short_Integer; pragma Import (Ada, E132, "ada__finalization_E");
    E131 : Short_Integer; pragma Import (Ada, E131, "system__file_io_E");
    E180 : Short_Integer; pragma Import (Ada, E180, "ada__strings__unbounded_E");
+   E194 : Short_Integer; pragma Import (Ada, E194, "ada__calendar_E");
+   E205 : Short_Integer; pragma Import (Ada, E205, "ada__calendar__time_zones_E");
    E105 : Short_Integer; pragma Import (Ada, E105, "ada__text_io_E");
+   E189 : Short_Integer; pragma Import (Ada, E189, "physics_validator_E");
+   E192 : Short_Integer; pragma Import (Ada, E192, "safety_monitor_E");
 
    Sec_Default_Sized_Stacks : array (1 .. 1) of aliased System.Secondary_Stack.SS_Stack (System.Parameters.Runtime_Default_Sec_Stack_Size);
 
@@ -218,9 +222,16 @@ package body ada_main is
       E131 := E131 + 1;
       Ada.Strings.Unbounded'Elab_Spec;
       E180 := E180 + 1;
+      Ada.Calendar'Elab_Spec;
+      Ada.Calendar'Elab_Body;
+      E194 := E194 + 1;
+      Ada.Calendar.Time_Zones'Elab_Spec;
+      E205 := E205 + 1;
       Ada.Text_Io'Elab_Spec;
       Ada.Text_Io'Elab_Body;
       E105 := E105 + 1;
+      E189 := E189 + 1;
+      E192 := E192 + 1;
    end adainit;
 
    procedure Ada_Main_Program;
@@ -258,6 +269,9 @@ package body ada_main is
    end;
 
 --  BEGIN Object file/option list
+   --   C:\CST8234\AirLume\ada_src\obj\safety_types.o
+   --   C:\CST8234\AirLume\ada_src\obj\physics_validator.o
+   --   C:\CST8234\AirLume\ada_src\obj\safety_monitor.o
    --   C:\CST8234\AirLume\ada_src\obj\main.o
    --   -LC:\CST8234\AirLume\ada_src\obj\
    --   -LC:\CST8234\AirLume\ada_src\obj\

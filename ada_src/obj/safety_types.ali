@@ -1,0 +1,36 @@
+V "GNAT Lib v15"
+A -gnatA
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_FIXED_POINT
+RV NO_FLOATING_POINT
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_IMPLICIT_LOOPS
+
+U safety_types%s	safety_types.ads	fad7fc93 NE OO PK
+
+D safety_types.ads	20251021173732 fad7fc93 safety_types%s
+D system.ads		20250425081800 a869df9e system%s
+G a e
+G c Z s s [flight_routeIP safety_types 6 9 none]
+X 1 safety_types.ads
+2K9*Safety_Types 21l5 21e17
+4E9*Safety_Status 4e60
+4n27*SAFE{4E9}
+4n33*CAUTION{4E9}
+4n42*DANGER{4E9}
+4n50*EMERGENCY{4E9}
+6R9*Flight_Route 10e14
+7a7*Origin{string}
+8a7*Destination{string}
+9f7*Distance_Km{float}
+13f4*EMERGENCY_THRESHOLD{float}
+14f4*DANGER_THRESHOLD{float}
+15f4*CAUTION_THRESHOLD{float}
+18o4*MAX_DATA_AGE_SECONDS{duration}
+19f4*VALIDATION_TOLERANCE{float}
+

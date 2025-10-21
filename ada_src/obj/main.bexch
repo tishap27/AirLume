@@ -4,6 +4,9 @@ b__main.o
 C:\CST8234\AirLume\ada_src\flight.gpr
 20250916231552 a8333b5c9e20c7fc96b59083510eba67
 [BOUND OBJECT FILES]
+C:\CST8234\AirLume\ada_src\obj\safety_types.o
+C:\CST8234\AirLume\ada_src\obj\physics_validator.o
+C:\CST8234\AirLume\ada_src\obj\safety_monitor.o
 C:\CST8234\AirLume\ada_src\obj\main.o
 [GENERATED SOURCE FILES]
 b__main.ads

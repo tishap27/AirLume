@@ -103,7 +103,7 @@ package body Safety_Monitor is
       Put_Line(Log_File, "---");
 
       Close(Log_File);
-      Put_Line("Safety event logged to audit trail");
+      Put_Line("Safety event logged");
    end Log_Safety_Event;
 
 end Safety_Monitor;

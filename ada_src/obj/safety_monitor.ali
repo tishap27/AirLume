@@ -1,0 +1,130 @@
+V "GNAT Lib v15"
+A -gnatA
+A -mtune=generic
+A -march=x86-64
+P SS ZX
+
+RN
+RV NO_CALENDAR
+RV NO_DELAY
+RV NO_ENUMERATION_MAPS
+RV NO_FLOATING_POINT
+RV NO_IO
+RV NO_SECONDARY_STACK
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U safety_monitor%b	safety_monitor.adb	c4ff1c7f NE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.calendar%s	a-calend.adb		a-calend.ali
+W ada.calendar.formatting%s  a-calfor.adb	a-calfor.ali
+W ada.float_text_io%s	a-flteio.ads		a-flteio.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W ada.text_io%s		a-textio.adb		a-textio.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+
+U safety_monitor%s	safety_monitor.ads	c98fed94 EE NE OO PK
+W safety_types%s	safety_types.ads	safety_types.ali
+
+D ada.ads		20250425081800 76789da1 ada%s
+D a-calend.ads		20250425081800 bf7f3cc9 ada.calendar%s
+D a-calfor.ads		20250425081800 0f4707d1 ada.calendar.formatting%s
+D a-catizo.ads		20250425081800 eaa56756 ada.calendar.time_zones%s
+D a-except.ads		20250425081800 e7970cd9 ada.exceptions%s
+D a-flteio.ads		20250425081800 e18a47a0 ada.float_text_io%s
+D a-ioexce.ads		20250425081800 40018c65 ada.io_exceptions%s
+D a-stream.ads		20250425081800 17477cbd ada.streams%s
+D a-string.ads		20250425081800 90ac6797 ada.strings%s
+D a-sttebu.ads		20250425081800 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20250425081800 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250425081800 fbca0ad5 ada.tags%s
+D a-textio.ads		20250425081800 34ef47de ada.text_io%s
+D a-tiflio.ads		20250425081800 48a0360d ada.text_io.float_io%s
+D a-unccon.ads		20250425081800 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20250425081800 9111f9c1 interfaces%s
+D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
+D safety_monitor.ads	20251021175132 33581107 safety_monitor%s
+D safety_monitor.adb	20251021175358 92fa361e safety_monitor%b
+D safety_types.ads	20251021173732 fad7fc93 safety_types%s
+D system.ads		20250425081800 a869df9e system%s
+D s-crtl.ads		20250425081800 beb39b9e system.crtl%s
+D s-exctab.ads		20250425081800 91bef6ef system.exception_table%s
+D s-ficobl.ads		20250425081800 dc5161d4 system.file_control_block%s
+D s-parame.ads		20250425081800 3597fc11 system.parameters%s
+D s-putima.ads		20250425081800 17291fe4 system.put_images%s
+D s-secsta.ads		20250425081800 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250425081800 5d88fdea system.soft_links%s
+D s-stache.ads		20250425081800 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20250425081800 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250425081800 ccded4e8 system.storage_elements%s
+D s-traent.ads		20250425081800 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250425081800 fa2a7f59 system.unsigned_types%s
+D s-wchcon.ads		20250425081800 d9032363 system.wch_con%s
+G a e
+G c Z s b [enforce_safety_limits safety_monitor 6 13 none]
+G c Z s b [generate_safety_alert safety_monitor 9 14 none]
+G c Z s b [log_safety_event safety_monitor 16 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 19|1r6 1r23 2r6 2r29 3r6 3r24 4r6 86r26
+X 2 a-calend.ads
+36K13*Calendar 440e17 19|3w10 3r28 4r10 86r30
+42I9*Time<226I9> 19|79r13
+56V13*Clock{42I9} 19|79s21
+226I9 Time_Rep<long_long_integer>
+X 3 a-calfor.ads
+24K22*Formatting 223e28 19|4w19 86r39
+176V13*Image{string} 19|86s50
+X 6 a-flteio.ads
+20K13*Float_Text_IO[14|46] 19|2w10 2r33
+X 13 a-textio.ads
+58K13*Text_IO 785e16 19|1w10 1r27
+67P9*File_Type 19|78r18
+69n42*Append_File{69E9} 19|82r24
+89I12*Field{integer}
+99U14*Create 19|82s7
+131U14*Close 19|105s7
+508U14*Put 19|85s7 87s7 88s7 89s7 91s7 94s7 96s7
+515U14*Put 19|36s7 37s7 38s7 40s7 43s7
+555U14*Put_Line 19|84s7 86s7 90s7 93s7 95s7 98s10 100s10 102s7 103s7
+565U14*Put_Line 19|11s10 14s10 17s10 20s10 31s7 32s7 33s7 34s7 35s7 39s7
+. 42s7 44s7 45s7 49s13 50s13 51s13 52s13 55s13 56s13 57s13 60s13 61s13 62s13
+. 65s13 68s7 69s7 106s7
+X 14 a-tiflio.ads
+74U14*Put 19|92s7[6|20]
+77i7 Fore{13|89I12} 19|92r27[6|20]
+78i7 Aft{13|89I12} 19|92r38[6|20]
+88U14*Put 19|41s7[6|20]
+90i7 Fore{13|89I12} 19|41r17[6|20]
+91i7 Aft{13|89I12} 19|41r28[6|20]
+X 18 safety_monitor.ads
+3K9*Safety_Monitor 23l5 23e19 19|6b14 109l5 109t19
+6V13*Enforce_Safety_Limits{20|4E9} 6>35 19|8b13 23l8 23t29
+6f35 Risk{float} 19|8b35 10r10 13r13 16r13
+9U14*Generate_Safety_Alert 10>7 11>7 12>7 19|25b14 70l8 70t29
+10f7 Risk{float} 19|26b7 41r11
+11e7 Status{20|4E9} 19|27b7 44r36 47r12
+12r7 Route{20|6R9} 19|28b7 37r11 39r16
+16U14*Log_Safety_Event 17>7 18>7 19>7 20>7 19|72b14 107l8 107t24
+17f7 Risk{float} 19|73b7 92r21
+18e7 Status{20|4E9} 19|74b7 95r46
+19r7 Route{20|6R9} 19|75b7 88r21 90r26
+20b7 Validated{boolean} 19|76b7 97r10
+X 19 safety_monitor.adb
+78p7 Log_File{13|67P9} 82m14 82r14 84r16 85r11 86r16 87r11 88r11 89r11 90r16
+. 91r11 92r11 93r16 94r11 95r16 96r11 98r19 100r19 102r16 103r16 105m13 105r13
+79i7 Now{2|42I9} 86r56
+X 20 safety_types.ads
+2K9*Safety_Types 18|1w6 1r24 20|21e17
+4E9*Safety_Status 18|6r56 11r16 18r16 19|8r56 27r16 44r16 74r16 95r26 20|4e60
+4n27*SAFE{4E9} 19|21r17 64r15
+4n33*CAUTION{4E9} 19|18r17 59r15
+4n42*DANGER{4E9} 19|15r17 54r15
+4n50*EMERGENCY{4E9} 19|12r17 48r15
+6R9*Flight_Route 18|12r16 19r16 19|28r16 75r16 20|10e14
+7a7*Origin{string} 19|37r17 88r27
+8a7*Destination{string} 19|39r22 90r32
+13f4*EMERGENCY_THRESHOLD{float} 19|10r18
+14f4*DANGER_THRESHOLD{float} 19|13r21
+15f4*CAUTION_THRESHOLD{float} 19|16r21
+
