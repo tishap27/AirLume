@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include "route_planning.h"
@@ -11,21 +12,114 @@ typedef struct {
     double lon;
 } Airport;
 
-static Airport airports[] = {
-    {"CYOW", "Ottawa Macdonald-Cartier", 45.3225, -75.6692},
-    {"CYYZ", "Toronto Pearson", 43.6777, -79.6248},
-    {"CYUL", "Montreal Trudeau", 45.4706, -73.7408},
-    {"CYVR", "Vancouver Intl", 49.1939, -123.1844},
-    {"CYYC", "Calgary Intl", 51.1139, -114.0203},
-    {"KJFK", "New York JFK", 40.6413, -73.7781},
-    {"KORD", "Chicago O'Hare", 41.9742, -87.9073},
-    {"KLAX", "Los Angeles Intl", 33.9416, -118.4085},
-    {"KATL", "Atlanta Hartsfield", 33.6407, -84.4277},
-    {"KDFW", "Dallas Fort Worth", 32.8998, -97.0403}
-};
-static int num_airports = 10;
+static Airport* airports= NULL  ; 
+static int num_airports = 0;
+static int airports_loaded = 0;
+
+void load_airports_csv(const char* filename) {
+    if (airports_loaded) return;  // Already loaded
+    
+    FILE* fp = fopen(filename, "r");
+    if (!fp) {
+        fprintf(stderr, "Warning: Cannot open %s, using default airports\n", filename);
+        // Fall back to hardcoded airports
+        static Airport default_airports[] = {
+            {"CYOW", "Ottawa Macdonald-Cartier", 45.3225, -75.6692},
+            {"CYYZ", "Toronto Pearson", 43.6777, -79.6248},
+            {"CYUL", "Montreal Trudeau", 45.4706, -73.7408},
+            {"CYVR", "Vancouver Intl", 49.1939, -123.1844},
+            {"CYYC", "Calgary Intl", 51.1139, -114.0203},
+            {"KJFK", "New York JFK", 40.6413, -73.7781},
+            {"KORD", "Chicago O'Hare", 41.9742, -87.9073},
+            {"KLAX", "Los Angeles Intl", 33.9416, -118.4085},
+            {"KATL", "Atlanta Hartsfield", 33.6407, -84.4277},
+            {"KDFW", "Dallas Fort Worth", 32.8998, -97.0403}
+        };
+        airports = default_airports;
+        num_airports = 11;
+        airports_loaded = 1;
+        return;
+    }
+    
+    // Allocate space for up to 500 airports
+    Airport* temp_airports = (Airport*)malloc(500 * sizeof(Airport));
+    if (!temp_airports) {
+        fclose(fp);
+        return;
+    }
+    
+    char line[2048];
+    int count = 0;
+    
+    // Skip header line
+    if (fgets(line, sizeof(line), fp) == NULL) {
+        free(temp_airports);
+        fclose(fp);
+        return;
+    }
+    
+    // Read each line
+    while (fgets(line, sizeof(line), fp) && count < 500) {
+        char icao[10], name[100];
+        double lat, lon;
+        
+        // Parse CSV: id,ident,type,name,latitude_deg,longitude_deg,...
+        // We only care about: ident (col 1), name (col 3), lat (col 4), lon (col 5)
+        
+        char* token = strtok(line, ",");
+        int col = 0;
+        int valid = 1;
+        
+        while (token != NULL && col < 6) {
+            if (col == 1) {  // ident/ICAO code
+                strncpy(icao, token, 4);
+                icao[4] = '\0';
+            } else if (col == 3) {  // name (may have quotes)
+                char* name_start = token;
+                if (*name_start == '"') name_start++;
+                strncpy(name, name_start, 49);
+                name[49] = '\0';
+                // Remove trailing quote if present
+                size_t len = strlen(name);
+                if (len > 0 && name[len-1] == '"') name[len-1] = '\0';
+            } else if (col == 4) {  // latitude
+                lat = atof(token);
+            } else if (col == 5) {  // longitude
+                lon = atof(token);
+            }
+            token = strtok(NULL, ",");
+            col++;
+        }
+        
+        // Only add if we have a valid 4-letter ICAO code
+        if (strlen(icao) == 4 && lat != 0.0 && lon != 0.0) {
+            strncpy(temp_airports[count].icao, icao, 4);
+            temp_airports[count].icao[4] = '\0';
+            strncpy(temp_airports[count].name, name, 49);
+            temp_airports[count].name[49] = '\0';
+            temp_airports[count].lat = lat;
+            temp_airports[count].lon = lon;
+            count++;
+        }
+    }
+    
+    fclose(fp);
+    
+    airports = temp_airports;
+    num_airports = count;
+    airports_loaded = 1;
+    
+    printf("Loaded %d airports from %s\n", count, filename);
+}
+
+
 
 int lookup_airport_coordinates(const char* icao_code, double* lat, double* lon) {
+    // Load CSV if not already loaded
+    if (!airports_loaded) {
+        load_airports_csv("CA-airports.csv");
+    }
+
     for (int i = 0; i < num_airports; i++) {
         if (strcmp(airports[i].icao, icao_code) == 0) {
             *lat = airports[i].lat;

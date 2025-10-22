@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/J2EE/EJB40/StatelessEjbClass.java to edit this template
- */
 package airlume.web.business;
 
 import airlume.web.entity.FlightAnalysis;
@@ -18,35 +14,176 @@ import java.util.regex.Pattern;
  * @author Tisha
  */
 @Stateless
+@LocalBean
 public class AirLumeService {
 
     public FlightAnalysis analyzeFlight(String origin, String destination) {
-        //call airlume.exe 
         try {
-            ProcessBuilder pb = new ProcessBuilder("C:/CST8234/AirLume/build/airlume.exe");
+            String originCode = (origin == null || origin.isEmpty()) ? "CYOW" : origin.toUpperCase();
+            String destCode = (destination == null || destination.isEmpty()) ? "CYYZ" : destination.toUpperCase();
+            
+            System.out.println("============================================");
+            System.out.println("Analyzing route: " + originCode + " -> " + destCode);
+            
+            // Build full command string
+            String command = String.format(
+                "C:\\CST8234\\AirLume\\build\\airlume.exe %s %s",
+                originCode,
+                destCode
+            );
+            
+            System.out.println("Running: " + command);
+            
+            ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", command);
             pb.directory(new File("C:/CST8234/AirLume"));
+            pb.redirectErrorStream(true);
+            
             Process process = pb.start();
             
-            // Read all output
             BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream())
             );
             StringBuilder output = new StringBuilder();
             String line;
+            int lineCount = 0;
             while ((line = reader.readLine()) != null) {
+                lineCount++;
+                System.out.println("LINE " + lineCount + ": " + line);
                 output.append(line).append("\n");
             }
             
-            process.waitFor();
+            int exitCode = process.waitFor();
+            System.out.println("Exit code: " + exitCode);
+            System.out.println("Total output lines: " + lineCount);
+            System.out.println("============================================");
             
-            // Simple parsing
-            return parseBasicOutput(output.toString());
+            if (exitCode != 0) {
+                throw new RuntimeException("Program failed with exit code: " + exitCode);
+            }
+            
+            if (output.length() == 0) {
+                throw new RuntimeException("No output from program!");
+            }
+            
+            // Parse the output (handles both route and single-point mode)
+            FlightAnalysis analysis = parseOutput(output.toString());
+            analysis.setOrigin(originCode);
+            analysis.setDestination(destCode);
+            return analysis;
             
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Analysis failed: " + e.getMessage());
         }
     }
-        private FlightAnalysis parseBasicOutput(String output) {
+    
+    /**
+     * Main parser - detects mode and calls appropriate parser
+     */
+    private FlightAnalysis parseOutput(String output) {
+        System.out.println("Parsing output...");
+        
+        // Check if route mode or single-point mode
+        if (output.contains("ROUTE ANALYSIS MODE") || output.contains("Route:")) {
+            System.out.println("Detected: ROUTE MODE");
+            return parseRouteOutput(output);
+        } else {
+            System.out.println("Detected: SINGLE-POINT MODE");
+            return parseSinglePointOutput(output);
+        }
+    }
+    
+    /**
+     * Parse route analysis output (when origin/destination provided)
+     */
+    private FlightAnalysis parseRouteOutput(String output) {
+        FlightAnalysis analysis = new FlightAnalysis();
+        
+        // Parse maximum risk along route
+        Pattern maxRiskPattern = Pattern.compile("Maximum Risk: ([0-9.]+)%");
+        Matcher maxRiskMatcher = maxRiskPattern.matcher(output);
+        if (maxRiskMatcher.find()) {
+            double maxRisk = Double.parseDouble(maxRiskMatcher.group(1));
+            analysis.setLightningProbability(maxRisk);
+            System.out.println("Parsed max risk: " + maxRisk);
+        }
+        
+        // Parse average risk
+        Pattern avgRiskPattern = Pattern.compile("Average Risk: ([0-9.]+)%");
+        Matcher avgRiskMatcher = avgRiskPattern.matcher(output);
+        if (avgRiskMatcher.find()) {
+            double avgRisk = Double.parseDouble(avgRiskMatcher.group(1));
+            // You can add this field to FlightAnalysis if needed
+            System.out.println("Parsed avg risk: " + avgRisk);
+        }
+        
+        // Parse distance
+        Pattern distancePattern = Pattern.compile("Distance: ([0-9.]+) km");
+        Matcher distanceMatcher = distancePattern.matcher(output);
+        if (distanceMatcher.find()) {
+            // You can add this field to FlightAnalysis if needed
+            System.out.println("Parsed distance: " + distanceMatcher.group(1));
+        }
+        
+        // Determine risk level based on max risk
+        double maxRisk = analysis.getLightningProbability();
+        if (maxRisk >= 50.0) {
+            analysis.setRiskLevel("CRITICAL");
+        } else if (maxRisk >= 30.0) {
+            analysis.setRiskLevel("HIGH");
+        } else if (maxRisk >= 15.0) {
+            analysis.setRiskLevel("MODERATE");
+        } else {
+            analysis.setRiskLevel("LOW");
+        }
+        
+        // Parse recommendation
+        if (output.contains("IMMEDIATE REROUTE") || output.contains("CRITICAL")) {
+            analysis.setRecommendation("Immediate reroute required - unsafe conditions");
+        } else if (output.contains("CONSIDER ROUTE CHANGE") || output.contains("HIGH")) {
+            analysis.setRecommendation("Consider alternate route - elevated risk detected");
+        } else if (output.contains("PROCEED WITH CAUTION") || output.contains("MODERATE")) {
+            analysis.setRecommendation("Proceed with caution - monitor conditions along route");
+        } else {
+            analysis.setRecommendation("Safe to proceed - normal flight operations");
+        }
+        
+        // Parse Ada safety status from safety_status.txt output
+        if (output.contains("SAFETY_STATUS:EMERGENCY") || output.contains("EMERGENCY")) {
+            analysis.setSafetyStatus("EMERGENCY");
+        } else if (output.contains("SAFETY_STATUS:DANGER") || output.contains("DANGER")) {
+            analysis.setSafetyStatus("DANGER");
+        } else if (output.contains("SAFETY_STATUS:CAUTION") || output.contains("CAUTION")) {
+            analysis.setSafetyStatus("CAUTION");
+        } else if (output.contains("SAFETY_STATUS:SAFE")) {
+            analysis.setSafetyStatus("SAFE");
+        } else if (output.contains("OPERATIONAL")) {
+            analysis.setSafetyStatus("OPERATIONAL");
+        } else {
+            analysis.setSafetyStatus("SAFE");
+        }
+        
+        // Parse flight level recommendation
+        Pattern flPattern = Pattern.compile("FLIGHT_LEVEL:(FL[0-9]+|AS_PLANNED|DESCEND)");
+        Matcher flMatcher = flPattern.matcher(output);
+        if (flMatcher.find()) {
+            analysis.setNewFlightLevel(flMatcher.group(1));
+        }
+        
+        // Safety check
+        analysis.setSafetyCheckPassed(
+            output.contains("SAFETY CHECK: PASSED") || 
+            output.contains("VALIDATION:PASSED")
+        );
+        
+        System.out.println("Route parsing complete");
+        return analysis;
+    }
+    
+    /**
+     * Parse single-point analysis output (fallback mode)
+     */
+    private FlightAnalysis parseSinglePointOutput(String output) {
         FlightAnalysis analysis = new FlightAnalysis();
         
         // Parse weather data
@@ -82,16 +219,24 @@ public class AirLumeService {
         }
         
         // Parse risk level
-        if (output.contains("Risk Level: HIGH")) {
+        if (output.contains("Risk Level: CRITICAL")) {
+            analysis.setRiskLevel("CRITICAL");
+        } else if (output.contains("Risk Level: HIGH")) {
             analysis.setRiskLevel("HIGH");
-        } else if (output.contains("Risk Level: MEDIUM")) {
-            analysis.setRiskLevel("MEDIUM");
+        } else if (output.contains("Risk Level: MODERATE")) {
+            analysis.setRiskLevel("MODERATE");
         } else {
             analysis.setRiskLevel("LOW");
         }
         
         // Parse Ada safety results
-        if (output.contains("SAFETY_STATUS:ACTION_REQUIRED")) {
+        if (output.contains("SAFETY_STATUS:EMERGENCY")) {
+            analysis.setSafetyStatus("EMERGENCY");
+        } else if (output.contains("SAFETY_STATUS:DANGER")) {
+            analysis.setSafetyStatus("DANGER");
+        } else if (output.contains("SAFETY_STATUS:CAUTION")) {
+            analysis.setSafetyStatus("CAUTION");
+        } else if (output.contains("SAFETY_STATUS:ACTION_REQUIRED")) {
             analysis.setSafetyStatus("ACTION REQUIRED");
         } else {
             analysis.setSafetyStatus("OPERATIONAL");
@@ -125,11 +270,13 @@ public class AirLumeService {
         // Recommendation
         if (output.contains("Route change to avoid high-risk areas")) {
             analysis.setRecommendation("Route modification required for storm avoidance");
+        } else if (output.contains("Immediate reroute required")) {
+            analysis.setRecommendation("Immediate reroute required");
         } else {
             analysis.setRecommendation("Current route acceptable");
         }
         
-        
+        System.out.println("Single-point parsing complete");
         return analysis;
     }
 }
