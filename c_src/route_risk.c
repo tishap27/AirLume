@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "route_risk.h"
 
 void classify_risk_level(double risk_percent, char* level) {
@@ -14,6 +15,88 @@ void classify_risk_level(double risk_percent, char* level) {
     }
 }
 
+void write_waypoints_to_file(FlightRoute* route) {
+    FILE* fp = fopen("waypoints.txt", "w");
+    if (!fp) return;
+    
+    fprintf(fp, "# Waypoints for route %s -> %s\n", 
+            route->origin_name, route->destination_name);
+    
+    for (int i = 0; i < route->num_waypoints; i++) {
+        fprintf(fp, "%.4f,%.4f,%.1f\n",
+                route->waypoints[i].latitude,
+                route->waypoints[i].longitude,
+                route->waypoints[i].distance_from_start);
+    }
+    
+    fclose(fp);
+}
+
+int fetch_route_weather(FlightRoute* route, WeatherData* weather_array) {
+    printf("\n=== Fetching Real-Time Weather for Waypoints ===\n");
+    
+    // Write waypoints to file
+    write_waypoints_to_file(route);
+    printf("✓ Waypoints written to waypoints.txt\n");
+    
+    // Call Python to fetch weather
+    char command[512];
+    #ifdef _WIN32
+        snprintf(command, sizeof(command), 
+                 "python python_src\\weather.py --route waypoints.txt");
+    #else
+        snprintf(command, sizeof(command), 
+                 "python3 python_src/weather.py --route waypoints.txt");
+    #endif
+    
+    printf("Executing command: %s\n", command);  // DEBUG
+    
+    FILE* pipe = popen(command, "r");
+    if (!pipe) {
+        fprintf(stderr, "Error: Cannot execute Python weather module\n");
+        return 0;
+    }
+    
+    char line[1024];
+    int wp_index = 0;
+    
+    printf("Reading Python output...\n");  // DEBUG
+    
+    // Read Python output and parse weather for each waypoint
+    while (fgets(line, sizeof(line), pipe) && wp_index < route->num_waypoints) {
+        printf("  Python output: %s", line);  // DEBUG - see what Python says
+        
+        // Look for lines like: WP1_WEATHER:15.2,65,1013,5.4
+        if (strstr(line, "_WEATHER:")) {
+            double temp, hum, pres, wind;
+            char* data_start = strstr(line, ":") + 1;
+            printf("  Parsing data: %s", data_start);  // DEBUG
+            
+            if (sscanf(data_start, "%lf,%lf,%lf,%lf", 
+                       &temp, &hum, &pres, &wind) == 4) {
+                weather_array[wp_index].temperature = temp;
+                weather_array[wp_index].humidity = hum;
+                weather_array[wp_index].pressure = pres;
+                weather_array[wp_index].wind_speed = wind;
+                weather_array[wp_index].altitude = 30000.0;
+                
+                printf("  ✓ WP%d: %.1f°C, %.0f%%, %.0f hPa, %.1f m/s\n",
+                       wp_index + 1, temp, hum, pres, wind);
+                
+                wp_index++;
+            } else {
+                printf("  ✗ Failed to parse weather data\n");  // DEBUG
+            }
+        }
+    }
+    
+    int exit_code = pclose(pipe);
+    printf("Python exit code: %d\n", exit_code);  // DEBUG
+    
+    printf(" Fetched weather for %d/%d waypoints\n", wp_index, route->num_waypoints);
+    return wp_index;
+}
+
 void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
     assessment->route = *route;
     assessment->num_assessments = route->num_waypoints;
@@ -21,6 +104,10 @@ void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
     double total_risk = 0.0;
     assessment->max_risk = 0.0;
     assessment->max_risk_waypoint = 0;
+    
+    // Fetch real weather for all waypoints
+    WeatherData* weather_array = (WeatherData*)malloc(route->num_waypoints * sizeof(WeatherData));
+    int weather_count = fetch_route_weather(route, weather_array);
     
     printf("\n=== Analyzing Route Risk ===\n");
     printf("Calculating lightning risk for %d waypoints...\n", route->num_waypoints);
@@ -35,13 +122,18 @@ void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
         wp_risk->longitude = wp->longitude;
         wp_risk->distance_km = wp->distance_from_start;
         
-        // Sample weather (in production, call Python API for each waypoint)
-        // For now, create varying conditions for demonstration
-        wp_risk->weather.temperature = 20.0 + (i % 5) * 2.0;
-        wp_risk->weather.humidity = 60.0 + (i % 3) * 10.0;
-        wp_risk->weather.pressure = 1013.0 - (i % 4) * 5.0;
-        wp_risk->weather.wind_speed = 5.0 + (i % 3) * 3.0;
-        wp_risk->weather.altitude = 10000.0;
+        // *** CHANGED: Use real weather if available, otherwise use defaults ***
+        if (i < weather_count && weather_array != NULL) {
+            // Use REAL weather from Python API
+            wp_risk->weather = weather_array[i];
+        } else {
+            // Fallback to sample weather if API failed
+            wp_risk->weather.temperature = 20.0 + (i % 5) * 2.0;
+            wp_risk->weather.humidity = 60.0 + (i % 3) * 10.0;
+            wp_risk->weather.pressure = 1013.0 - (i % 4) * 5.0;
+            wp_risk->weather.wind_speed = 5.0 + (i % 3) * 3.0;
+            wp_risk->weather.altitude = 10000.0;
+        }
         
         // Calculate risk using physics engine
         wp_risk->risk = calculate_lightning_risk(wp_risk->weather);
@@ -63,6 +155,11 @@ void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
                wp_risk->distance_km,
                wp_risk->risk.lightning_probability,
                wp_risk->risk_level);
+    }
+    
+    // Don't forget to free the allocated memory!
+    if (weather_array != NULL) {
+        free(weather_array);
     }
     
     // Calculate average

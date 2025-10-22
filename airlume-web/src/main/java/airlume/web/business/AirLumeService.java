@@ -96,89 +96,117 @@ public class AirLumeService {
     /**
      * Parse route analysis output (when origin/destination provided)
      */
-    private FlightAnalysis parseRouteOutput(String output) {
-        FlightAnalysis analysis = new FlightAnalysis();
-        
-        // Parse maximum risk along route
-        Pattern maxRiskPattern = Pattern.compile("Maximum Risk: ([0-9.]+)%");
-        Matcher maxRiskMatcher = maxRiskPattern.matcher(output);
-        if (maxRiskMatcher.find()) {
-            double maxRisk = Double.parseDouble(maxRiskMatcher.group(1));
-            analysis.setLightningProbability(maxRisk);
-            System.out.println("Parsed max risk: " + maxRisk);
-        }
-        
-        // Parse average risk
-        Pattern avgRiskPattern = Pattern.compile("Average Risk: ([0-9.]+)%");
-        Matcher avgRiskMatcher = avgRiskPattern.matcher(output);
-        if (avgRiskMatcher.find()) {
-            double avgRisk = Double.parseDouble(avgRiskMatcher.group(1));
-            // You can add this field to FlightAnalysis if needed
-            System.out.println("Parsed avg risk: " + avgRisk);
-        }
-        
-        // Parse distance
-        Pattern distancePattern = Pattern.compile("Distance: ([0-9.]+) km");
-        Matcher distanceMatcher = distancePattern.matcher(output);
-        if (distanceMatcher.find()) {
-            // You can add this field to FlightAnalysis if needed
-            System.out.println("Parsed distance: " + distanceMatcher.group(1));
-        }
-        
-        // Determine risk level based on max risk
-        double maxRisk = analysis.getLightningProbability();
-        if (maxRisk >= 50.0) {
-            analysis.setRiskLevel("CRITICAL");
-        } else if (maxRisk >= 30.0) {
-            analysis.setRiskLevel("HIGH");
-        } else if (maxRisk >= 15.0) {
-            analysis.setRiskLevel("MODERATE");
-        } else {
-            analysis.setRiskLevel("LOW");
-        }
-        
-        // Parse recommendation
-        if (output.contains("IMMEDIATE REROUTE") || output.contains("CRITICAL")) {
-            analysis.setRecommendation("Immediate reroute required - unsafe conditions");
-        } else if (output.contains("CONSIDER ROUTE CHANGE") || output.contains("HIGH")) {
-            analysis.setRecommendation("Consider alternate route - elevated risk detected");
-        } else if (output.contains("PROCEED WITH CAUTION") || output.contains("MODERATE")) {
-            analysis.setRecommendation("Proceed with caution - monitor conditions along route");
-        } else {
-            analysis.setRecommendation("Safe to proceed - normal flight operations");
-        }
-        
-        // Parse Ada safety status from safety_status.txt output
-        if (output.contains("SAFETY_STATUS:EMERGENCY") || output.contains("EMERGENCY")) {
-            analysis.setSafetyStatus("EMERGENCY");
-        } else if (output.contains("SAFETY_STATUS:DANGER") || output.contains("DANGER")) {
-            analysis.setSafetyStatus("DANGER");
-        } else if (output.contains("SAFETY_STATUS:CAUTION") || output.contains("CAUTION")) {
-            analysis.setSafetyStatus("CAUTION");
-        } else if (output.contains("SAFETY_STATUS:SAFE")) {
-            analysis.setSafetyStatus("SAFE");
-        } else if (output.contains("OPERATIONAL")) {
-            analysis.setSafetyStatus("OPERATIONAL");
-        } else {
-            analysis.setSafetyStatus("SAFE");
-        }
-        
-        // Parse flight level recommendation
-        Pattern flPattern = Pattern.compile("FLIGHT_LEVEL:(FL[0-9]+|AS_PLANNED|DESCEND)");
-        Matcher flMatcher = flPattern.matcher(output);
-        if (flMatcher.find()) {
-            analysis.setNewFlightLevel(flMatcher.group(1));
-        }
-        
-        // Safety check
-        analysis.setSafetyCheckPassed(
-            output.contains("SAFETY CHECK: PASSED") || 
-            output.contains("VALIDATION:PASSED")
-        );
-        
-        System.out.println("Route parsing complete");
-        return analysis;
+   private FlightAnalysis parseRouteOutput(String output) {
+    FlightAnalysis analysis = new FlightAnalysis();
+    
+    // Parse maximum risk along route
+    Pattern maxRiskPattern = Pattern.compile("Maximum Risk: ([0-9.]+)%");
+    Matcher maxRiskMatcher = maxRiskPattern.matcher(output);
+    if (maxRiskMatcher.find()) {
+        double maxRisk = Double.parseDouble(maxRiskMatcher.group(1));
+        analysis.setLightningProbability(maxRisk);
+        System.out.println("Parsed max risk: " + maxRisk);
     }
+    
+    // Parse average risk
+    Pattern avgRiskPattern = Pattern.compile("Average Risk: ([0-9.]+)%");
+    Matcher avgRiskMatcher = avgRiskPattern.matcher(output);
+    if (avgRiskMatcher.find()) {
+        double avgRisk = Double.parseDouble(avgRiskMatcher.group(1));
+        System.out.println("Parsed avg risk: " + avgRisk);
+    }
+    
+    // Parse distance
+    Pattern distancePattern = Pattern.compile("Distance: ([0-9.]+) km");
+    Matcher distanceMatcher = distancePattern.matcher(output);
+    if (distanceMatcher.find()) {
+        System.out.println("Parsed distance: " + distanceMatcher.group(1));
+    }
+    
+    // *** NEW: Parse weather data from waypoint output ***
+    // Look for the FIRST waypoint's weather (or average across all)
+    Pattern wp1WeatherPattern = Pattern.compile("WP1_WEATHER:([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)");
+    Matcher wp1WeatherMatcher = wp1WeatherPattern.matcher(output);
+    if (wp1WeatherMatcher.find()) {
+        analysis.setTemperature(Double.parseDouble(wp1WeatherMatcher.group(1)));
+        analysis.setHumidity(Double.parseDouble(wp1WeatherMatcher.group(2)));
+        analysis.setPressure(Double.parseDouble(wp1WeatherMatcher.group(3)));
+        analysis.setWindSpeed(Double.parseDouble(wp1WeatherMatcher.group(4)));
+        System.out.println("Parsed weather from WP1");
+    } else {
+        // Fallback: try to parse from C output format
+        Pattern tempPattern = Pattern.compile("Temperature: ([0-9.]+)");
+        Matcher tempMatcher = tempPattern.matcher(output);
+        if (tempMatcher.find()) {
+            analysis.setTemperature(Double.parseDouble(tempMatcher.group(1)));
+        }
+        
+        Pattern humidityPattern = Pattern.compile("Humidity: ([0-9.]+)%");
+        Matcher humidityMatcher = humidityPattern.matcher(output);
+        if (humidityMatcher.find()) {
+            analysis.setHumidity(Double.parseDouble(humidityMatcher.group(1)));
+        }
+        
+        Pattern pressurePattern = Pattern.compile("Pressure: ([0-9.]+) hPa");
+        Matcher pressureMatcher = pressurePattern.matcher(output);
+        if (pressureMatcher.find()) {
+            analysis.setPressure(Double.parseDouble(pressureMatcher.group(1)));
+        }
+        
+        Pattern windPattern = Pattern.compile("Wind Speed: ([0-9.]+) m/s");
+        Matcher windMatcher = windPattern.matcher(output);
+        if (windMatcher.find()) {
+            analysis.setWindSpeed(Double.parseDouble(windMatcher.group(1)));
+        }
+    }
+    
+    // Determine risk level based on max risk
+    double maxRisk = analysis.getLightningProbability();
+    if (maxRisk >= 50.0) {
+        analysis.setRiskLevel("CRITICAL");
+    } else if (maxRisk >= 30.0) {
+        analysis.setRiskLevel("HIGH");
+    } else if (maxRisk >= 15.0) {
+        analysis.setRiskLevel("MODERATE");
+    } else {
+        analysis.setRiskLevel("LOW");
+    }
+    
+    // Parse recommendation
+    if (output.contains("IMMEDIATE REROUTE") || output.contains("CRITICAL RISK")) {
+        analysis.setRecommendation("Immediate reroute required - unsafe conditions");
+    } else if (output.contains("CONSIDER ROUTE CHANGE") || output.contains("HIGH RISK")) {
+        analysis.setRecommendation("Consider alternate route - elevated risk detected");
+    } else if (output.contains("PROCEED WITH CAUTION") || output.contains("MODERATE")) {
+        analysis.setRecommendation("Proceed with caution - monitor conditions along route");
+    } else {
+        analysis.setRecommendation("Safe to proceed - normal flight operations");
+    }
+    
+    // Parse Ada safety status (if your C program includes it)
+    if (output.contains("SAFETY_STATUS:EMERGENCY") || output.contains("EMERGENCY")) {
+        analysis.setSafetyStatus("EMERGENCY");
+    } else if (output.contains("SAFETY_STATUS:DANGER") || output.contains("DANGER")) {
+        analysis.setSafetyStatus("DANGER");
+    } else if (output.contains("SAFETY_STATUS:CAUTION") || output.contains("CAUTION")) {
+        analysis.setSafetyStatus("CAUTION");
+    } else if (output.contains("SAFETY_STATUS:SAFE")) {
+        analysis.setSafetyStatus("SAFE");
+    } else if (output.contains("OPERATIONAL")) {
+        analysis.setSafetyStatus("OPERATIONAL");
+    } else {
+        analysis.setSafetyStatus("SAFE");
+    }
+    
+    // Safety check
+    analysis.setSafetyCheckPassed(
+        output.contains("SAFETY CHECK: PASSED") || 
+        output.contains("VALIDATION:PASSED")
+    );
+    
+    System.out.println("Route parsing complete");
+    return analysis;
+}
     
     /**
      * Parse single-point analysis output (fallback mode)

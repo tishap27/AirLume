@@ -1,8 +1,10 @@
-Fix: Proper validation using historical weather from strike dates
+Fix: real-time weather API for multi point route analysis
 
-Correct Validation:
-- Uses weather data from EXACT date/time of each strike
-- Applies same physics calculations as production system
+- Modify route_risk.c to use fetched weather data instead of hardcoded values
+- Update Java parser to extract weather data from route mode output
+- Add WP1_WEATHER parsing pattern to parseRouteOutput()
+- Fix weather data showing 0.0 values in Jakarta GUI
 
-This replaces broken validation that used current weather (Oct 2024)
-against historical strikes (Jan-Sep 2024).
+Changes:Weather.py, route_risk.c: Use weather_array data in assess_route_risk(); AirLumeService.java: Add weather parsing to parseRouteOutput()
+
+GUI now displays real weather data for any airport route(does not show WP output yet)
