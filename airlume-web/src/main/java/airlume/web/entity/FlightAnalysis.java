@@ -4,6 +4,9 @@
  */
 package airlume.web.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Tisha
@@ -27,7 +30,14 @@ public class FlightAnalysis {
     private boolean safetyCheckPassed;
     private String recommendation;
     
-
+     // Route information
+    private String origin;
+    private String destination;
+    private double totalDistance;
+    private double averageRisk;
+    
+    // Waypoints list
+    private List<Waypoint> waypoints = new ArrayList<>();
 
     public FlightAnalysis() {}
     
@@ -87,13 +97,33 @@ public class FlightAnalysis {
         this.recommendation = recommendation;
     }
     
-    private String origin;
-    private String destination;
+  
 
     public String getOrigin() { return origin; }
     public void setOrigin(String origin) { this.origin = origin; }
 
     public String getDestination() { return destination; }
     public void setDestination(String destination) { this.destination = destination; }
+    
+    public double getTotalDistance() { return totalDistance; }
+    public void setTotalDistance(double totalDistance) { this.totalDistance = totalDistance; }
+    
+    public double getAverageRisk() { return averageRisk; }
+    public void setAverageRisk(double averageRisk) { this.averageRisk = averageRisk; }
+    
+    public List<Waypoint> getWaypoints() { return waypoints; }
+    public void setWaypoints(List<Waypoint> waypoints) { this.waypoints = waypoints; }
+    
+    public void addWaypoint(Waypoint waypoint) {
+        this.waypoints.add(waypoint);
+    }
+    
+    public int getWaypointCount() {
+        return waypoints.size();
+    }
+    
+    public boolean hasWaypoints() {
+        return waypoints != null && !waypoints.isEmpty();
+    }
     
     }

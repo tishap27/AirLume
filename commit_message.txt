@@ -1,10 +1,23 @@
-Fix: real-time weather API for multi point route analysis
+Add: interactive route visualization with real waypoint data (jsf pages)
 
-- Modify route_risk.c to use fetched weather data instead of hardcoded values
-- Update Java parser to extract weather data from route mode output
-- Add WP1_WEATHER parsing pattern to parseRouteOutput()
-- Fix weather data showing 0.0 values in Jakarta GUI
+- Create Waypoint entity class with risk classification
+- Update FlightAnalysis to include waypoint list and route metrics
+- Enhance AirLumeService parser to extract waypoint data from C output
+- Add new route-visualization.xhtml with flight path visualization
+- Parse waypoint risk levels (LOW/MODERATE/HIGH/CRITICAL) from output
+- Calculate waypoint positions dynamically based on distance
+- Display animated flight path with color-coded risk indicators(basic yet)
 
-Changes:Weather.py, route_risk.c: Use weather_array data in assess_route_risk(); AirLumeService.java: Add weather parsing to parseRouteOutput()
+Features:
+- Visual flight path with waypoints positioned by distance
+- Color-coded risk dots (green/yellow/orange/red)
+- Animated airplane icon
+- Stats cards for overall risk assessment
 
-GUI now displays real weather data for any airport route(does not show WP output yet)
+Technical Changes:
+- Regex pattern to parse 'WP1 (0 km): 8.4% LOW' format
+- Calculate waypoint position percentage for CSS positioning
+- Add totalDistance and averageRisk fields to FlightAnalysis
+- Helper methods: hasWaypoints(), getWaypointCount(), getRiskClass()
+
+Route visualization showing risk distribution along flight path
