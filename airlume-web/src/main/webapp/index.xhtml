@@ -48,6 +48,18 @@
                 </tr>
             </table>
         </h:form>
+        <h:panelGroup rendered="#{not empty flightController.errorMessage}">
+    <div style="margin-top: 20px; padding: 20px; background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px;">
+        <div style="font-size: 40px; text-align: center; margin-bottom: 10px;">⚠️</div>
+        <div style="color: #721c24; font-weight: 600; text-align: center;">
+            #{flightController.errorMessage}
+        </div>
+    </div>
+</h:panelGroup>
+
+<h:panelGroup rendered="#{flightController.analysisComplete}">
+    <!-- Success message -->
+</h:panelGroup>
     </div>
     
     <h:panelGroup rendered="#{flightController.errorMessage != null}">

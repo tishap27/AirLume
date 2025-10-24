@@ -5,6 +5,7 @@ import jakarta.ejb.Stateless;
 import jakarta.ejb.LocalBean;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,8 +20,17 @@ public class AirLumeService {
 
     public FlightAnalysis analyzeFlight(String origin, String destination) {
         try {
-            String originCode = (origin == null || origin.isEmpty()) ? "CYOW" : origin.toUpperCase();
-            String destCode = (destination == null || destination.isEmpty()) ? "CYYZ" : destination.toUpperCase();
+           // Validate airport codes first
+        if (origin == null || origin.isEmpty() || origin.length() < 3 || origin.length() > 4) {
+            throw new RuntimeException("Invalid origin airport code. Must be 3-4 characters.");
+        }
+        
+        if (destination == null || destination.isEmpty() || destination.length() < 3 || destination.length() > 4) {
+            throw new RuntimeException("Invalid destination airport code. Must be 3-4 characters.");
+        }
+        
+        String originCode = origin.toUpperCase();
+        String destCode = destination.toUpperCase();
             
             System.out.println("============================================");
             System.out.println("Analyzing route: " + originCode + " -> " + destCode);
@@ -71,12 +81,17 @@ public class AirLumeService {
             analysis.setDestination(destCode);
             return analysis;
             
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Analysis failed: " + e.getMessage());
-        }
+        } catch (IOException e) {
+        e.printStackTrace();
+        throw new RuntimeException("Failed to execute analysis program: " + e.getMessage());
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+        throw new RuntimeException("Analysis was interrupted: " + e.getMessage());
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Analysis failed: " + e.getMessage());
     }
-    
+}
     /**
      * Main parser - detects mode and calls appropriate parser
      */

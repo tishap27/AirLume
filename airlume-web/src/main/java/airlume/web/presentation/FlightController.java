@@ -33,12 +33,37 @@ public class FlightController implements Serializable {
         try {
             analysisComplete = false;
             errorMessage = null;  // Clear previous errors
+            
+             // Validate input
+        if (origin == null || origin.trim().isEmpty()) {
+            errorMessage = "Please enter an origin airport code";
+            return null;
+        }
+        
+        if (destination == null || destination.trim().isEmpty()) {
+            errorMessage = "Please enter a destination airport code";
+            return null;
+        }
+        
+        if (origin.trim().length() < 3 || origin.trim().length() > 4) {
+            errorMessage = "Origin airport code must be 3-4 characters (ICAO format)";
+            return null;
+        }
+        
+        if (destination.trim().length() < 3 || destination.trim().length() > 4) {
+            errorMessage = "Destination airport code must be 3-4 characters (ICAO format)";
+            return null;
+        }
+            
+            
             analysis = airLumeService.analyzeFlight(origin, destination);
             analysisComplete = true;
         } catch (Exception e) {
             errorMessage = "Analysis failed: " + e.getMessage();
             analysis = null;
             analysisComplete = false;
+            System.err.println("Error in analyzeRoute: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
