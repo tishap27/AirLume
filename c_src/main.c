@@ -60,7 +60,17 @@ int main(int argc, char *argv[]) {
             fprintf(route_file, "AVG_RISK:%.2f\n", assessment.avg_risk);
             fclose(route_file);
         }
-        
+        printf("\n=== Calling Ada Safety System for Route ===\n");
+
+        // Write the max risk to lightning_risk.txt for Ada
+        write_risk_to_file(assessment.max_risk);
+
+        // Call Ada
+        #ifdef _WIN32
+            system("ada_src\\obj\\main.exe");
+        #else
+            system("./ada_src/obj/main.exe");
+        #endif
         printf("\n=== Route analysis complete ===\n");
         return 0;  // Exit after route mode
     }
