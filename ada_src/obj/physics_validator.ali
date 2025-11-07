@@ -9,7 +9,7 @@ RV NO_FLOATING_POINT
 RV NO_IO
 RV NO_IMPLEMENTATION_PRAGMAS
 
-U physics_validator%b	physics_validator.adb	7be48321 NE OO PK
+U physics_validator%b	physics_validator.adb	7df2a283 NE OO PK
 W ada%s			ada.ads			ada.ali
 W ada.float_text_io%s	a-flteio.ads		a-flteio.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
@@ -33,7 +33,7 @@ D a-unccon.ads		20250425081800 0e9b276f ada.unchecked_conversion%s
 D interfac.ads		20250425081800 9111f9c1 interfaces%s
 D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
 D physics_validator.ads	20251021174504 e3056d02 physics_validator%s
-D physics_validator.adb	20251021174520 4d84ee5d physics_validator%b
+D physics_validator.adb	20251107005310 4b92cfff physics_validator%b
 D safety_types.ads	20251021173732 fad7fc93 safety_types%s
 D system.ads		20250425081800 a869df9e system%s
 D s-crtl.ads		20250425081800 beb39b9e system.crtl%s
@@ -59,32 +59,35 @@ X 3 a-flteio.ads
 X 10 a-textio.ads
 58K13*Text_IO 785e16 16|1w10 1r27
 89I12*Field{integer}
-515U14*Put 16|64s7 66s7 68s7
-565U14*Put_Line 16|71s10 72s10 75s10
+515U14*Put 16|101s7 103s7 105s7 111s10
+565U14*Put_Line 16|109s10 110s10 113s10 116s10
 X 11 a-tiflio.ads
-88U14*Put 16|65s7[3|20] 67s7[3|20]
-90i7 Fore{10|89I12} 16|65r19[3|20] 67r21[3|20]
-91i7 Aft{10|89I12} 16|65r30[3|20] 67r32[3|20]
+88U14*Put 16|102s7[3|20] 104s7[3|20] 112s10[3|20]
+90i7 Fore{10|89I12} 16|102r19[3|20] 104r21[3|20] 112r26[3|20]
+91i7 Aft{10|89I12} 16|102r30[3|20] 104r32[3|20] 112r37[3|20]
 X 15 physics_validator.ads
-3K9*Physics_Validator 22l5 22e22 16|4b14 80l5 80t22
-6V13*Validate_Calculation{boolean} 7>7 8>7 9>7 10>7 11>7 16|51b13 78l8 78t28
-7f7 Temperature{float} 16|52b7 61r38
-8f7 Humidity{float} 16|53b7 61r51
-9f7 Pressure{float} 16|54b7 61r61
-10f7 Wind_Speed{float} 16|55b7 61r71
-11f7 C_Risk{float} 16|56b7 62r36 65r11
-15V13*Calculate_Ada_Risk{float} 16>7 17>7 18>7 19>7 16|6b13 49l8 49t26 61s19
-16f7 Temperature{float} 16|7b7 26r10 27r32
-17f7 Humidity{float} 16|8b7 16r10 17r32
-18f7 Pressure{float} 16|9b7 21r10 22r42
-19f7 Wind_Speed{float} 16|10b7 31r10 32r32
+3K9*Physics_Validator 22l5 22e22 16|4b14 121l5 121t22
+6V13*Validate_Calculation{boolean} 7>7 8>7 9>7 10>7 11>7 16|88b13 119l8 119t28
+7f7 Temperature{float} 16|89b7 98r38
+8f7 Humidity{float} 16|90b7 98r51
+9f7 Pressure{float} 16|91b7 98r61
+10f7 Wind_Speed{float} 16|92b7 98r71
+11f7 C_Risk{float} 16|93b7 99r36 102r11
+15V13*Calculate_Ada_Risk{float} 16>7 17>7 18>7 19>7 16|6b13 86l8 86t26 98s19
+16f7 Temperature{float} 16|7b7 32r10 33r32
+17f7 Humidity{float} 16|8b7 22r10 23r32 57r10 58r28
+18f7 Pressure{float} 16|9b7 27r10 28r42 64r10 65r38
+19f7 Wind_Speed{float} 16|10b7 37r10 38r32
 X 16 physics_validator.adb
-12f7 E_Field{float} 17m10 17r21 22m10 22r21 27m10 27r21 32m10 32r21 36r10
-. 38r13 40r13 42r13
-13f7 Field_Risk{float} 37m10 39m10 41m10 43m10 45m10 48r14
-58f7 Ada_Risk{float} 61m7 62r25 67r11
-59f7 Difference{float} 62m7 70r10
+12f7 E_Field{float} 23m10 23r21 28m10 28r21 33m10 33r21 38m10 38r21 42r10
+. 44r13 46r13 48r13 50r13
+13f7 Humidity_Risk{float} 58m10 59r13 60m13 73r22
+14f7 Pressure_Risk{float} 65m10 66r13 67m13 74r22
+15f7 Temp_Risk{float}
+16f7 Field_Risk{float} 43m10 45m10 47m10 49m10 51m10 53m10 72r22
+17f7 Total_Risk{float} 72m7 77m7 77r21 80m7 80r21 81r10 82m10 85r14
+95f7 Ada_Risk{float} 98m7 99r25 104r11
+96f7 Difference{float} 99m7 108r10 112r14
 X 17 safety_types.ads
 2K9*Safety_Types 15|1w6 1r24 17|21e17
-19f4*VALIDATION_TOLERANCE{float} 16|70r23
 

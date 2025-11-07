@@ -34,4 +34,5 @@ void print_route_summary(FlightRoute* route);
 // Airport lookup (simplified - can expand later)
 int lookup_airport_coordinates(const char* icao_code, double* lat, double* lon);
 
+
 #endif

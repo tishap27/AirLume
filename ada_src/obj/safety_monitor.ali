@@ -15,7 +15,7 @@ RV NO_DEFAULT_INITIALIZATION
 RV NO_DYNAMIC_SIZED_OBJECTS
 RV NO_IMPLEMENTATION_PRAGMAS
 
-U safety_monitor%b	safety_monitor.adb	c4ff1c7f NE OO PK
+U safety_monitor%b	safety_monitor.adb	8ffe50c2 NE OO PK
 W ada%s			ada.ads			ada.ali
 W ada.calendar%s	a-calend.adb		a-calend.ali
 W ada.calendar.formatting%s  a-calfor.adb	a-calfor.ali
@@ -45,7 +45,7 @@ D a-unccon.ads		20250425081800 0e9b276f ada.unchecked_conversion%s
 D interfac.ads		20250425081800 9111f9c1 interfaces%s
 D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
 D safety_monitor.ads	20251021175132 33581107 safety_monitor%s
-D safety_monitor.adb	20251021175358 92fa361e safety_monitor%b
+D safety_monitor.adb	20251021183306 d9fb7aa3 safety_monitor%b
 D safety_types.ads	20251021173732 fad7fc93 safety_types%s
 D system.ads		20250425081800 a869df9e system%s
 D s-crtl.ads		20250425081800 beb39b9e system.crtl%s

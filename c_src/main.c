@@ -12,7 +12,7 @@
     #define PYTHON_CMD "python3"
     #define PATH_SEP "/"
 #endif
-
+void simulate_realtime_flight(FlightRoute* route, double cruise_speed_kmh, int update_interval_min);
 int main(int argc, char *argv[]) {
     printf("=== AirLume Lightning Strike Prediction System ===\n");
 
@@ -73,9 +73,19 @@ int main(int argc, char *argv[]) {
         #endif
         printf("\n=== Route analysis complete ===\n");
         return 0;  // Exit after route mode
+
+        if (argc >= 4 && strcmp(argv[3], "--simulate") == 0) {
+         printf("\n>>> ENTERING REAL-TIME SIMULATION MODE <<<\n");
+    
+        double cruise_speed = 850.0;  // km/h (commercial jet)
+        int update_interval = 15;      // minutes
+    
+        simulate_realtime_flight(&route, cruise_speed, update_interval);
+        return 0;
+}
     }
     // END OF ROUTE MODE SECTION ###
-
+    
 
     printf("Trying CSV\n");
     printf("\nNote: For route analysis, use: ./airlume ORIGIN DEST\n");
