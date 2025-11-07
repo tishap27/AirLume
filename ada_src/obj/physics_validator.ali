@@ -15,7 +15,7 @@ W ada.float_text_io%s	a-flteio.ads		a-flteio.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
 W ada.text_io%s		a-textio.adb		a-textio.ali
 
-U physics_validator%s	physics_validator.ads	19d29191 EE NE OO PK
+U physics_validator%s	physics_validator.ads	1207688c EE NE OO PK
 W safety_types%s	safety_types.ads	safety_types.ali
 
 D ada.ads		20250425081800 76789da1 ada%s
@@ -34,7 +34,7 @@ D interfac.ads		20250425081800 9111f9c1 interfaces%s
 D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
 D physics_validator.ads	20251021174504 e3056d02 physics_validator%s
 D physics_validator.adb	20251107005310 4b92cfff physics_validator%b
-D safety_types.ads	20251021173732 fad7fc93 safety_types%s
+D safety_types.ads	20251107010034 f102058e safety_types%s
 D system.ads		20250425081800 a869df9e system%s
 D s-crtl.ads		20250425081800 beb39b9e system.crtl%s
 D s-exctab.ads		20250425081800 91bef6ef system.exception_table%s
@@ -89,5 +89,5 @@ X 16 physics_validator.adb
 95f7 Ada_Risk{float} 98m7 99r25 104r11
 96f7 Difference{float} 99m7 108r10 112r14
 X 17 safety_types.ads
-2K9*Safety_Types 15|1w6 1r24 17|21e17
+1K9*Safety_Types 15|1w6 1r24 17|27e17
 

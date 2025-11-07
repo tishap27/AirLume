@@ -5,32 +5,30 @@ A -march=x86-64
 P ZX
 
 RN
-RV NO_FIXED_POINT
 RV NO_FLOATING_POINT
 RV NO_DYNAMIC_SIZED_OBJECTS
 RV NO_IMPLEMENTATION_PRAGMAS
 RV NO_IMPLICIT_LOOPS
 
-U safety_types%s	safety_types.ads	fad7fc93 NE OO PK
+U safety_types%s	safety_types.ads	f102058e NE OO PK
 
-D safety_types.ads	20251021173732 fad7fc93 safety_types%s
+D safety_types.ads	20251107010034 f102058e safety_types%s
 D system.ads		20250425081800 a869df9e system%s
 G a e
-G c Z s s [flight_routeIP safety_types 6 9 none]
+G c Z s s [flight_routeIP safety_types 7 9 none]
 X 1 safety_types.ads
-2K9*Safety_Types 21l5 21e17
+1K9*Safety_Types 27l5 27e17
 4E9*Safety_Status 4e60
 4n27*SAFE{4E9}
 4n33*CAUTION{4E9}
 4n42*DANGER{4E9}
 4n50*EMERGENCY{4E9}
-6R9*Flight_Route 10e14
-7a7*Origin{string}
-8a7*Destination{string}
-9f7*Distance_Km{float}
-13f4*EMERGENCY_THRESHOLD{float}
-14f4*DANGER_THRESHOLD{float}
-15f4*CAUTION_THRESHOLD{float}
-18o4*MAX_DATA_AGE_SECONDS{duration}
-19f4*VALIDATION_TOLERANCE{float}
+7R9*Flight_Route 11e14
+8a7*Origin{string}
+9a7*Destination{string}
+10f7*Distance_Km{float}
+19f4*CAUTION_THRESHOLD{float}
+20f4*DANGER_THRESHOLD{float}
+21f4*EMERGENCY_THRESHOLD{float}
+25f4*VALIDATION_TOLERANCE{float}
 

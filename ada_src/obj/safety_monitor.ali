@@ -24,7 +24,7 @@ Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
 W ada.text_io%s		a-textio.adb		a-textio.ali
 Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
 
-U safety_monitor%s	safety_monitor.ads	c98fed94 EE NE OO PK
+U safety_monitor%s	safety_monitor.ads	c25a1489 EE NE OO PK
 W safety_types%s	safety_types.ads	safety_types.ali
 
 D ada.ads		20250425081800 76789da1 ada%s
@@ -46,7 +46,7 @@ D interfac.ads		20250425081800 9111f9c1 interfaces%s
 D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
 D safety_monitor.ads	20251021175132 33581107 safety_monitor%s
 D safety_monitor.adb	20251021183306 d9fb7aa3 safety_monitor%b
-D safety_types.ads	20251021173732 fad7fc93 safety_types%s
+D safety_types.ads	20251107010034 f102058e safety_types%s
 D system.ads		20250425081800 a869df9e system%s
 D s-crtl.ads		20250425081800 beb39b9e system.crtl%s
 D s-exctab.ads		20250425081800 91bef6ef system.exception_table%s
@@ -104,27 +104,27 @@ X 18 safety_monitor.ads
 9U14*Generate_Safety_Alert 10>7 11>7 12>7 19|25b14 70l8 70t29
 10f7 Risk{float} 19|26b7 41r11
 11e7 Status{20|4E9} 19|27b7 44r36 47r12
-12r7 Route{20|6R9} 19|28b7 37r11 39r16
+12r7 Route{20|7R9} 19|28b7 37r11 39r16
 16U14*Log_Safety_Event 17>7 18>7 19>7 20>7 19|72b14 107l8 107t24
 17f7 Risk{float} 19|73b7 92r21
 18e7 Status{20|4E9} 19|74b7 95r46
-19r7 Route{20|6R9} 19|75b7 88r21 90r26
+19r7 Route{20|7R9} 19|75b7 88r21 90r26
 20b7 Validated{boolean} 19|76b7 97r10
 X 19 safety_monitor.adb
 78p7 Log_File{13|67P9} 82m14 82r14 84r16 85r11 86r16 87r11 88r11 89r11 90r16
 . 91r11 92r11 93r16 94r11 95r16 96r11 98r19 100r19 102r16 103r16 105m13 105r13
 79i7 Now{2|42I9} 86r56
 X 20 safety_types.ads
-2K9*Safety_Types 18|1w6 1r24 20|21e17
+1K9*Safety_Types 18|1w6 1r24 20|27e17
 4E9*Safety_Status 18|6r56 11r16 18r16 19|8r56 27r16 44r16 74r16 95r26 20|4e60
 4n27*SAFE{4E9} 19|21r17 64r15
 4n33*CAUTION{4E9} 19|18r17 59r15
 4n42*DANGER{4E9} 19|15r17 54r15
 4n50*EMERGENCY{4E9} 19|12r17 48r15
-6R9*Flight_Route 18|12r16 19r16 19|28r16 75r16 20|10e14
-7a7*Origin{string} 19|37r17 88r27
-8a7*Destination{string} 19|39r22 90r32
-13f4*EMERGENCY_THRESHOLD{float} 19|10r18
-14f4*DANGER_THRESHOLD{float} 19|13r21
-15f4*CAUTION_THRESHOLD{float} 19|16r21
+7R9*Flight_Route 18|12r16 19r16 19|28r16 75r16 20|11e14
+8a7*Origin{string} 19|37r17 88r27
+9a7*Destination{string} 19|39r22 90r32
+19f4*CAUTION_THRESHOLD{float} 19|16r21
+20f4*DANGER_THRESHOLD{float} 19|13r21
+21f4*EMERGENCY_THRESHOLD{float} 19|10r18
 

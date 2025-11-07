@@ -1,10 +1,6 @@
-fix(ada): Implement complete E-field calculation in Physics_Validator
+refactor(ada): Update safety thresholds to aviation-appropriate values
 
-- Add atmospheric E-field computation from weather parameters
-- Match C implementation: humidity, pressure, temp, wind contributions
-- Apply correct weighted risk model (35% field, 10% humidity, 10% pressure)
-- Increase validation tolerance to 15% to account for floating point differences
-- Fixes MISMATCH error where Ada returned 10% while C calculated 40%+
+- CAUTION: 25% (enhanced monitoring, matches moderate thunderstorm risk)
+- DANGER: 45% (reroute recommended, high E-field conditions)
+- EMERGENCY: 65% (immediate action, critical electrical environment)
 
-Resolves: Ada-C validation failures
-Testing: CYOW->CYYZ route now passes validation (was 43.4% vs 10%, now 43.4% vs 41.2%)

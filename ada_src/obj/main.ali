@@ -16,7 +16,7 @@ RV NO_DEFAULT_INITIALIZATION
 RV NO_DYNAMIC_SIZED_OBJECTS
 RV NO_IMPLEMENTATION_PRAGMAS
 
-U main%b		main.adb		9da512be NE OO SU IL
+U main%b		main.adb		9670eba3 NE OO SU IL
 W ada%s			ada.ads			ada.ali
 W ada.float_text_io%s	a-flteio.ads		a-flteio.ali
 W ada.integer_text_io%s	a-inteio.ads		a-inteio.ali
@@ -58,7 +58,7 @@ D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
 D main.adb		20251021182954 a34eb582 main%b
 D physics_validator.ads	20251021174504 e3056d02 physics_validator%s
 D safety_monitor.ads	20251021175132 33581107 safety_monitor%s
-D safety_types.ads	20251021173732 fad7fc93 safety_types%s
+D safety_types.ads	20251107010034 f102058e safety_types%s
 D system.ads		20250425081800 a869df9e system%s
 D s-atocou.ads		20250425081800 dc18efc3 system.atomic_counters%s
 D s-conca2.ads		20250425081800 b5fb73f7 system.concat_2%s
@@ -128,7 +128,7 @@ X 19 a-tiflio.ads
 91i7 Aft{18|89I12} 25|61r38[6|20]
 X 25 main.adb
 10U11*main 10b11 136l5 136t9
-12r3 Current_Route{28|6R9} 68r61 92r65 95r60
+12r3 Current_Route{28|7R9} 68r61 92r65 95r60
 18f4 Lightning_Risk{float} 56m13 61r11 76r52 86r54 92r41 95r36 104r24
 19f4 Temperature{float} 76r7
 20f4 Humidity{float} 76r20
@@ -153,14 +153,14 @@ X 27 safety_monitor.ads
 9U14*Generate_Safety_Alert 25|68s25 92s19
 16U14*Log_Safety_Event 25|95s19
 X 28 safety_types.ads
-2K9*Safety_Types 25|6w6 6r24 28|21e17
+1K9*Safety_Types 25|6w6 6r24 28|27e17
 4E9*Safety_Status 25|25r13 102r48 133r54 28|4e60
 4n27*SAFE{4E9} 25|114r15
 4n33*CAUTION{4E9} 25|117r15
 4n42*DANGER{4E9} 25|120r15
 4n50*EMERGENCY{4E9} 25|67r20 81r17 123r15
-6R9*Flight_Route 25|12r19 28|10e14
-7a7*Origin{string} 25|13m7
-8a7*Destination{string} 25|14m7
-9f7*Distance_Km{float} 25|15m7
+7R9*Flight_Route 25|12r19 28|11e14
+8a7*Origin{string} 25|13m7
+9a7*Destination{string} 25|14m7
+10f7*Distance_Km{float} 25|15m7
 
