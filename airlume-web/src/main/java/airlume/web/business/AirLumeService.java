@@ -1,6 +1,7 @@
 package airlume.web.business;
 
 import airlume.web.entity.FlightAnalysis;
+import airlume.web.entity.Waypoint;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.LocalBean;
 import java.io.BufferedReader;
@@ -96,23 +97,16 @@ public class AirLumeService {
      * Main parser - detects mode and calls appropriate parser
      */
     private FlightAnalysis parseOutput(String output) {
-        System.out.println("Parsing output...");
-        
-        // Check if route mode or single-point mode
-        if (output.contains("ROUTE ANALYSIS MODE") || output.contains("Route:")) {
-            System.out.println("Detected: ROUTE MODE");
-            return parseRouteOutput(output);
-        } else {
-            System.out.println("Detected: SINGLE-POINT MODE");
-            return parseSinglePointOutput(output);
-        }
-    }
-    
-    /**
-     * Parse route analysis output (when origin/destination provided)
-     */
-   private FlightAnalysis parseRouteOutput(String output) {
     FlightAnalysis analysis = new FlightAnalysis();
+    
+    // Parse total distance
+    Pattern distancePattern = Pattern.compile("Total Distance: ([0-9.]+) km");
+    Matcher distanceMatcher = distancePattern.matcher(output);
+    if (distanceMatcher.find()) {
+        double distance = Double.parseDouble(distanceMatcher.group(1));
+        analysis.setTotalDistance(distance);
+        System.out.println("Parsed distance: " + distance);
+    }
     
     // Parse maximum risk along route
     Pattern maxRiskPattern = Pattern.compile("Maximum Risk: ([0-9.]+)%");
@@ -128,51 +122,41 @@ public class AirLumeService {
     Matcher avgRiskMatcher = avgRiskPattern.matcher(output);
     if (avgRiskMatcher.find()) {
         double avgRisk = Double.parseDouble(avgRiskMatcher.group(1));
+        analysis.setAverageRisk(avgRisk);
         System.out.println("Parsed avg risk: " + avgRisk);
     }
     
-    // Parse distance
-    Pattern distancePattern = Pattern.compile("Distance: ([0-9.]+) km");
-    Matcher distanceMatcher = distancePattern.matcher(output);
-    if (distanceMatcher.find()) {
-        System.out.println("Parsed distance: " + distanceMatcher.group(1));
-    }
-    
-    // *** NEW: Parse weather data from waypoint output ***
-    // Look for the FIRST waypoint's weather (or average across all)
-    Pattern wp1WeatherPattern = Pattern.compile("WP1_WEATHER:([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)");
+    // *** FIXED: Parse weather data - MUST handle negative numbers! ***
+    Pattern wp1WeatherPattern = Pattern.compile("WP1_WEATHER:([0-9.\\-]+),([0-9.\\-]+),([0-9.\\-]+),([0-9.\\-]+)");
     Matcher wp1WeatherMatcher = wp1WeatherPattern.matcher(output);
     if (wp1WeatherMatcher.find()) {
         analysis.setTemperature(Double.parseDouble(wp1WeatherMatcher.group(1)));
         analysis.setHumidity(Double.parseDouble(wp1WeatherMatcher.group(2)));
         analysis.setPressure(Double.parseDouble(wp1WeatherMatcher.group(3)));
         analysis.setWindSpeed(Double.parseDouble(wp1WeatherMatcher.group(4)));
-        System.out.println("Parsed weather from WP1");
-    } else {
-        // Fallback: try to parse from C output format
-        Pattern tempPattern = Pattern.compile("Temperature: ([0-9.]+)");
-        Matcher tempMatcher = tempPattern.matcher(output);
-        if (tempMatcher.find()) {
-            analysis.setTemperature(Double.parseDouble(tempMatcher.group(1)));
-        }
+        System.out.println("Parsed weather from WP1: " + 
+                           wp1WeatherMatcher.group(1) + "°C, " + 
+                           wp1WeatherMatcher.group(2) + "%");
+    }
+    
+    // Parse waypoints from output
+    Pattern waypointPattern = Pattern.compile("WP(\\d+)\\s+\\(\\s*(\\d+)\\s+km\\).*?([0-9.]+)%\\s+(LOW|MODERATE|HIGH|CRITICAL)");
+    Matcher waypointMatcher = waypointPattern.matcher(output);
+    
+    while (waypointMatcher.find()) {
+        int wpNum = Integer.parseInt(waypointMatcher.group(1));
+        double distKm = Double.parseDouble(waypointMatcher.group(2));
+        double riskPercent = Double.parseDouble(waypointMatcher.group(3));
+        String riskLevel = waypointMatcher.group(4);
         
-        Pattern humidityPattern = Pattern.compile("Humidity: ([0-9.]+)%");
-        Matcher humidityMatcher = humidityPattern.matcher(output);
-        if (humidityMatcher.find()) {
-            analysis.setHumidity(Double.parseDouble(humidityMatcher.group(1)));
-        }
+        Waypoint wp = new Waypoint();
+        wp.setNumber(wpNum);
+        wp.setDistanceKm(distKm);
+        wp.setRiskPercent(riskPercent);
+        wp.setRiskLevel(riskLevel);
         
-        Pattern pressurePattern = Pattern.compile("Pressure: ([0-9.]+) hPa");
-        Matcher pressureMatcher = pressurePattern.matcher(output);
-        if (pressureMatcher.find()) {
-            analysis.setPressure(Double.parseDouble(pressureMatcher.group(1)));
-        }
-        
-        Pattern windPattern = Pattern.compile("Wind Speed: ([0-9.]+) m/s");
-        Matcher windMatcher = windPattern.matcher(output);
-        if (windMatcher.find()) {
-            analysis.setWindSpeed(Double.parseDouble(windMatcher.group(1)));
-        }
+        analysis.addWaypoint(wp);
+        System.out.println("Parsed waypoint: WP" + wpNum + " @ " + distKm + "km, Risk: " + riskPercent + "% " + riskLevel);
     }
     
     // Determine risk level based on max risk
@@ -188,24 +172,26 @@ public class AirLumeService {
     }
     
     // Parse recommendation
-    if (output.contains("IMMEDIATE REROUTE") || output.contains("CRITICAL RISK")) {
+    if (output.contains("CRITICAL RISK") || output.contains("IMMEDIATE")) {
         analysis.setRecommendation("Immediate reroute required - unsafe conditions");
-    } else if (output.contains("CONSIDER ROUTE CHANGE") || output.contains("HIGH RISK")) {
+    } else if (output.contains("HIGH RISK") || output.contains("CONSIDER ROUTE CHANGE")) {
         analysis.setRecommendation("Consider alternate route - elevated risk detected");
     } else if (output.contains("PROCEED WITH CAUTION") || output.contains("MODERATE")) {
         analysis.setRecommendation("Proceed with caution - monitor conditions along route");
-    } else {
+    } else if (output.contains("CLEARED FOR FLIGHT")) {
         analysis.setRecommendation("Safe to proceed - normal flight operations");
+    } else {
+        analysis.setRecommendation("Monitor weather conditions along route");
     }
     
-    // Parse Ada safety status (if your C program includes it)
+    // Parse Ada safety status
     if (output.contains("SAFETY_STATUS:EMERGENCY") || output.contains("EMERGENCY")) {
         analysis.setSafetyStatus("EMERGENCY");
     } else if (output.contains("SAFETY_STATUS:DANGER") || output.contains("DANGER")) {
         analysis.setSafetyStatus("DANGER");
-    } else if (output.contains("SAFETY_STATUS:CAUTION") || output.contains("CAUTION")) {
+    } else if (output.contains("SAFETY_STATUS:CAUTION") || output.contains("Safety Status: CAUTION")) {
         analysis.setSafetyStatus("CAUTION");
-    } else if (output.contains("SAFETY_STATUS:SAFE")) {
+    } else if (output.contains("SAFETY_STATUS:SAFE") || output.contains("Safety Status: SAFE")) {
         analysis.setSafetyStatus("SAFE");
     } else if (output.contains("OPERATIONAL")) {
         analysis.setSafetyStatus("OPERATIONAL");
@@ -213,16 +199,14 @@ public class AirLumeService {
         analysis.setSafetyStatus("SAFE");
     }
     
-    // Safety check
     analysis.setSafetyCheckPassed(
         output.contains("SAFETY CHECK: PASSED") || 
         output.contains("VALIDATION:PASSED")
     );
     
-    System.out.println("Route parsing complete");
+    System.out.println("Route parsing complete - Found " + analysis.getWaypointCount() + " waypoints");
     return analysis;
 }
-    
     /**
      * Parse single-point analysis output (fallback mode)
      */

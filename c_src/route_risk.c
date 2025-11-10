@@ -122,9 +122,8 @@ void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
         wp_risk->longitude = wp->longitude;
         wp_risk->distance_km = wp->distance_from_start;
         
-        // *** CHANGED: Use real weather if available, otherwise use defaults ***
+        // Use real weather if available
         if (i < weather_count && weather_array != NULL) {
-            // Use REAL weather from Python API
             wp_risk->weather = weather_array[i];
         } else {
             // Fallback to sample weather if API failed
@@ -157,7 +156,7 @@ void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
                wp_risk->risk_level);
     }
     
-    // Don't forget to free the allocated memory!
+    // Free allocated memory
     if (weather_array != NULL) {
         free(weather_array);
     }
@@ -167,6 +166,21 @@ void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
     
     // Generate recommendation
     generate_flight_recommendation(assessment);
+    
+    // *** NEW: Write max waypoint weather data for Ada validation ***
+    WaypointRisk* max_wp = &assessment->waypoint_risks[assessment->max_risk_waypoint];
+    
+    FILE* risk_file = fopen("lightning_risk.txt", "w");
+    if (risk_file) {
+        fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", assessment->max_risk);
+        fprintf(risk_file, "WAYPOINT:%d\n", max_wp->waypoint_number);
+        fprintf(risk_file, "TEMPERATURE:%.2f\n", max_wp->weather.temperature);
+        fprintf(risk_file, "HUMIDITY:%.2f\n", max_wp->weather.humidity);
+        fprintf(risk_file, "PRESSURE:%.2f\n", max_wp->weather.pressure);
+        fprintf(risk_file, "WIND_SPEED:%.2f\n", max_wp->weather.wind_speed);
+        fclose(risk_file);
+        printf("Risk data written to file for Ada system\n");
+    }
 }
 
 void generate_flight_recommendation(RouteRiskAssessment* assessment) {

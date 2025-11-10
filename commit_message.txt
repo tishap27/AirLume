@@ -1,6 +1,11 @@
-refactor(ada): Update safety thresholds to aviation-appropriate values
+fix: Parse negative temperatures in weather data
 
-- CAUTION: 25% (enhanced monitoring, matches moderate thunderstorm risk)
-- DANGER: 45% (reroute recommended, high E-field conditions)
-- EMERGENCY: 65% (immediate action, critical electrical environment)
+- Add \\- to regex pattern to handle negative temps
+- Fix weather parsing for route mode
+- Now correctly displays -2.4°C instead of 0.0°C
+- Parse WP1 weather data correctly
 
+Bug: Weather was defaulting to 0.0 because regex couldn't match negative numbers
+Fix: Updated pattern from [0-9.]+ to [0-9.\\-]+
+
+Enhance route-visualization.xhtml 

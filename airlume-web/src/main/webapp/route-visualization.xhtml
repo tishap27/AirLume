@@ -1,4 +1,3 @@
-<?xml version='1.0' encoding='UTF-8' ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
@@ -6,542 +5,761 @@
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
     
 <h:head>
-    <title>AirLume - Enhanced Route Visualization</title>
+    <title>AirLume - Professional Lightning Risk Analysis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
         
-        .container {
-            max-width: 1400px;
+        .main-container {
+            max-width: 1800px;
             margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        /* Header */
+        .app-header {
+            background: rgba(255,255,255,0.98);
+            border-radius: 20px 20px 0 0;
+            padding: 40px 50px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
+            position: relative;
             overflow: hidden;
         }
         
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
         }
         
-        .header h1 {
-            margin: 0;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 30px;
         }
         
-        .header p {
-            margin: 10px 0 0 0;
-            opacity: 0.9;
+        .logo-section {
+            font-size: 64px;
+            animation: float 3s ease-in-out infinite;
         }
         
-        .content {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-            padding: 30px;
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(-5deg); }
         }
         
-        .input-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .input-section h2 {
-            margin-top: 0;
+        .title-section h1 {
+            font-size: 2.8em;
             color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .title-section p {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            font-weight: 400;
+        }
+        
+        /* Main Content Area */
+        .content-wrapper {
+            background: white;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            min-height: 900px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, #f8f9fa 0%, #ecf0f1 100%);
+            padding: 40px;
+            border-right: 2px solid #e0e0e0;
+        }
+        
+        .section-header {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 15px;
             border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
         }
         
-        .form-group {
-            margin-bottom: 20px;
+        .input-group {
+            margin-bottom: 28px;
         }
         
-        .form-group label {
+        .input-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 600;
             color: #34495e;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             text-transform: uppercase;
-            transition: border-color 0.3s;
+            letter-spacing: 0.5px;
         }
         
-        .form-group input:focus {
+        .input-field {
+            width: 100%;
+            padding: 18px 20px;
+            border: 2px solid #d0d0d0;
+            border-radius: 12px;
+            font-size: 20px;
+            text-transform: uppercase;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .input-field:focus {
             outline: none;
             border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+            transform: translateY(-2px);
         }
         
-        .analyze-btn {
+        .submit-button {
             width: 100%;
-            padding: 15px;
+            padding: 20px;
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
+            border-radius: 14px;
+            font-size: 19px;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
         }
         
-        .analyze-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(52, 152, 219, 0.5);
         }
         
-        .visualization-section {
-            background: white;
+        .submit-button:active {
+            transform: translateY(0);
+        }
+        
+        .status-alert {
+            margin-top: 30px;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .route-map {
-            background: linear-gradient(to bottom, #e3f2fd 0%, #ffffff 100%);
-            border: 2px solid #3498db;
-            border-radius: 10px;
-            padding: 30px;
-            margin: 20px 0;
-            position: relative;
-            min-height: 400px;
-        }
-        
-        .route-header {
+            border-radius: 12px;
             text-align: center;
-            margin-bottom: 30px;
+            animation: slideIn 0.5s ease-out;
         }
         
-        .route-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .status-alert.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+        }
+        
+        .status-alert.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #dc3545;
+        }
+        
+        .status-icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+        
+        .status-text {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .status-alert.success .status-text { color: #155724; }
+        .status-alert.error .status-text { color: #721c24; }
+        
+        /* Visualization Area */
+        .viz-area {
+            padding: 50px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+        }
+        
+        .route-display {
+            background: white;
+            padding: 35px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .route-badges {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
         }
         
-        .airport-code {
-            background: #3498db;
+        .airport-badge {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 20px;
+            padding: 18px 40px;
+            border-radius: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 32px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+            letter-spacing: 4px;
         }
         
-        .arrow {
+        .arrow-symbol {
             color: #3498db;
-            font-size: 30px;
-        }
-        
-        .flight-path {
-            position: relative;
-            height: 300px;
-            margin: 40px 0;
-        }
-        
-        .path-line {
-            position: absolute;
-            top: 50%;
-            left: 5%;
-            right: 5%;
-            height: 3px;
-            background: linear-gradient(to right, #3498db, #9b59b6, #e74c3c);
-            border-radius: 2px;
-            transform: translateY(-50%);
-        }
-        
-        .airplane-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             font-size: 40px;
-            animation: fly 3s ease-in-out infinite;
+            font-weight: bold;
         }
         
-        @keyframes fly {
-            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-            50% { transform: translate(-50%, -50%) translateY(-10px); }
-        }
-        
-        .waypoints-container {
-            position: relative;
-            height: 100%;
-        }
-        
-        .waypoint {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
+        .distance-display {
             text-align: center;
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-top: 20px;
         }
         
-        .waypoint-dot {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 3px solid white;
-            margin: 0 auto 5px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        /* SVG Flight Path */
+        .flight-viz-container {
+            background: linear-gradient(to bottom, #e8f4f8 0%, #ffffff 100%);
+            border: 3px solid #3498db;
+            border-radius: 20px;
+            padding: 60px 40px;
+            margin: 40px 0;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.15);
             position: relative;
-            z-index: 2;
+        }
+        
+        .svg-canvas {
+            width: 100%;
+            height: 350px;
+        }
+        
+        /* Great Circle Path */
+        .flight-path {
+            fill: none;
+            stroke: url(#pathGradient);
+            stroke-width: 5;
+            stroke-linecap: round;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+        
+        /* Animated Plane */
+        .plane-icon {
+            font-size: 48px;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+        }
+        
+        .plane-icon animateMotion {
+            path: inherit;
+        }
+        
+        /* Waypoint Markers */
+        .waypoint-marker {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .waypoint-marker:hover {
+            transform: scale(1.3);
+        }
+        
+        .waypoint-circle {
+            stroke: white;
+            stroke-width: 4;
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.3));
         }
         
         .waypoint-label {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
-            color: #2c3e50;
-            background: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            white-space: nowrap;
+            fill: #2c3e50;
+            text-anchor: middle;
         }
         
-        .risk-low { background: #27ae60; }
-        .risk-moderate { background: #f39c12; }
-        .risk-high { background: #e67e22; }
-        .risk-critical { background: #e74c3c; }
-        
-        .stats-grid {
+        /* Stats Cards */
+        .stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
         }
         
         .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 32px;
+            border-radius: 16px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
         }
         
         .stat-label {
-            font-size: 12px;
-            opacity: 0.9;
+            font-size: 14px;
+            opacity: 0.95;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
         
         .stat-value {
-            font-size: 28px;
-            font-weight: bold;
-            margin-top: 5px;
+            font-size: 42px;
+            font-weight: 700;
+            line-height: 1;
         }
         
-        .waypoint-details {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        
-        .waypoint-details h3 {
-            margin-top: 0;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-        
-        .waypoint-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .waypoint-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .waypoint-item.low { border-left-color: #27ae60; }
-        .waypoint-item.moderate { border-left-color: #f39c12; }
-        .waypoint-item.high { border-left-color: #e67e22; }
-        .waypoint-item.critical { border-left-color: #e74c3c; }
-        
-        .waypoint-item-header {
-            font-weight: bold;
-            font-size: 16px;
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-        
-        .waypoint-item-detail {
-            font-size: 13px;
-            color: #7f8c8d;
-            margin: 3px 0;
-        }
-        
-        .risk-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            color: white;
-            margin-top: 8px;
-        }
-        
-        .weather-summary {
+        /* Weather Panel */
+        .weather-panel {
             background: linear-gradient(135deg, #56ccf2 0%, #2f80ed 100%);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+            padding: 40px;
+            border-radius: 16px;
+            margin: 40px 0;
+            box-shadow: 0 10px 30px rgba(47, 128, 237, 0.3);
         }
         
-        .weather-summary h3 {
-            margin-top: 0;
-            color: white;
+        .weather-panel h3 {
+            font-size: 1.8em;
+            margin-bottom: 30px;
+            font-weight: 700;
         }
         
         .weather-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-top: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
         }
         
         .weather-item {
-            text-align: center;
             background: rgba(255,255,255,0.2);
-            padding: 15px;
-            border-radius: 8px;
+            padding: 28px;
+            border-radius: 14px;
+            text-align: center;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .weather-item:hover {
+            background: rgba(255,255,255,0.35);
+            transform: scale(1.08);
         }
         
         .weather-icon {
-            font-size: 30px;
-            margin-bottom: 8px;
+            font-size: 44px;
+            margin-bottom: 14px;
         }
         
         .weather-value {
-            font-size: 20px;
-            font-weight: bold;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
         
         .weather-label {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-top: 5px;
+            font-size: 14px;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        .recommendation-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
+        /* Waypoint Details Section */
+        .waypoints-section {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 40px;
+            margin: 40px 0;
         }
         
-        .recommendation-box.safe {
-            background: #d4edda;
+        .waypoints-section h3 {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        
+        .waypoint-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        .waypoint-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 6px solid;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .waypoint-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .waypoint-card.low { border-left-color: #27ae60; }
+        .waypoint-card.moderate { border-left-color: #f39c12; }
+        .waypoint-card.high { border-left-color: #e67e22; }
+        .waypoint-card.critical { border-left-color: #e74c3c; }
+        
+        .waypoint-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .waypoint-detail {
+            font-size: 15px;
+            color: #7f8c8d;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .risk-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            margin-top: 12px;
+        }
+        
+        /* Recommendation Panel */
+        .recommendation-panel {
+            padding: 40px;
+            border-radius: 16px;
+            margin: 40px 0;
+            border: 3px solid;
+        }
+        
+        .recommendation-panel.low {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
             border-color: #28a745;
         }
         
-        .recommendation-box.caution {
-            background: #fff3cd;
+        .recommendation-panel.moderate {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
             border-color: #ffc107;
         }
         
-        .recommendation-box.danger {
-            background: #f8d7da;
+        .recommendation-panel.high {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
             border-color: #dc3545;
         }
         
         .recommendation-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
+            font-size: 64px;
+            margin-bottom: 20px;
+            text-align: center;
         }
         
         .recommendation-text {
-            font-size: 16px;
+            font-size: 20px;
             font-weight: 600;
             color: #2c3e50;
+            line-height: 1.6;
+            text-align: center;
         }
     </style>
 </h:head>
 
 <h:body>
-    <div class="container">
-        <div class="header">
-            <h1>✈️ AirLume Lightning Strike Prediction System</h1>
-            <p>Advanced Physics-Based Aircraft Lightning Risk Assessment</p>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="header-content">
+                <div class="logo-section">✈️</div>
+                <div class="title-section">
+                    <h1>AirLume Lightning Prediction System</h1>
+                    <p>Real-Time Physics-Based Aircraft Lightning Strike Risk Assessment</p>
+                </div>
+            </div>
         </div>
         
-        <div class="content">
-            <!-- Input Section -->
-            <div class="input-section">
-                <h2>🛫 Flight Route Analysis</h2>
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <div class="content-grid">
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <h2 class="section-header">
+                        <span>🛫</span>
+                        Flight Analysis
+                    </h2>
+                    
+                    <h:form>
+                        <div class="input-group">
+                            <label class="input-label">Origin Airport (ICAO)</label>
+                            <h:inputText value="#{flightController.origin}" 
+                                         styleClass="input-field"
+                                         maxlength="4"
+                                         placeholder="CYOW"
+                                         required="true"/>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Destination Airport (ICAO)</label>
+                            <h:inputText value="#{flightController.destination}" 
+                                         styleClass="input-field"
+                                         maxlength="4"
+                                         placeholder="CYYZ"
+                                         required="true"/>
+                        </div>
+                        
+                        <h:commandButton value="🔍 Analyze Risk" 
+                                         action="#{flightController.analyzeRoute}"
+                                         styleClass="submit-button"/>
+                    </h:form>
+                    
+                    <!-- Success Status -->
+                    <h:panelGroup rendered="#{flightController.analysisComplete}">
+                        <div class="status-alert success">
+                            <div class="status-icon">✅</div>
+                            <div class="status-text">Analysis Complete!</div>
+                        </div>
+                    </h:panelGroup>
+                    
+                    <!-- Error Status -->
+                    <h:panelGroup rendered="#{not empty flightController.errorMessage}">
+                        <div class="status-alert error">
+                            <div class="status-icon">⚠️</div>
+                            <div class="status-text">#{flightController.errorMessage}</div>
+                        </div>
+                    </h:panelGroup>
+                </div>
                 
-                <h:form>
-                    <div class="form-group">
-                        <label for="origin">Origin Airport (ICAO):</label>
-                        <h:inputText id="origin" 
-                                     value="#{flightController.origin}" 
-                                     required="true"
-                                     maxlength="4"
-                                     placeholder="e.g., CYOW"/>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="destination">Destination Airport (ICAO):</label>
-                        <h:inputText id="destination" 
-                                     value="#{flightController.destination}" 
-                                     required="true"
-                                     maxlength="4"
-                                     placeholder="e.g., CYYZ"/>
-                    </div>
-                    
-                    <h:commandButton value="🔍 Analyze Lightning Risk" 
-                                     action="#{flightController.analyzeRoute}"
-                                     styleClass="analyze-btn"/>
-                </h:form>
-                <h:panelGroup rendered="#{not empty flightController.errorMessage}">
-    <div style="margin-top: 20px; padding: 20px; background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px;">
-        <div style="font-size: 40px; text-align: center; margin-bottom: 10px;">⚠️</div>
-        <div style="color: #721c24; font-weight: 600; text-align: center;">
-            #{flightController.errorMessage}
-        </div>
-    </div>
-</h:panelGroup>
-
-                <h:panelGroup rendered="#{flightController.analysisComplete}">
-                    <div style="margin-top: 30px; padding: 20px; background: #d4edda; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 40px; color: #28a745;">✓</div>
-                        <div style="font-weight: 600; color: #155724; margin-top: 10px;">
-                            Analysis Complete!
+                <!-- Visualization Area -->
+                <div class="viz-area">
+                    <h:panelGroup rendered="#{flightController.analysisComplete}">
+                        
+                        <!-- Route Display -->
+                        <div class="route-display">
+                            <div class="route-badges">
+                                <span class="airport-badge">#{flightController.analysis.origin}</span>
+                                <span class="arrow-symbol">→</span>
+                                <span class="airport-badge">#{flightController.analysis.destination}</span>
+                            </div>
+                            <h:panelGroup rendered="#{flightController.analysis.totalDistance > 0}">
+                                <div class="distance-display">
+                                    <strong>Total Distance:</strong> #{flightController.analysis.totalDistance} km
+                                    | <strong>#{flightController.analysis.waypointCount} Waypoints</strong>
+                                </div>
+                            </h:panelGroup>
                         </div>
-                    </div>
-                </h:panelGroup>
-            </div>
-            
-            <!-- Visualization Section -->
-            <div class="visualization-section">
-                <h:panelGroup rendered="#{flightController.analysisComplete}">
-                    
-                    <!-- Route Header -->
-                    <div class="route-header">
-                        <div class="route-title">
-                            <span class="airport-code">#{flightController.analysis.origin}</span>
-                            <span class="arrow">→</span>
-                            <span class="airport-code">#{flightController.analysis.destination}</span>
+                        
+                        <!-- SVG Flight Path Visualization -->
+                        <div class="flight-viz-container">
+                            <svg class="svg-canvas" viewBox="0 0 1200 300">
+                                <!-- Gradient Definition -->
+                                <defs>
+                                    <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#27ae60;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#f39c12;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#e74c3c;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                
+                                <!-- Great Circle Path (Curved) -->
+                                <path class="flight-path" 
+                                      d="M 100,150 Q 600,80 1100,150" />
+                                
+                                <!-- Animated Airplane -->
+                                <text class="plane-icon" x="0" y="0">
+                                    ✈️
+                                    <animateMotion dur="5s" repeatCount="indefinite">
+                                        <mpath href="#flightPath"/>
+                                    </animateMotion>
+                                </text>
+                                
+                                <!-- Dynamic Waypoints -->
+                                <h:panelGroup rendered="#{flightController.analysis.hasWaypoints()}">
+                                    <ui:repeat value="#{flightController.analysis.waypoints}" var="wp" varStatus="status">
+                                        <g class="waypoint-marker">
+                                            <!-- Waypoint Circle -->
+                                            <circle class="waypoint-circle risk-#{wp.riskClass}"
+                                                    cx="#{100 + (wp.distanceKm / flightController.analysis.totalDistance) * 1000}"
+                                                    cy="#{150 - 70 * Math.sin((wp.distanceKm / flightController.analysis.totalDistance) * 3.14159)}"
+                                                    r="12"
+                                                    fill="#{wp.riskColor}"/>
+                                            
+                                            <!-- Waypoint Label -->
+                                            <text class="waypoint-label"
+                                                  x="#{100 + (wp.distanceKm / flightController.analysis.totalDistance) * 1000}"
+                                                  y="#{150 - 70 * Math.sin((wp.distanceKm / flightController.analysis.totalDistance) * 3.14159) + 35}">
+                                                WP#{wp.number}
+                                            </text>
+                                        </g>
+                                    </ui:repeat>
+                                </h:panelGroup>
+                            </svg>
                         </div>
-                    </div>
-                    
-                    <!-- Flight Path Visualization -->
-                    <div class="route-map">
-                        <div class="flight-path">
-                            <div class="path-line"></div>
-                            <div class="airplane-icon">✈️</div>
-                            
-                            <!-- Waypoints (simulated positions) -->
-                            <div class="waypoints-container">
-                                <div class="waypoint" style="left: 5%;">
-                                    <div class="waypoint-dot risk-low"></div>
-                                    <div class="waypoint-label">WP1<br/>0 km</div>
+                        
+                        <!-- Stats Cards -->
+                        <div class="stats-row">
+                            <div class="stat-card">
+                                <div class="stat-label">⚡ Lightning Risk</div>
+                                <div class="stat-value">
+                                    <h:outputText value="#{flightController.analysis.lightningProbability}">
+                                        <f:convertNumber pattern="#0.0" />
+                                    </h:outputText>%
                                 </div>
-                                <div class="waypoint" style="left: 25%;">
-                                    <div class="waypoint-dot risk-low"></div>
-                                    <div class="waypoint-label">WP2<br/>50 km</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">📊 Risk Level</div>
+                                <div class="stat-value">#{flightController.analysis.riskLevel}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">🛡️ Safety Status</div>
+                                <div class="stat-value">#{flightController.analysis.safetyStatus}</div>
+                            </div>
+                            <h:panelGroup rendered="#{flightController.analysis.averageRisk > 0}">
+                                <div class="stat-card">
+                                    <div class="stat-label">📈 Avg Risk</div>
+                                    <div class="stat-value">
+                                        <h:outputText value="#{flightController.analysis.averageRisk}">
+                                            <f:convertNumber pattern="#0.0" />
+                                        </h:outputText>%
+                                    </div>
                                 </div>
-                                <div class="waypoint" style="left: 45%;">
-                                    <div class="waypoint-dot risk-moderate"></div>
-                                    <div class="waypoint-label">WP3<br/>100 km</div>
+                            </h:panelGroup>
+                        </div>
+                        
+                        <!-- Weather Panel -->
+                        <div class="weather-panel">
+                            <h3>🌤️ Current Weather Conditions</h3>
+                            <div class="weather-grid">
+                                <div class="weather-item">
+                                    <div class="weather-icon">🌡️</div>
+                                    <div class="weather-value">
+                                        <h:outputText value="#{flightController.analysis.temperature}">
+                                            <f:convertNumber pattern="#0.0" />
+                                        </h:outputText>°C
+                                    </div>
+                                    <div class="weather-label">Temperature</div>
                                 </div>
-                                <div class="waypoint" style="left: 65%;">
-                                    <div class="waypoint-dot risk-moderate"></div>
-                                    <div class="waypoint-label">WP4<br/>150 km</div>
+                                <div class="weather-item">
+                                    <div class="weather-icon">💧</div>
+                                    <div class="weather-value">
+                                        <h:outputText value="#{flightController.analysis.humidity}">
+                                            <f:convertNumber pattern="#0.0" />
+                                        </h:outputText>%
+                                    </div>
+                                    <div class="weather-label">Humidity</div>
                                 </div>
-                                <div class="waypoint" style="left: 85%;">
-                                    <div class="waypoint-dot risk-low"></div>
-                                    <div class="waypoint-label">WP5<br/>200 km</div>
+                                <div class="weather-item">
+                                    <div class="weather-icon">📊</div>
+                                    <div class="weather-value">
+                                        <h:outputText value="#{flightController.analysis.pressure}">
+                                            <f:convertNumber pattern="#0.0" />
+                                        </h:outputText>
+                                    </div>
+                                    <div class="weather-label">Pressure (hPa)</div>
+                                </div>
+                                <div class="weather-item">
+                                    <div class="weather-icon">💨</div>
+                                    <div class="weather-value">
+                                        <h:outputText value="#{flightController.analysis.windSpeed}">
+                                            <f:convertNumber pattern="#0.0" />
+                                        </h:outputText>
+                                    </div>
+                                    <div class="weather-label">Wind (m/s)</div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Stats Grid -->
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Lightning Risk</div>
-                            <div class="stat-value">#{flightController.analysis.lightningProbability}%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Risk Level</div>
-                            <div class="stat-value">#{flightController.analysis.riskLevel}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Safety Status</div>
-                            <div class="stat-value">#{flightController.analysis.safetyStatus}</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Weather Summary -->
-                    <div class="weather-summary">
-                        <h3>🌤️ Current Weather Conditions</h3>
-                        <div class="weather-grid">
-                            <div class="weather-item">
-                                <div class="weather-icon">🌡️</div>
-                                <div class="weather-value">#{flightController.analysis.temperature}°C</div>
-                                <div class="weather-label">Temperature</div>
+                        
+                        <!-- Waypoint Details -->
+                        <h:panelGroup rendered="#{flightController.analysis.hasWaypoints()}">
+                            <div class="waypoints-section">
+                                <h3>📍 Detailed Waypoint Analysis (#{flightController.analysis.waypointCount} Points)</h3>
+                                <div class="waypoint-grid">
+                                    <ui:repeat value="#{flightController.analysis.waypoints}" var="wp">
+                                        <div class="waypoint-card #{wp.riskClass}">
+                                            <div class="waypoint-header">
+                                                <span>Waypoint #{wp.number}</span>
+                                            </div>
+                                            <div class="waypoint-detail">
+                                                <span>Distance:</span>
+                                                <strong>#{wp.distanceKm} km</strong>
+                                            </div>
+                                            <div class="waypoint-detail">
+                                                <span>Lightning Risk:</span>
+                                                <strong>
+                                                    <h:outputText value="#{wp.riskPercent}">
+                                                        <f:convertNumber pattern="#0.0" />
+                                                    </h:outputText>%
+                                                </strong>
+                                            </div>
+                                            <span class="risk-badge risk-#{wp.riskClass}">
+                                                #{wp.riskLevel}
+                                            </span>
+                                        </div>
+                                    </ui:repeat>
+                                </div>
                             </div>
-                            <div class="weather-item">
-                                <div class="weather-icon">💧</div>
-                                <div class="weather-value">#{flightController.analysis.humidity}%</div>
-                                <div class="weather-label">Humidity</div>
+                        </h:panelGroup>
+                        
+                        <!-- Recommendation -->
+                        <div class="recommendation-panel #{flightController.analysis.riskLevel == 'LOW' ? 'low' : (flightController.analysis.riskLevel == 'MODERATE' ? 'moderate' : 'high')}">
+                            <div class="recommendation-icon">
+                                #{flightController.analysis.riskLevel == 'LOW' ? '✅' : (flightController.analysis.riskLevel == 'MODERATE' ? '⚠️' : '🚨')}
                             </div>
-                            <div class="weather-item">
-                                <div class="weather-icon">📊</div>
-                                <div class="weather-value">#{flightController.analysis.pressure}</div>
-                                <div class="weather-label">Pressure (hPa)</div>
-                            </div>
-                            <div class="weather-item">
-                                <div class="weather-icon">💨</div>
-                                <div class="weather-value">#{flightController.analysis.windSpeed}</div>
-                                <div class="weather-label">Wind (m/s)</div>
+                            <div class="recommendation-text">
+                                #{flightController.analysis.recommendation}
                             </div>
                         </div>
-                    </div>
+                        
+                    </h:panelGroup>
                     
-                    <!-- Recommendation -->
-                    <div class="recommendation-box #{flightController.analysis.riskLevel == 'LOW' ? 'safe' : (flightController.analysis.riskLevel == 'MODERATE' ? 'caution' : 'danger')}">
-                        <div class="recommendation-icon">
-                            #{flightController.analysis.riskLevel == 'LOW' ? '✅' : (flightController.analysis.riskLevel == 'MODERATE' ? '⚠️' : '🚨')}
+                    <!-- No Data State -->
+                    <h:panelGroup rendered="#{not flightController.analysisComplete and empty flightController.errorMessage}">
+                        <div style="text-align: center; padding: 100px 20px; color: #7f8c8d;">
+                            <div style="font-size: 80px; margin-bottom: 30px;">✈️</div>
+                            <h2 style="font-size: 2em; color: #2c3e50; margin-bottom: 15px;">Ready for Analysis</h2>
+                            <p style="font-size: 1.2em;">Enter origin and destination airports to begin lightning risk assessment</p>
                         </div>
-                        <div class="recommendation-text">
-                            #{flightController.analysis.recommendation}
-                        </div>
-                    </div>
-                    
-                </h:panelGroup>
+                    </h:panelGroup>
+                </div>
             </div>
         </div>
     </div>
