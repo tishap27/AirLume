@@ -71,6 +71,12 @@ public class AirLumeService {
             if (exitCode != 0) {
                 throw new RuntimeException("Program failed with exit code: " + exitCode);
             }
+            // Validate output contains expected data
+            if (!output.toString().contains("WP") && !output.toString().contains("WEATHER_DATA")) {
+            System.err.println("=== INVALID OUTPUT ===");
+            System.err.println(output.toString());
+            throw new RuntimeException("C program produced invalid output - no waypoint or weather data found");
+            }
             
             if (output.length() == 0) {
                 throw new RuntimeException("No output from program!");
@@ -82,15 +88,23 @@ public class AirLumeService {
             analysis.setDestination(destCode);
             return analysis;
             
-        } catch (IOException e) {
-        e.printStackTrace();
-        throw new RuntimeException("Failed to execute analysis program: " + e.getMessage());
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-        throw new RuntimeException("Analysis was interrupted: " + e.getMessage());
-    } catch (Exception e) {
-        e.printStackTrace();
-        throw new RuntimeException("Analysis failed: " + e.getMessage());
+       } catch (IOException e) {
+         e.printStackTrace();
+            String errorMsg = "Failed to execute C program: " + e.getMessage();
+            System.err.println(errorMsg);
+            throw new RuntimeException(errorMsg);
+       } catch (InterruptedException e) {
+           e.printStackTrace();
+            String errorMsg = "Analysis was interrupted: " + e.getMessage();
+            System.err.println(errorMsg);
+         throw new RuntimeException(errorMsg);
+       } catch (Exception e) {
+         e.printStackTrace();
+        String errorMsg = "Unexpected error during analysis: " + e.getMessage();
+        System.err.println(errorMsg);
+        //System.err.println("Output received: " + (output != null ? output.toString() : "null"));
+    
+        throw new RuntimeException(errorMsg);
     }
 }
     /**
@@ -126,7 +140,7 @@ public class AirLumeService {
         System.out.println("Parsed avg risk: " + avgRisk);
     }
     
-    // *** FIXED: Parse weather data - MUST handle negative numbers! ***
+    // Parse weather data - MUST handle negative numbers! 
     Pattern wp1WeatherPattern = Pattern.compile("WP1_WEATHER:([0-9.\\-]+),([0-9.\\-]+),([0-9.\\-]+),([0-9.\\-]+)");
     Matcher wp1WeatherMatcher = wp1WeatherPattern.matcher(output);
     if (wp1WeatherMatcher.find()) {
