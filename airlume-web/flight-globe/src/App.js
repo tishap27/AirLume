@@ -28,17 +28,41 @@ function GlobeFlight({ origin, destination }) {
   const [analysis, setAnalysis] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    setError(null);
-    setAnalysis(null);
-    fetch(`${API_URL}?origin=${origin}&destination=${destination}`)
-      .then(r => r.json())
-      .then(obj => {
-        if(obj.error) setError(obj.error);
-        else setAnalysis(obj);
-      })
-      .catch(e => setError(e.message));
-  }, [origin, destination]);
+useEffect(() => {
+  setError(null);
+  setAnalysis(null);
+  
+  console.log(`Fetching: ${API_URL}?origin=${origin}&destination=${destination}`);
+  
+  fetch(`${API_URL}?origin=${origin}&destination=${destination}`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => {
+      console.log('Response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Received data:', data);
+      if (data.error) {
+        setError(data.error);
+      } else if (!data.origin || !data.destination) {
+        setError('Invalid response: missing route data');
+      } else {
+        setAnalysis(data);
+      }
+    })
+    .catch(err => {
+      console.error('Fetch error:', err);
+      setError(`Connection failed: ${err.message}`);
+    });
+}, [origin, destination]);
 
   useEffect(() => {
     if (!analysis) return;
