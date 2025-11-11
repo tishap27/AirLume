@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import static java.time.Clock.system;
+import static java.time.InstantSource.system;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -112,7 +114,7 @@ public class AirLumeService {
      */
     private FlightAnalysis parseOutput(String output) {
     FlightAnalysis analysis = new FlightAnalysis();
-    
+       
     // Parse total distance
     Pattern distancePattern = Pattern.compile("Total Distance: ([0-9.]+) km");
     Matcher distanceMatcher = distancePattern.matcher(output);
@@ -152,18 +154,49 @@ public class AirLumeService {
                            wp1WeatherMatcher.group(1) + "°C, " + 
                            wp1WeatherMatcher.group(2) + "%");
     }
-    
-    // Parse waypoints from output
-    Pattern waypointPattern = Pattern.compile("WP(\\d+)\\s+\\(\\s*(\\d+)\\s+km\\).*?([0-9.]+)%\\s+(LOW|MODERATE|HIGH|CRITICAL)");
+        int numWaypoints = 0;
+    // Pattern to extract: WP1: (45.3225, -75.6692) @ 0 km
+    Pattern waypointPattern = Pattern.compile(
+    "WP(\\d+):\\s*\\(([0-9.\\-]+),\\s*([0-9.\\-]+)\\)\\s*@\\s*(\\d+)\\s*km");
     Matcher waypointMatcher = waypointPattern.matcher(output);
     
     while (waypointMatcher.find()) {
-        int wpNum = Integer.parseInt(waypointMatcher.group(1));
-        double distKm = Double.parseDouble(waypointMatcher.group(2));
-        double riskPercent = Double.parseDouble(waypointMatcher.group(3));
-        String riskLevel = waypointMatcher.group(4);
+    int wpNum = Integer.parseInt(waypointMatcher.group(1));
+    double lat = Double.parseDouble(waypointMatcher.group(2));
+    double lon = Double.parseDouble(waypointMatcher.group(3));
+    double distKm = Double.parseDouble(waypointMatcher.group(4));
+    
+     numWaypoints++;  // increment here to track total waypoints
+    // Now extract risk for this waypoint
+    String riskPattern;
+        riskPattern = String.format(
+                "\\[%d/%d\\]\\s+WP%d\\s+@\\s+%d\\s+km:\\s+([0-9.]+)%%\\s+(LOW|MODERATE|HIGH|CRITICAL)",
+                wpNum, numWaypoints, wpNum, (int)distKm
+        );         // This is maybe the place where it prits lat and lon twice check later again
+       
+    Pattern riskMatcher = Pattern.compile(riskPattern);
+    Matcher riskMatch = riskMatcher.matcher(output);
+    
+    double riskPercent = 0.0;
+    String riskLevel = "UNKNOWN";
+    
+    if (riskMatch.find()) {
+        riskPercent = Double.parseDouble(riskMatch.group(1));
+        riskLevel = riskMatch.group(2);
+    }
+    
+    Waypoint wp = new Waypoint();
+    wp.setNumber(wpNum);
+    wp.setLatitude(lat);
+    wp.setLongitude(lon);
+    wp.setDistanceKm(distKm);
+    wp.setRiskPercent(riskPercent);
+    wp.setRiskLevel(riskLevel);
+    
+    analysis.addWaypoint(wp);
         
-        Waypoint wp = new Waypoint();
+       // Waypoint wp;
+        wp = new Waypoint();
         wp.setNumber(wpNum);
         wp.setDistanceKm(distKm);
         wp.setRiskPercent(riskPercent);
@@ -171,6 +204,9 @@ public class AirLumeService {
         
         analysis.addWaypoint(wp);
         System.out.println("Parsed waypoint: WP" + wpNum + " @ " + distKm + "km, Risk: " + riskPercent + "% " + riskLevel);
+        System.out.println("=================================================================================================");
+        System.out.println("Parsed waypoint: WP" + numWaypoints + " @ " + distKm + "km, Risk: " + riskPercent + "% " + riskLevel);
+        
     }
     
     // Determine risk level based on max risk
