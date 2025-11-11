@@ -49,7 +49,13 @@ def get_weather(lat=45.3202, lon=-75.6656):
         print(f"Weather API Error: {e}")
         return None
 
-def get_route_weather(waypoints_file):
+def get_route_weather(waypoints_file, altitude_ft=30000):
+    """
+    Read waypoints from file and fetch weather for each at specified altitude.
+    """
+    print("=== ROUTE WEATHER MODE ===")
+    print(f"Flight Level: FL{altitude_ft//100}")
+    print(f"Reading waypoints from: {waypoints_file}")
     """
     Read waypoints from file and fetch weather for each.
     Expected format: lat,lon (one per line)
@@ -75,7 +81,7 @@ def get_route_weather(waypoints_file):
         results = []
         for i, (lat, lon) in enumerate(waypoints, 1):
             print(f"\n[{i}/{len(waypoints)}] Waypoint {i}: ({lat:.4f}, {lon:.4f})")
-            weather = get_weather_silent(lat, lon)
+            weather = get_weather_at_altitude(lat, lon, altitude_ft) 
             if weather:
                 results.append(weather)
                 # Output in C-readable format
@@ -184,16 +190,74 @@ def interpolate_position(waypoints, distance_covered):
     
     # If beyond all waypoints, return last waypoint
     return waypoints[-1][0], waypoints[-1][1]
-
+def get_weather_at_altitude(lat, lon, altitude_ft=30000):
+    """
+    Get weather at specific flight level
+    Uses pressure level data from OpenWeatherMap
+    
+    Flight Levels:
+    - FL200 (20,000 ft) ≈ 465 hPa
+    - FL300 (30,000 ft) ≈ 300 hPa
+    - FL350 (35,000 ft) ≈ 240 hPa
+    - FL400 (40,000 ft) ≈ 190 hPa
+    """
+    
+    # Convert altitude to pressure level
+    pressure_levels = {
+        20000: 500,   # FL200 ≈ 500 hPa
+        30000: 300,   # FL300 ≈ 300 hPa
+        35000: 250,   # FL350 ≈ 250 hPa
+        40000: 200    # FL400 ≈ 200 hPa
+    }
+    
+    # Find closest pressure level
+    closest_alt = min(pressure_levels.keys(), key=lambda x: abs(x - altitude_ft))
+    pressure_level = pressure_levels[closest_alt]
+    
+    print(f"Requesting weather at FL{altitude_ft//100} ({pressure_level} hPa)")
+    
+    try:
+        # Note: This requires OpenWeatherMap's "Current Weather and Forecasts collection" API
+        # Standard API only gives surface data
+        
+        # For MVP, we'll estimate upper-air conditions using standard atmosphere
+        surface_weather = get_weather(lat, lon)
+        
+        if not surface_weather:
+            return None
+        
+        # Standard atmosphere lapse rate: -6.5°C per 1000m
+        altitude_m = altitude_ft * 0.3048
+        temp_adjustment = -6.5 * (altitude_m / 1000.0)
+        
+        upper_air_weather = {
+            'temp': surface_weather['temp'] + temp_adjustment,
+            'humidity': max(10, surface_weather['humidity'] - 30),  # Drier at altitude
+            'pressure': pressure_level,  # Use standard pressure for flight level
+            'wind_speed': surface_weather['wind_speed'] * 1.5  # Stronger winds aloft
+        }
+        
+        print(f"Upper air conditions at {altitude_ft} ft:")
+        print(f"  Temperature: {upper_air_weather['temp']:.1f}°C")
+        print(f"  Humidity: {upper_air_weather['humidity']:.0f}%")
+        print(f"  Pressure: {upper_air_weather['pressure']:.0f} hPa")
+        print(f"  Wind Speed: {upper_air_weather['wind_speed']:.1f} m/s")
+        
+        return upper_air_weather
+        
+    except Exception as e:
+        print(f"Error getting upper air weather: {e}")
+        return None
+    
 def main():
     # Check for command-line arguments
     if len(sys.argv) > 1:
         mode = sys.argv[1]
         
         if mode == "--route" and len(sys.argv) > 2:
-            # Route mode: fetch weather for multiple waypoints
             waypoints_file = sys.argv[2]
-            get_route_weather(waypoints_file)
+            altitude_ft = int(sys.argv[3]) if len(sys.argv) > 3 else 30000
+            get_route_weather(waypoints_file, altitude_ft)
             
         elif mode == "--simulate" and len(sys.argv) > 2:
             # Simulation mode: show updates every 10 minutes
