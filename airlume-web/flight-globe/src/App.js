@@ -1,13 +1,8 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 
-// Map of Canadian airports (add or fetch more as needed)
-const airports = {
-  CYOW: { lat: 45.3225, lon: -75.6692 },
-  CYYZ: { lat: 43.6777, lon: -79.6248 }
-};
+const API_URL = "http://localhost:8080/airlume-web/resources/analysis";
 
-// Convert lat/lon to spherical coordinates on globe radius
 const latLonToVec3 = (lat, lon, radius = 5) => {
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lon + 180) * (Math.PI / 180);
@@ -18,16 +13,39 @@ const latLonToVec3 = (lat, lon, radius = 5) => {
   );
 };
 
+// Get colors for risk levels
+const riskColor = (risk) => {
+  switch ((risk || "").toUpperCase()) {
+    case "MODERATE": return "#f39c12";
+    case "HIGH": return "#e67e22";
+    case "CRITICAL": return "#e74c3c";
+    default: return "#27ae60";
+  }
+};
+
 function GlobeFlight({ origin, destination }) {
   const mountRef = useRef(null);
+  const [analysis, setAnalysis] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    setError(null);
+    setAnalysis(null);
+    fetch(`${API_URL}?origin=${origin}&destination=${destination}`)
+      .then(r => r.json())
+      .then(obj => {
+        if(obj.error) setError(obj.error);
+        else setAnalysis(obj);
+      })
+      .catch(e => setError(e.message));
+  }, [origin, destination]);
+
+  useEffect(() => {
+    if (!analysis) return;
     const width = 600, height = 500;
     const scene = new THREE.Scene();
-
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 0, 16);
-
     const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setSize(width, height);
     mountRef.current.appendChild(renderer.domElement);
@@ -41,29 +59,25 @@ function GlobeFlight({ origin, destination }) {
     const earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
 
-    // Draw flight arc path if airports are valid
-    const o = airports[origin], d = airports[destination];
-    if (o && d) {
-      const v1 = latLonToVec3(o.lat, o.lon);
-      const v2 = latLonToVec3(d.lat, d.lon);
-      const arcPoints = [];
-      for (let i = 0; i <= 100; ++i) {
-        const t = i / 100;
-        const vec = new THREE.Vector3().lerpVectors(v1, v2, t).normalize().multiplyScalar(5.02);
-        arcPoints.push(vec);
-      }
+    // Draw great circle path connecting waypoints
+    if (analysis.waypoints && analysis.waypoints.length > 0) {
+      const arcPoints = analysis.waypoints.map(wp =>
+        latLonToVec3(wp.latitude, wp.longitude)
+      );
       const curve = new THREE.CatmullRomCurve3(arcPoints);
       const curveGeom = new THREE.TubeGeometry(curve, 100, 0.06, 8, false);
-      const curveMat = new THREE.MeshBasicMaterial({ color: 0xffcc44 });
+      const curveMat = new THREE.MeshBasicMaterial({ color: "#08f" });
       scene.add(new THREE.Mesh(curveGeom, curveMat));
 
-      const markerGeom = new THREE.SphereGeometry(0.12, 24, 24);
-      const markerMat = new THREE.MeshBasicMaterial({ color: 0x00ff44 });
-      const marker1 = new THREE.Mesh(markerGeom, markerMat);
-      const marker2 = new THREE.Mesh(markerGeom, markerMat);
-      marker1.position.copy(v1);
-      marker2.position.copy(v2);
-      scene.add(marker1, marker2);
+      // Waypoint spheres and color by risk
+      analysis.waypoints.forEach((wp, i) => {
+        const vec = latLonToVec3(wp.latitude, wp.longitude, 5.03);
+        const markerGeom = new THREE.SphereGeometry(0.12, 24, 24);
+        const markerMat = new THREE.MeshBasicMaterial({ color: riskColor(wp.riskLevel) });
+        const marker = new THREE.Mesh(markerGeom, markerMat);
+        marker.position.copy(vec);
+        scene.add(marker);
+      });
     }
 
     let frameId;
@@ -78,12 +92,27 @@ function GlobeFlight({ origin, destination }) {
       cancelAnimationFrame(frameId);
       renderer.dispose();
       if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
-        mountRef.current.removeChild(renderer.domElement); // Safe null-check added here
+        mountRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [origin, destination]);
+  }, [analysis]);
 
-  return <div ref={mountRef}></div>;
+  return (
+    <div>
+      {error && <div style={{color:"red"}}>Error: {error}</div>}
+      {!analysis && !error && <div>Loading route & risk data...</div>}
+      <div ref={mountRef}></div>
+      {analysis && (
+        <div style={{marginTop:16}}>
+          <b>{analysis.origin} → {analysis.destination}</b><br />
+          <span>Total Distance: <b>{analysis.totalDistance} km</b></span> | 
+          <span> {analysis.waypointCount} Waypoints</span><br />
+          <span>Max Risk: <b>{analysis.lightningProbability}%</b> | Avg Risk: <b>{analysis.averageRisk}%</b></span><br />
+          <span>Recommendation: <b>{analysis.recommendation}</b></span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function App() {
@@ -93,7 +122,7 @@ export default function App() {
   return (
     <div style={{ background: "#111", color: "#fff", minHeight: "100vh", padding: 32 }}>
       <h1>Canadian Flight Path Globe</h1>
-      <p>Dynamic Great Circle Route Visualization</p>
+      <p>Dynamic Lightning Risk Visualization</p>
       <label>
         Origin ICAO:{" "}
         <input value={origin} onChange={e => setOrigin(e.target.value.toUpperCase())} />

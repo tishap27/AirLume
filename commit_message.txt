@@ -1,11 +1,5 @@
-fix: Parse negative temperatures in weather data
+feat(frontend/backend): integrate React globe with backend risk analysis API
 
-- Add \\- to regex pattern to handle negative temps
-- Fix weather parsing for route mode
-- Now correctly displays -2.4°C instead of 0.0°C
-- Parse WP1 weather data correctly
-
-Bug: Weather was defaulting to 0.0 because regex couldn't match negative numbers
-Fix: Updated pattern from [0-9.]+ to [0-9.\\-]+
-
-Enhance route-visualization.xhtml 
+- Implement frontend fetch to Jakarta EE REST API for live flight route analysis
+- Display total distance, waypoint count, and lightning risk recommendations from backend
+- Visualize real-time risk stats and earth rotation after entering ICAO codes

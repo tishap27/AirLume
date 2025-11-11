@@ -1,8 +1,8 @@
 === AIRLUME SAFETY EVENT ===
-Timestamp: 2025-11-11 00:05:45
+Timestamp: 2025-11-11 01:51:40
 Route: CYOW -> CYYZ
-Lightning Risk: 3.09E+01%
-Safety Status: CAUTION
-Validation: PASSED
+Lightning Risk: 4.35E+01%
+Safety Status: EMERGENCY
+Validation: FAILED - C calculation rejected
 Certified by: AirLume Safety System v1.0
 ---
