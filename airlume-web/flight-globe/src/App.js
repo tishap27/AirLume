@@ -85,9 +85,19 @@ useEffect(() => {
 
     // Draw great circle path connecting waypoints
     if (analysis.waypoints && analysis.waypoints.length > 0) {
-      const arcPoints = analysis.waypoints.map(wp =>
-        latLonToVec3(wp.latitude, wp.longitude)
-      );
+  // Filter out invalid waypoints (lat/lon = 0)
+  const validWaypoints = analysis.waypoints.filter(wp => 
+    wp.latitude !== 0 && wp.longitude !== 0
+  );
+  
+  if (validWaypoints.length === 0) {
+    console.warn('No valid waypoint coordinates found');
+    return;
+  }
+  
+  const arcPoints = validWaypoints.map(wp =>
+    latLonToVec3(wp.latitude, wp.longitude)
+  );
       const curve = new THREE.CatmullRomCurve3(arcPoints);
       const curveGeom = new THREE.TubeGeometry(curve, 100, 0.06, 8, false);
       const curveMat = new THREE.MeshBasicMaterial({ color: "#08f" });
