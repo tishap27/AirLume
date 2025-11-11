@@ -46,6 +46,14 @@
                                        styleClass="btn" />
                     </td>
                 </tr>
+                <tr>
+                    <td colspan="2" style="padding-top: 10px;">
+                        <h:button value="📊 Visualize Route" 
+                                    outcome="route-visualization"
+                                    styleClass="btn"
+                                    style="background-color: #9b59b6; margin-left: 10px;" />
+                    </td>
+                </tr>
             </table>
         </h:form>
         <h:panelGroup rendered="#{not empty flightController.errorMessage}">
