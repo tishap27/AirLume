@@ -40,6 +40,20 @@
                                    placeholder="e.g., CYYZ" /></td>
                 </tr>
                 <tr>
+    <td><h:outputLabel for="flightLevel" value="Flight Level (Optional):" /></td>
+    <td>
+        <h:selectOneMenu id="flightLevel" 
+                         value="#{flightController.flightLevel}">
+            <f:selectItem itemValue="0" itemLabel="Ground Level (Default)" />
+            <f:selectItem itemValue="200" itemLabel="FL200 (20,000 ft)" />
+            <f:selectItem itemValue="300" itemLabel="FL300 (30,000 ft)" />
+            <f:selectItem itemValue="350" itemLabel="FL350 (35,000 ft)" />
+            <f:selectItem itemValue="400" itemLabel="FL400 (40,000 ft)" />
+        </h:selectOneMenu>
+    </td>
+</tr>
+
+                <tr>
                     <td colspan="2">
                         <h:commandButton value="Analyze Lightning Risk" 
                                        action="#{flightController.analyzeRoute}"
