@@ -31,6 +31,8 @@ typedef struct {
 
 // Functions
 void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route);
+int fetch_route_weather(FlightRoute* route, WeatherData* weather_array, int altitude_ft);
+void assess_route_risk_at_altitude(RouteRiskAssessment* assessment, FlightRoute* route, int altitude_ft);
 void classify_risk_level(double risk_percent, char* level);
 void print_route_risk_profile(RouteRiskAssessment* assessment);
 void generate_flight_recommendation(RouteRiskAssessment* assessment);

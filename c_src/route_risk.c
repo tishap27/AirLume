@@ -32,21 +32,22 @@ void write_waypoints_to_file(FlightRoute* route) {
     fclose(fp);
 }
 
-int fetch_route_weather(FlightRoute* route, WeatherData* weather_array) {
+int fetch_route_weather(FlightRoute* route, WeatherData* weather_array, int altitude_ft) {
     printf("\n=== Fetching Real-Time Weather for Waypoints ===\n");
+    printf("Flight Level: FL%d (%d ft)\n", altitude_ft / 100, altitude_ft);
     
     // Write waypoints to file
     write_waypoints_to_file(route);
     printf("✓ Waypoints written to waypoints.txt\n");
     
-    // Call Python to fetch weather
+    // Call Python to fetch weather AT ALTITUDE
     char command[512];
     #ifdef _WIN32
         snprintf(command, sizeof(command), 
-                 "python python_src\\weather.py --route waypoints.txt");
+                 "python python_src\\weather.py --route waypoints.txt %d", altitude_ft);
     #else
         snprintf(command, sizeof(command), 
-                 "python3 python_src/weather.py --route waypoints.txt");
+                 "python3 python_src/weather.py --route waypoints.txt %d", altitude_ft);
     #endif
     
     printf("Executing command: %s\n", command);  // DEBUG
@@ -98,6 +99,10 @@ int fetch_route_weather(FlightRoute* route, WeatherData* weather_array) {
 }
 
 void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
+    assess_route_risk_at_altitude(assessment, route, 30000);  // Default FL300
+}
+
+void assess_route_risk_at_altitude(RouteRiskAssessment* assessment, FlightRoute* route, int altitude_ft) {
     assessment->route = *route;
     assessment->num_assessments = route->num_waypoints;
     
@@ -105,9 +110,9 @@ void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
     assessment->max_risk = 0.0;
     assessment->max_risk_waypoint = 0;
     
-    // Fetch real weather for all waypoints
+    // Fetch weather AT SPECIFIED ALTITUDE
     WeatherData* weather_array = (WeatherData*)malloc(route->num_waypoints * sizeof(WeatherData));
-    int weather_count = fetch_route_weather(route, weather_array);
+    int weather_count = fetch_route_weather(route, weather_array, altitude_ft);
     
     printf("\n=== Analyzing Route Risk ===\n");
     printf("Calculating lightning risk for %d waypoints...\n", route->num_waypoints);
