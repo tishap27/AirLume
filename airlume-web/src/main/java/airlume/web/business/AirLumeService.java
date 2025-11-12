@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 @LocalBean
 public class AirLumeService {
 
-    public FlightAnalysis analyzeFlight(String origin, String destination) {
+    public FlightAnalysis analyzeFlight(String origin, String destination, int flightLevel) {
         try {
            // Validate airport codes first
         if (origin == null || origin.isEmpty() || origin.length() < 3 || origin.length() > 4) {
@@ -31,18 +31,25 @@ public class AirLumeService {
         if (destination == null || destination.isEmpty() || destination.length() < 3 || destination.length() > 4) {
             throw new RuntimeException("Invalid destination airport code. Must be 3-4 characters.");
         }
+        // Validate flight level (0 or 200-400)
+        if (flightLevel != 0 && (flightLevel < 200 || flightLevel > 400)) {
+            throw new RuntimeException("Invalid flight level. Must be 0 (ground) or FL200-FL400.");
+        }
         
         String originCode = origin.toUpperCase();
         String destCode = destination.toUpperCase();
             
             System.out.println("============================================");
-            System.out.println("Analyzing route: " + originCode + " -> " + destCode);
+            if (flightLevel > 0) {
+            int altitudeFt = flightLevel * 100;  // FL300 = 30,000 ft
+            System.out.println("Analyzing route: " + originCode + " -> " + destCode + " at FL" + flightLevel);
             
             // Build full command string
             String command = String.format(
-                "C:\\CST8234\\AirLume\\build\\airlume.exe %s %s",
+                "C:\\CST8234\\AirLume\\build\\airlume.exe %s %s %d",
                 originCode,
-                destCode
+                destCode,
+                altitudeFt
             );
             
             System.out.println("Running: " + command);
@@ -89,7 +96,56 @@ public class AirLumeService {
             analysis.setOrigin(originCode);
             analysis.setDestination(destCode);
             return analysis;
-            
+        } else {
+        // <-- ADD ELSE BLOCK HERE after the above closing brace (})
+        // Ground-level mode
+        System.out.println("Analyzing route: " + originCode + " -> " + destCode + " at ground level");
+
+        String command = String.format(
+            "C:\\CST8234\\AirLume\\build\\airlume.exe %s %s",
+            originCode,
+            destCode
+        );
+
+        System.out.println("Running: " + command);
+
+        ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", command);
+        pb.directory(new File("C:/CST8234/AirLume"));
+        pb.redirectErrorStream(true);
+
+        Process process = pb.start();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        StringBuilder output = new StringBuilder();
+        String line;
+        int lineCount = 0;
+        while ((line = reader.readLine()) != null) {
+            lineCount++;
+            System.out.println("LINE " + lineCount + ": " + line);
+            output.append(line).append("\n");
+        }
+        int exitCode = process.waitFor();
+
+        if (exitCode != 0) {
+            throw new RuntimeException("Program failed with exit code: " + exitCode);
+        }
+
+        if (!output.toString().contains("WP") && !output.toString().contains("WEATHER_DATA")) {
+            System.err.println("=== INVALID OUTPUT ===");
+            System.err.println(output.toString());
+            throw new RuntimeException("C program produced invalid output - no waypoint or weather data found");
+        }
+
+        if (output.length() == 0) {
+            throw new RuntimeException("No output from program!");
+        }
+
+        FlightAnalysis analysis = parseOutput(output.toString());
+        analysis.setOrigin(originCode);
+        analysis.setDestination(destCode);
+        return analysis;
+    }
+ 
        } catch (IOException e) {
          e.printStackTrace();
             String errorMsg = "Failed to execute C program: " + e.getMessage();

@@ -26,11 +26,13 @@ public class FlightAnalysisResource {
 @Produces(MediaType.APPLICATION_JSON)
 public Response getFlightAnalysis(
     @QueryParam("origin") String origin,
-    @QueryParam("destination") String destination
+    @QueryParam("destination") String destination,
+    @QueryParam("flightLevel") @DefaultValue("0") int flightLevel
 ) {
     System.out.println("=== API REQUEST ===");
     System.out.println("Origin: " + origin);
     System.out.println("Destination: " + destination);
+    System.out.println("Flight Level: FL" + flightLevel);
     
     // Validate inputs
     if (origin == null || origin.trim().isEmpty()) {
@@ -50,7 +52,7 @@ public Response getFlightAnalysis(
     }
     
     try {
-        FlightAnalysis analysis = airLumeService.analyzeFlight(origin, destination);
+        FlightAnalysis analysis = airLumeService.analyzeFlight(origin, destination, flightLevel);
         
         if (analysis == null) {
             String errorJson = "{\"error\": \"Analysis returned null - check server logs\"}";

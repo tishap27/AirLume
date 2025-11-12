@@ -1,8 +1,5 @@
- add: flight level selector to web UI
+fix: integrate flight level parameter in backend services
 
-- Add dropdown for FL200/300/350/400 or ground-level
-- Style with modern CSS design
-- Pass flight level to backend via FlightController
-- Default to ground-level (0) for backward compatibility"
-
-
+- Update AirLumeService to pass altitude to C program
+- Add flightLevel query parameter to REST API (default: 0)
+- Maintain backward compatibility with overloaded methods
