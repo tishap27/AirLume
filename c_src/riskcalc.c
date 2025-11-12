@@ -148,7 +148,16 @@ LightningRisk calculate_lightning_risk(WeatherData weather) {
                        (breakdown_risk * 0.05);    // Breakdown proximity
     
     
-    risk.lightning_probability = fmax(0, fmin(total_risk * 100, 100.0)); // Cap at 15%
+   // risk.lightning_probability = fmax(0, fmin(total_risk * 100, 100.0)); // Cap at 15%
+    
+  risk.lightning_probability = fmax(0, fmin(total_risk * 100, 100.0));
+    
+    // Debug output
+    printf("  [DEBUG] T=%.1f°C, H=%.0f%%, P=%.0f hPa, Alt=%.0fm\n", 
+           weather.temperature, weather.humidity, weather.pressure, weather.altitude);
+    printf("  [DEBUG] E-field=%.1f V/m, Ice=%.0f, Risks: field=%.2f, ice=%.2f, hum=%.2f, press=%.2f\n",
+           risk.electric_field, risk.ice_crystal_density, 
+           field_risk, ice_risk, humidity_risk, pressure_risk);
     
     return risk;
 
@@ -328,19 +337,39 @@ double calculate_ice_crystal_density(WeatherData weather, double altitude_m) {
     // Ice crystals form between -10degC and -40degC (optimal at -15degC)
     // This is the "charging zone" in thunderstorms
     
-    double temp_kelvin = weather.temperature + KELVIN_OFFSET;
+    //double temp_at_altitude = weather.temperature;
+    //double temp_kelvin = weather.temperature + KELVIN_OFFSET;
     
     // Estimate temperature at altitude using lapse rate
-    double lapse_rate = 0.0065; // K/m
-    double temp_at_altitude = weather.temperature - (lapse_rate * altitude_m);
+   // double lapse_rate = 0.0065; // K/m
+    double temp_at_altitude = weather.temperature;// - (lapse_rate * altitude_m);
     
     double ice_density = 0.0;
     
     // Charging zone: -40°C to -10°C
-    if (temp_at_altitude < -10.0 && temp_at_altitude > -40.0) {
-        // Peak ice formation at -15°C
-        double optimal_temp = -15.0;
-        double temp_factor = 1.0 - (fabs(temp_at_altitude - optimal_temp) / 25.0);
+    // Charging zone depends on altitude
+    // At cruise altitude (FL300): -70°C to -20°C
+    // At lower altitude: -40°C to -10°C
+    double min_temp, max_temp, optimal_temp;
+    
+    if (weather.altitude > 5000.0) {
+        // High altitude charging zone
+        min_temp = -70.0;
+        max_temp = -20.0;
+        optimal_temp = -45.0;  // Peak charging at FL300
+    } else {
+        // Low altitude charging zone
+        min_temp = -40.0;
+        max_temp = -10.0;
+        optimal_temp = -15.0;  // Traditional charging zone
+    }
+    
+    if (temp_at_altitude < max_temp && temp_at_altitude > min_temp) {
+        double temp_range = (max_temp - min_temp) / 2.0;
+        double temp_factor = 1.0 - (fabs(temp_at_altitude - optimal_temp) / temp_range);
+        
+        if (temp_factor < 0.0) temp_factor = 0.0;
+        if (temp_factor > 1.0) temp_factor = 1.0;
         
         // Humidity effect (more moisture = more ice crystals)
         double humidity_factor = weather.humidity / 100.0;
@@ -396,9 +425,20 @@ double calculate_cloud_ground_potential(WeatherData weather, double air_density,
     }
     
     // 4. Low pressure = storm system = existing E-field
-    double pressure_contribution = 0.0;
-    if (weather.pressure < 1000.0) {
-        pressure_contribution = (1013.25 - weather.pressure) * 40.0; // V/m per hPa
+   double pressure_contribution = 0.0;
+    
+    if (weather.altitude > 5000.0) {
+        // At cruise altitude (FL300): normal pressure ~300 hPa
+        // Storm system would be BELOW normal (280-290 hPa)
+        double normal_cruise_pressure = 300.0;
+        if (weather.pressure < normal_cruise_pressure - 5.0) {
+            pressure_contribution = (normal_cruise_pressure - weather.pressure) * 30.0;
+        }
+    } else {
+        // At ground level: < 1000 hPa indicates storm
+        if (weather.pressure < 1000.0) {
+            pressure_contribution = (1013.25 - weather.pressure) * 40.0;
+        }
     }
     
     // 5. Wind shear enhances charge separation
