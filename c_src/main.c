@@ -4,6 +4,7 @@
 #include "riskcalc.h"
 #include "route_planning.h"
 #include "route_risk.h"
+#include "riskcalc_altitude.h"
 
 #ifdef _WIN32
     #define PYTHON_CMD "python"
@@ -18,6 +19,29 @@ int main(int argc, char *argv[]) {
 
      // Check if running in route mode
     if (argc >= 3) {
+        // Check for altitude flag
+        int use_altitude_model = 0;
+        int altitude_ft = 0;
+        
+        if (argc >= 4) {
+            // Check if third argument is --altitude or a number
+            if (strncmp(argv[3], "--altitude", 10) == 0 && argc >= 5) {
+                use_altitude_model = 1;
+                altitude_ft = atoi(argv[4]);
+            } else {
+                // Assume it's altitude in feet
+                altitude_ft = atoi(argv[3]);
+                if (altitude_ft >= 10000) {
+                    use_altitude_model = 1;
+                }
+            }
+        }
+        
+        if (use_altitude_model) {
+            printf("\n*** USING ALTITUDE PHYSICS MODEL (FL%d) ***\n", altitude_ft / 100);
+        } else {
+            printf("\n*** USING GROUND-LEVEL PHYSICS MODEL ***\n");
+        }
         printf("\n=== ROUTE ANALYSIS MODE ===\n");
         
         FlightRoute route;

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "route_risk.h"
+#include "riskcalc_altitude.h"
 
 void classify_risk_level(double risk_percent, char* level) {
     if (risk_percent < 15.0) {
@@ -178,7 +179,15 @@ void assess_route_risk_at_altitude(RouteRiskAssessment* assessment, FlightRoute*
         }
         
         // Calculate risk using physics engine
-        wp_risk->risk = calculate_lightning_risk(wp_risk->weather);
+        //wp_risk->risk = calculate_lightning_risk(wp_risk->weather);
+        // Choose physics model based on altitude
+        if (wp_risk->weather.altitude >= 5000.0) {
+            // Use altitude model for cruise flight (> 5000m / 16,400 ft)
+            wp_risk->risk = calculate_lightning_risk_altitude(wp_risk->weather);
+        } else {
+            // Use ground model for low altitude / ground
+            wp_risk->risk = calculate_lightning_risk(wp_risk->weather);
+        }
         
         // Classify risk level
         classify_risk_level(wp_risk->risk.lightning_probability, wp_risk->risk_level);

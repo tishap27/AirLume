@@ -1,5 +1,9 @@
-feat(frontend/backend): integrate React globe with backend risk analysis API
+feat: add altitude-specific physics model for cruise flight levels
 
-- Implement frontend fetch to Jakarta EE REST API for live flight route analysis
-- Display total distance, waypoint count, and lightning risk recommendations from backend
-- Visualize real-time risk stats and earth rotation after entering ICAO codes
+- Create riskcalc_altitude.c with FL200-FL400 optimized calculations
+- Adjust E-field thresholds for thin air at cruise altitude
+- Widen ice charging zone to -70°C to -20°C (vs ground -40°C to -10°C)
+- Lower risk baselines (300 hPa is normal, not storm indication)
+- Auto-select model: >5000m uses altitude model, <=5000m uses ground
+- Results: FL300 now shows 20-25% risk 
+- Ground-level remains unchanged at 10-35% range
