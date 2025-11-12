@@ -34,14 +34,44 @@ void write_waypoints_to_file(FlightRoute* route) {
 
 int fetch_route_weather(FlightRoute* route, WeatherData* weather_array, int altitude_ft) {
     printf("\n=== Fetching Real-Time Weather for Waypoints ===\n");
-    printf("Flight Level: FL%d (%d ft)\n", altitude_ft / 100, altitude_ft);
     
-    // Write waypoints to file
+    if (altitude_ft > 0) {
+        printf("Flight Level: FL%d (%d ft)\n", altitude_ft / 100, altitude_ft);
+    } else {
+        printf("Using ground-level weather\n");
+    }
+    
     write_waypoints_to_file(route);
     printf("✓ Waypoints written to waypoints.txt\n");
     
-    // Call Python to fetch weather AT ALTITUDE
     char command[512];
+    
+    if (altitude_ft > 0) {
+        // Flight level mode
+        #ifdef _WIN32
+            snprintf(command, sizeof(command), 
+                     "python python_src\\weather.py --route waypoints.txt %d", altitude_ft);
+        #else
+            snprintf(command, sizeof(command), 
+                     "python3 python_src/weather.py --route waypoints.txt %d", altitude_ft);
+        #endif
+    } else {
+        // Ground level mode (NO altitude parameter)
+        #ifdef _WIN32
+            snprintf(command, sizeof(command), 
+                     "python python_src\\weather.py --route waypoints.txt");
+        #else
+            snprintf(command, sizeof(command), 
+                     "python3 python_src/weather.py --route waypoints.txt");
+        #endif
+    }
+    
+    // Write waypoints to file
+    write_waypoints_to_file(route);
+    printf(" Waypoints written to waypoints.txt\n");
+    
+    // Call Python to fetch weather AT ALTITUDE
+    //char command[512];
     #ifdef _WIN32
         snprintf(command, sizeof(command), 
                  "python python_src\\weather.py --route waypoints.txt %d", altitude_ft);
@@ -99,7 +129,7 @@ int fetch_route_weather(FlightRoute* route, WeatherData* weather_array, int alti
 }
 
 void assess_route_risk(RouteRiskAssessment* assessment, FlightRoute* route) {
-    assess_route_risk_at_altitude(assessment, route, 30000);  // Default FL300
+    assess_route_risk_at_altitude(assessment, route, 0);  // Default FL300
 }
 
 void assess_route_risk_at_altitude(RouteRiskAssessment* assessment, FlightRoute* route, int altitude_ft) {
@@ -113,6 +143,14 @@ void assess_route_risk_at_altitude(RouteRiskAssessment* assessment, FlightRoute*
     // Fetch weather AT SPECIFIED ALTITUDE
     WeatherData* weather_array = (WeatherData*)malloc(route->num_waypoints * sizeof(WeatherData));
     int weather_count = fetch_route_weather(route, weather_array, altitude_ft);
+    // Set altitude in weather data for physics model selection
+    for (int i = 0; i < weather_count; i++) {
+        if (altitude_ft > 0) {
+            weather_array[i].altitude = altitude_ft * 0.3048;  // Convert ft to meters
+        } else {
+            weather_array[i].altitude = 0.0;  // Ground level
+        }
+    }
     
     printf("\n=== Analyzing Route Risk ===\n");
     printf("Calculating lightning risk for %d waypoints...\n", route->num_waypoints);

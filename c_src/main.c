@@ -46,8 +46,24 @@ int main(int argc, char *argv[]) {
         print_route_summary(&route);
         
         // Assess risk along route
+        // Check if altitude was specified
+        int flight_altitude = 0;  // Default: ground-level
+        
+        if (argc >= 4) {
+            flight_altitude = atoi(argv[3]);
+            if (flight_altitude > 0) {
+                printf("\n*** Using flight level: FL%d (%d ft) ***\n", 
+                       flight_altitude / 100, flight_altitude);
+            }
+        }
+        
+        // Assess risk along route
         RouteRiskAssessment assessment;
-        assess_route_risk(&assessment, &route);
+        if (flight_altitude > 0) {
+            assess_route_risk_at_altitude(&assessment, &route, flight_altitude);
+        } else {
+            assess_route_risk(&assessment, &route);  // Ground-level default
+        }
         
         // Print results
         print_route_risk_profile(&assessment);

@@ -49,12 +49,17 @@ def get_weather(lat=45.3202, lon=-75.6656):
         print(f"Weather API Error: {e}")
         return None
 
-def get_route_weather(waypoints_file, altitude_ft=30000):
+def get_route_weather(waypoints_file, altitude_ft=None):
     """
     Read waypoints from file and fetch weather for each at specified altitude.
     """
     print("=== ROUTE WEATHER MODE ===")
-    print(f"Flight Level: FL{altitude_ft//100}")
+    if altitude_ft:
+        print(f"Flight Level: FL{altitude_ft//100}")
+    else:
+        print("Using ground-level weather")
+
+   
     print(f"Reading waypoints from: {waypoints_file}")
     """
     Read waypoints from file and fetch weather for each.
@@ -81,7 +86,10 @@ def get_route_weather(waypoints_file, altitude_ft=30000):
         results = []
         for i, (lat, lon) in enumerate(waypoints, 1):
             print(f"\n[{i}/{len(waypoints)}] Waypoint {i}: ({lat:.4f}, {lon:.4f})")
-            weather = get_weather_at_altitude(lat, lon, altitude_ft) 
+            if altitude_ft:
+                weather = get_weather_at_altitude(lat, lon, altitude_ft)
+            else:
+                weather = get_weather_silent(lat, lon)  # Ground level
             if weather:
                 results.append(weather)
                 # Output in C-readable format
@@ -256,7 +264,7 @@ def main():
         
         if mode == "--route" and len(sys.argv) > 2:
             waypoints_file = sys.argv[2]
-            altitude_ft = int(sys.argv[3]) if len(sys.argv) > 3 else 30000
+            altitude_ft = int(sys.argv[3]) if len(sys.argv) > 3 else None
             get_route_weather(waypoints_file, altitude_ft)
             
         elif mode == "--simulate" and len(sys.argv) > 2:
