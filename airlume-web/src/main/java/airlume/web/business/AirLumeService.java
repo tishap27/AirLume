@@ -249,7 +249,7 @@ public class AirLumeService {
     wp.setRiskPercent(riskPercent);
     wp.setRiskLevel(riskLevel);
     
-    analysis.addWaypoint(wp);
+    //analysis.addWaypoint(wp);
         
        // Waypoint wp;
         wp = new Waypoint();
