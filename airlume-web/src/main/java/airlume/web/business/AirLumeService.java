@@ -224,11 +224,10 @@ public class AirLumeService {
     
      numWaypoints++;  // increment here to track total waypoints
     // Now extract risk for this waypoint
-    String riskPattern;
-        riskPattern = String.format(
-                "\\[%d/%d\\]\\s+WP%d\\s+@\\s+%d\\s+km:\\s+([0-9.]+)%%\\s+(LOW|MODERATE|HIGH|CRITICAL)",
-                wpNum, numWaypoints, wpNum, (int)distKm
-        );         // This is maybe the place where it prits lat and lon twice check later again
+    String riskPattern = String.format(
+    "WP%d\\s+\\(\\s*%d\\s+km\\):\\s+[#.]+\\s+([0-9.]+)%%\\s+(LOW|MODERATE|HIGH|CRITICAL)",
+    wpNum, (int)distKm
+);       // This is maybe the place where it prits lat and lon twice check later again
        
     Pattern riskMatcher = Pattern.compile(riskPattern);
     Matcher riskMatch = riskMatcher.matcher(output);
@@ -249,7 +248,7 @@ public class AirLumeService {
     wp.setRiskPercent(riskPercent);
     wp.setRiskLevel(riskLevel);
     
-    //analysis.addWaypoint(wp);
+   analysis.addWaypoint(wp);
         
        // Waypoint wp;
         wp = new Waypoint();
@@ -258,7 +257,7 @@ public class AirLumeService {
         wp.setRiskPercent(riskPercent);
         wp.setRiskLevel(riskLevel);
         
-        analysis.addWaypoint(wp);
+        //analysis.addWaypoint(wp);
         System.out.println("Parsed waypoint: WP" + wpNum + " @ " + distKm + "km, Risk: " + riskPercent + "% " + riskLevel);
         System.out.println("=================================================================================================");
         System.out.println("Parsed waypoint: WP" + numWaypoints + " @ " + distKm + "km, Risk: " + riskPercent + "% " + riskLevel);
