@@ -25,6 +25,7 @@ public class FlightController implements Serializable {
     
     private String origin = "CYOW";
     private String destination = "CYYZ";
+    private int flightLevel = 0;  // Default ground-level
     private FlightAnalysis analysis;
     private String errorMessage; 
     private boolean analysisComplete = false;
@@ -55,8 +56,13 @@ public class FlightController implements Serializable {
             return null;
         }
             
-            
-            analysis = airLumeService.analyzeFlight(origin, destination);
+             if (flightLevel > 0) {
+                System.out.println("Analyzing at flight level: FL" + flightLevel);
+                analysis = airLumeService.analyzeFlight(origin, destination, flightLevel);
+            } else {
+                System.out.println("Analyzing at ground level");
+            analysis = airLumeService.analyzeFlight(origin, destination, flightLevel);
+             }
             analysisComplete = true;
         } catch (Exception e) {
             errorMessage = "Analysis failed: " + e.getMessage();
@@ -92,5 +98,12 @@ public class FlightController implements Serializable {
     }
     public boolean isAnalysisComplete() { 
         return analysisComplete; 
+    }
+     public int getFlightLevel() {
+        return flightLevel;
+    }
+    
+    public void setFlightLevel(int flightLevel) {
+        this.flightLevel = flightLevel;
     }
 }

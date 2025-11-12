@@ -546,7 +546,20 @@
                                          placeholder="CYYZ"
                                          required="true"/>
                         </div>
-                        
+                        <!-- NEW: Flight Level Selector -->
+                        <div class="form-group">
+                             <label for="flightLevel">FLIGHT LEVEL (Optional)</label>
+                              <h:selectOneMenu id="flightLevel" 
+                         value="#{flightController.flightLevel}"
+                         styleClass="flight-level-select">
+            <f:selectItem itemValue="0" itemLabel="Ground Level (Default)" />
+            <f:selectItem itemValue="200" itemLabel="FL200 (20,000 ft)" />
+            <f:selectItem itemValue="300" itemLabel="FL300 (30,000 ft)" />
+            <f:selectItem itemValue="350" itemLabel="FL350 (35,000 ft)" />
+            <f:selectItem itemValue="400" itemLabel="FL400 (40,000 ft)" />
+        </h:selectOneMenu>
+        <small class="help-text">Select cruise altitude or leave at ground level</small>
+    </div>
                         <h:commandButton value="🔍 Analyze Risk" 
                                          action="#{flightController.analyzeRoute}"
                                          styleClass="submit-button"/>
