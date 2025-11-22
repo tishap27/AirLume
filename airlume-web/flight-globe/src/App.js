@@ -14,49 +14,113 @@ const latLonToVec3 = (lat, lon, radius = 5) => {
   );
 };
 
-// Enhanced color scheme
 const riskColor = (risk) => {
   switch ((risk || "").toUpperCase()) {
-    case "CRITICAL": return "#ff4444";
-    case "HIGH": return "#ffaa00";
-    case "MODERATE": return "#ffdd00";
-    case "LOW": return "#44ff44";
-    default: return "#888888";
+    case "CRITICAL": return { hex: "#ff4444", decimal: 0xff4444 };
+    case "HIGH": return { hex: "#ffaa00", decimal: 0xffaa00 };
+    case "MODERATE": return { hex: "#ffdd00", decimal: 0xffdd00 };
+    case "LOW": return { hex: "#44ff44", decimal: 0x44ff44 };
+    default: return { hex: "#888888", decimal: 0x888888 };
   }
-};
-
-// Improved curved path creation
-const createGreatCirclePath = (start, end, segments = 50) => {
-  const points = [];
-  
-  // Convert to spherical coordinates
-  const startSpherical = new THREE.Spherical().setFromVector3(start);
-  const endSpherical = new THREE.Spherical().setFromVector3(end);
-  
-  for (let i = 0; i <= segments; i++) {
-    const t = i / segments;
-    
-    // Interpolate spherical coordinates
-    const phi = startSpherical.phi * (1 - t) + endSpherical.phi * t;
-    const theta = startSpherical.theta * (1 - t) + endSpherical.theta * t;
-    
-    const point = new THREE.Vector3().setFromSphericalCoords(5.05, phi, theta);
-    points.push(point);
-  }
-  
-  return points;
 };
 
 function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange }) {
   const mountRef = useRef(null);
   const [analysis, setAnalysis] = useState(null);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
   const rendererRef = useRef(null);
   const controlsRef = useRef(null);
+  const earthRef = useRef(null);
+  const animationIdRef = useRef(null);
+  const cameraAnimationRef = useRef(null);
+  const shouldRotateRef = useRef(true);
 
-  useEffect(() => {
+  const animateCamera = (startPos, endPos, targetLook, duration = 1500) => {
+    const startTime = Date.now();
+    
+    if (cameraAnimationRef.current) {
+      cancelAnimationFrame(cameraAnimationRef.current);
+    }
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      
+      const currentPos = new THREE.Vector3().lerpVectors(startPos, endPos, easeProgress);
+      cameraRef.current.position.copy(currentPos);
+      cameraRef.current.lookAt(targetLook);
+      
+      if (controlsRef.current) {
+        controlsRef.current.target.copy(targetLook);
+        controlsRef.current.update();
+      }
+      
+      if (progress < 1) {
+        cameraAnimationRef.current = requestAnimationFrame(animate);
+      }
+    };
+    
+    animate();
+  };
+
+  const positionCameraForRoute = (waypoints) => {
+    if (!waypoints || waypoints.length < 2 || !cameraRef.current) return;
+
+    const validWaypoints = waypoints.filter(wp => wp.latitude !== 0 && wp.longitude !== 0);
+    if (validWaypoints.length < 2) return;
+
+    // Get origin and destination positions
+    const originPos = latLonToVec3(validWaypoints[0].latitude, validWaypoints[0].longitude);
+    const destPos = latLonToVec3(
+      validWaypoints[validWaypoints.length - 1].latitude,
+      validWaypoints[validWaypoints.length - 1].longitude
+    );
+
+    // Calculate midpoint
+    const midpoint = new THREE.Vector3().addVectors(originPos, destPos).multiplyScalar(0.5);
+    
+    // Calculate distance between origin and destination
+    const distanceBetweenPoints = originPos.distanceTo(destPos);
+    
+    // Position camera for optimal route viewing
+    const routeVector = new THREE.Vector3().subVectors(destPos, originPos).normalize();
+    const perpendicular = new THREE.Vector3(-routeVector.z, 0, routeVector.x).normalize();
+    
+    // Camera offset perpendicular to the route
+    const cameraDistance = Math.max(10, distanceBetweenPoints * 1.8);
+    const cameraOffset = perpendicular.multiplyScalar(cameraDistance * 0.6);
+    
+    const newCameraPos = new THREE.Vector3()
+      .copy(midpoint)
+      .add(cameraOffset)
+      .normalize()
+      .multiplyScalar(cameraDistance);
+    
+    // Add elevation for better view angle
+    newCameraPos.y = Math.max(newCameraPos.y, cameraDistance * 0.4);
+
+    // Get current camera position for smooth animation
+    const currentCameraPos = cameraRef.current.position.clone();
+    
+    // Animate camera to new position
+    animateCamera(currentCameraPos, newCameraPos, midpoint, 1200);
+  };
+
+  const handleSubmit = () => {
+    if (!origin || !destination) {
+      setError("Please enter both origin and destination codes");
+      return;
+    }
+    
+    setIsLoading(true);
+    shouldRotateRef.current = false;
     setError(null);
     setAnalysis(null);
     
@@ -70,32 +134,33 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
       }
     })
       .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         return response.json();
       })
       .then(data => {
-        console.log('Received data:', data);
         if (data.error) {
           setError(data.error);
         } else if (!data.origin || !data.destination) {
           setError('Invalid response: missing route data');
         } else {
           setAnalysis(data);
+          // Position camera after analysis is set
+          setTimeout(() => positionCameraForRoute(data.waypoints), 100);
         }
       })
       .catch(err => {
         console.error('Fetch error:', err);
         setError(`Connection failed: ${err.message}`);
+        shouldRotateRef.current = true; // Resume rotation on error
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-  }, [origin, destination]);
+  };
 
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // Initialize Three.js scene
     const width = mountRef.current.clientWidth;
     const height = 600;
     
@@ -104,7 +169,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 12);
+    camera.position.set(0, 3, 12);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -112,28 +177,28 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
     renderer.setPixelRatio(window.devicePixelRatio);
     rendererRef.current = renderer;
 
-    // Clear previous renderer
     while (mountRef.current.firstChild) {
       mountRef.current.removeChild(mountRef.current.firstChild);
     }
     mountRef.current.appendChild(renderer.domElement);
 
-    // Add orbit controls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.rotateSpeed = 0.5;
+    controls.enableZoom = true;
+    controls.autoRotate = false;
     controlsRef.current = controls;
 
-    // Enhanced lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
     directionalLight.position.set(10, 10, 5);
     scene.add(directionalLight);
 
-    // Create earth with better texture
+    // Earth
     const geometry = new THREE.SphereGeometry(5, 64, 64);
     const textureLoader = new THREE.TextureLoader();
     const earthTexture = textureLoader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
@@ -146,27 +211,32 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
     
     const earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
+    earthRef.current = earth;
 
-    // Add atmospheric glow
-    const atmosphereGeometry = new THREE.SphereGeometry(5.1, 64, 64);
+    // Atmosphere
+    const atmosphereGeometry = new THREE.SphereGeometry(5.15, 64, 64);
     const atmosphereMaterial = new THREE.MeshBasicMaterial({
       color: 0x88ccff,
       transparent: true,
-      opacity: 0.1
+      opacity: 0.15
     });
     const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
     scene.add(atmosphere);
 
     // Animation loop
     const animate = () => {
-      requestAnimationFrame(animate);
-      earth.rotation.y += 0.001;
+      animationIdRef.current = requestAnimationFrame(animate);
+      
+      // Only rotate if allowed
+      if (shouldRotateRef.current && earthRef.current) {
+        earthRef.current.rotation.y += 0.0005;
+      }
+      
       controls.update();
       renderer.render(scene, camera);
     };
     animate();
 
-    // Handle resize
     const handleResize = () => {
       if (!mountRef.current) return;
       const newWidth = mountRef.current.clientWidth;
@@ -180,144 +250,103 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (renderer) renderer.dispose();
-      if (controls) controls.dispose();
+      if (animationIdRef.current) cancelAnimationFrame(animationIdRef.current);
+      if (cameraAnimationRef.current) cancelAnimationFrame(cameraAnimationRef.current);
+      renderer.dispose();
+      controls.dispose();
     };
   }, []);
 
+  // Draw flight path and markers
   useEffect(() => {
     if (!analysis || !sceneRef.current) return;
 
     const scene = sceneRef.current;
     
-    // Clear previous flight paths and markers
-    const objectsToRemove = [];
-    scene.children.forEach(child => {
-      if (child.userData.isFlightElement) {
-        objectsToRemove.push(child);
-      }
-    });
+    // Remove previous flight elements
+    const objectsToRemove = scene.children.filter(child => child.userData.isFlightElement);
     objectsToRemove.forEach(obj => scene.remove(obj));
 
-    // Draw flight route with waypoints
     if (analysis.waypoints && analysis.waypoints.length > 1) {
-      const validWaypoints = analysis.waypoints.filter(wp => 
-        wp.latitude !== 0 && wp.longitude !== 0
-      );
+      const validWaypoints = analysis.waypoints.filter(wp => wp.latitude !== 0 && wp.longitude !== 0);
 
       if (validWaypoints.length > 1) {
-        // Create points for the entire route
-        const routePoints = [];
-        
-        for (let i = 0; i < validWaypoints.length; i++) {
-          const point = latLonToVec3(
-            validWaypoints[i].latitude, 
-            validWaypoints[i].longitude, 
-            5.05
-          );
-          routePoints.push(point);
+        // Create route points
+        const routePoints = validWaypoints.map((wp, i) => {
+          const offset = i === 0 || i === validWaypoints.length - 1 ? 5.05 : 5.04;
+          return latLonToVec3(wp.latitude, wp.longitude, offset);
+        });
+
+        // Draw smooth flight path
+        try {
+          const curve = new THREE.CatmullRomCurve3(routePoints);
+          curve.curveType = 'centripetal';
+          curve.tension = 0.3;
+
+          const curvePoints = curve.getPoints(150);
+          
+          // Main flight path
+          const lineGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
+          const lineMaterial = new THREE.LineBasicMaterial({
+            color: 0x00bbff,
+            linewidth: 2,
+            transparent: true,
+            opacity: 0.9
+          });
+          const flightPath = new THREE.Line(lineGeometry, lineMaterial);
+          flightPath.userData.isFlightElement = true;
+          scene.add(flightPath);
+
+          // Glow effect
+          const glowMaterial = new THREE.LineBasicMaterial({
+            color: 0x00ffff,
+            linewidth: 1,
+            transparent: true,
+            opacity: 0.3
+          });
+          const glowPath = new THREE.Line(lineGeometry.clone(), glowMaterial);
+          glowPath.userData.isFlightElement = true;
+          scene.add(glowPath);
+        } catch (error) {
+          console.warn('Curve error, using straight lines');
         }
 
-        // Create a smooth curve through all waypoints
-        if (routePoints.length >= 2) {
-          try {
-            const curve = new THREE.CatmullRomCurve3(routePoints);
-            curve.curveType = 'centripetal';
-            curve.tension = 0.5;
-
-            // Get points along the curve
-            const curvePoints = curve.getPoints(100);
-            
-            // Create the flight path as a line instead of tube for better reliability
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
-            const lineMaterial = new THREE.LineBasicMaterial({
-              color: 0x0088ff,
-              linewidth: 3,
-              transparent: true,
-              opacity: 0.8
-            });
-            const flightPath = new THREE.Line(lineGeometry, lineMaterial);
-            flightPath.userData.isFlightElement = true;
-            scene.add(flightPath);
-
-            // Add a thicker line for better visibility
-            const thickLineGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
-            const thickLineMaterial = new THREE.LineBasicMaterial({
-              color: 0x00ffff,
-              linewidth: 1,
-              transparent: true,
-              opacity: 0.3
-            });
-            const thickFlightPath = new THREE.Line(thickLineGeometry, thickLineMaterial);
-            thickFlightPath.userData.isFlightElement = true;
-            scene.add(thickFlightPath);
-
-          } catch (error) {
-            console.warn('Error creating curved path, using straight lines:', error);
-            // Fallback: create straight lines between waypoints
-            for (let i = 0; i < routePoints.length - 1; i++) {
-              const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-                routePoints[i],
-                routePoints[i + 1]
-              ]);
-              const lineMaterial = new THREE.LineBasicMaterial({
-                color: 0x0088ff,
-                linewidth: 2,
-                transparent: true,
-                opacity: 0.8
-              });
-              const line = new THREE.Line(lineGeometry, lineMaterial);
-              line.userData.isFlightElement = true;
-              scene.add(line);
-            }
-          }
-        }
-
-        // Add waypoint markers with risk colors
+        // Waypoint markers
         validWaypoints.forEach((wp, index) => {
           const position = latLonToVec3(wp.latitude, wp.longitude, 5.08);
-          
-          // Risk sphere
+          const color = riskColor(wp.riskLevel);
+
+          // Main marker
           const sphereGeometry = new THREE.SphereGeometry(0.08, 16, 16);
           const sphereMaterial = new THREE.MeshBasicMaterial({
-            color: riskColor(wp.riskLevel),
-            emissive: riskColor(wp.riskLevel),
-            emissiveIntensity: 0.5
+            color: color.decimal,
+            emissive: color.decimal,
+            emissiveIntensity: 0.6
           });
           const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
           sphere.position.copy(position);
           sphere.userData.isFlightElement = true;
           scene.add(sphere);
 
-          // Pulsing glow effect for high risk points
+          // Glow for high-risk points
           if (wp.riskLevel === "HIGH" || wp.riskLevel === "CRITICAL") {
-            const glowGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+            const glowGeometry = new THREE.SphereGeometry(0.15, 12, 12);
             const glowMaterial = new THREE.MeshBasicMaterial({
-              color: riskColor(wp.riskLevel),
+              color: color.decimal,
               transparent: true,
-              opacity: 0.3
+              opacity: 0.25
             });
             const glow = new THREE.Mesh(glowGeometry, glowMaterial);
             glow.position.copy(position);
             glow.userData.isFlightElement = true;
             scene.add(glow);
-
-            // Animate glow
-            const animateGlow = () => {
-              const scale = 1 + 0.3 * Math.sin(Date.now() * 0.005);
-              glow.scale.set(scale, scale, scale);
-              requestAnimationFrame(animateGlow);
-            };
-            animateGlow();
           }
 
-          // Connection lines to earth
+          // Connection line to surface
           const earthPosition = latLonToVec3(wp.latitude, wp.longitude, 5.0);
-          const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-            earthPosition, position
-          ]);
+          const lineGeometry = new THREE.BufferGeometry().setFromPoints([earthPosition, position]);
           const lineMaterial = new THREE.LineBasicMaterial({
-            color: riskColor(wp.riskLevel),
+            color: color.decimal,
             transparent: true,
             opacity: 0.4
           });
@@ -326,29 +355,31 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
           scene.add(line);
         });
 
-        // Add start and end markers
-        const startPos = latLonToVec3(
-          validWaypoints[0].latitude, 
-          validWaypoints[0].longitude, 
-          5.1
-        );
-        const endPos = latLonToVec3(
-          validWaypoints[validWaypoints.length - 1].latitude, 
-          validWaypoints[validWaypoints.length - 1].longitude, 
-          5.1
-        );
-
         // Start marker (green)
+        const startPos = latLonToVec3(validWaypoints[0].latitude, validWaypoints[0].longitude, 5.12);
         const startGeometry = new THREE.SphereGeometry(0.12, 16, 16);
-        const startMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const startMaterial = new THREE.MeshBasicMaterial({ 
+          color: 0x00ff00,
+          emissive: 0x00ff00,
+          emissiveIntensity: 0.8
+        });
         const startMarker = new THREE.Mesh(startGeometry, startMaterial);
         startMarker.position.copy(startPos);
         startMarker.userData.isFlightElement = true;
         scene.add(startMarker);
 
         // End marker (red)
+        const endPos = latLonToVec3(
+          validWaypoints[validWaypoints.length - 1].latitude,
+          validWaypoints[validWaypoints.length - 1].longitude,
+          5.12
+        );
         const endGeometry = new THREE.SphereGeometry(0.12, 16, 16);
-        const endMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const endMaterial = new THREE.MeshBasicMaterial({ 
+          color: 0xff0000,
+          emissive: 0xff0000,
+          emissiveIntensity: 0.8
+        });
         const endMarker = new THREE.Mesh(endGeometry, endMaterial);
         endMarker.position.copy(endPos);
         endMarker.userData.isFlightElement = true;
@@ -368,7 +399,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
           WebkitTextFillColor: "transparent",
           textAlign: "center"
         }}>
-          ✈️ Flight Path Globe Visualization
+          ✈️ AirLume Flight Route Analyzer
         </h1>
         <p style={{ 
           textAlign: "center", 
@@ -386,20 +417,22 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
           marginBottom: "2rem",
           backdropFilter: "blur(10px)"
         }}>
-          <div style={{ display: "flex", gap: "20px", alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "20px", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div>
               <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", opacity: 0.8 }}>Origin ICAO:</label>
               <input 
                 value={origin} 
                 onChange={e => onOriginChange(e.target.value.toUpperCase())}
+                onKeyPress={e => e.key === 'Enter' && handleSubmit()}
                 style={{
                   padding: "10px 15px",
                   borderRadius: "8px",
-                  border: "1px solid rgba(255,255,255,0.3)",
+                  border: "2px solid rgba(255,255,255,0.3)",
                   background: "rgba(0,0,0,0.3)",
                   color: "white",
                   fontSize: "1rem",
-                  width: "120px"
+                  width: "120px",
+                  transition: "all 0.3s"
                 }}
                 placeholder="e.g., CYOW"
               />
@@ -409,31 +442,45 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
               <input 
                 value={destination} 
                 onChange={e => onDestinationChange(e.target.value.toUpperCase())}
+                onKeyPress={e => e.key === 'Enter' && handleSubmit()}
                 style={{
                   padding: "10px 15px",
                   borderRadius: "8px",
-                  border: "1px solid rgba(255,255,255,0.3)",
+                  border: "2px solid rgba(255,255,255,0.3)",
                   background: "rgba(0,0,0,0.3)",
                   color: "white",
                   fontSize: "1rem",
-                  width: "120px"
+                  width: "120px",
+                  transition: "all 0.3s"
                 }}
                 placeholder="e.g., CYYZ"
               />
             </div>
-            <div style={{ flex: 1, minWidth: "200px" }}>
-              <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", opacity: 0.8 }}>Instructions:</label>
-              <div style={{ fontSize: "0.9rem", opacity: 0.7 }}>
-                Drag to rotate • Scroll to zoom • Click waypoints for details
-              </div>
-            </div>
+            <button 
+              onClick={handleSubmit}
+              disabled={isLoading}
+              style={{
+                padding: "12px 28px",
+                borderRadius: "8px",
+                border: "none",
+                background: isLoading ? "linear-gradient(135deg, #888 0%, #555 100%)" : "linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)",
+                color: "white",
+                fontSize: "1rem",
+                fontWeight: "bold",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: isLoading ? 0.7 : 1,
+                transition: "all 0.3s"
+              }}
+            >
+              {isLoading ? "🔄 Analyzing..." : "🚀 Analyze Route"}
+            </button>
           </div>
         </div>
 
         {error && (
           <div style={{
             background: "rgba(220, 53, 69, 0.2)",
-            border: "1px solid rgba(220, 53, 69, 0.5)",
+            border: "2px solid rgba(220, 53, 69, 0.5)",
             padding: "15px",
             borderRadius: "10px",
             marginBottom: "20px",
@@ -443,7 +490,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
           </div>
         )}
 
-        {!analysis && !error && (
+        {!analysis && !isLoading && (
           <div style={{
             background: "rgba(255,255,255,0.1)",
             padding: "40px",
@@ -452,8 +499,22 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
             marginBottom: "20px"
           }}>
             <div style={{ fontSize: "3rem", marginBottom: "20px" }}>🌍</div>
-            <h3>Loading Route & Risk Analysis...</h3>
-            <p style={{ opacity: 0.7 }}>Fetching weather data and calculating lightning risks</p>
+            <h3>Ready for Route Analysis</h3>
+            <p style={{ opacity: 0.7 }}>Enter airport codes and click "Analyze Route" to visualize lightning risks</p>
+          </div>
+        )}
+
+        {isLoading && (
+          <div style={{
+            background: "rgba(255,255,255,0.1)",
+            padding: "40px",
+            borderRadius: "15px",
+            textAlign: "center",
+            marginBottom: "20px"
+          }}>
+            <div style={{ fontSize: "3rem", marginBottom: "20px" }}>🔄</div>
+            <h3>Analyzing Flight Route...</h3>
+            <p style={{ opacity: 0.7 }}>Calculating lightning risks and weather conditions</p>
           </div>
         )}
 
@@ -495,7 +556,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
                 <div style={{ 
                   fontWeight: "bold", 
                   fontSize: "1.2rem",
-                  color: riskColor(analysis.riskLevel)
+                  color: riskColor(analysis.riskLevel).hex
                 }}>
                   {analysis.lightningProbability}% Max Risk
                 </div>
@@ -505,7 +566,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "2rem", marginBottom: "10px" }}>📍</div>
                 <div style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{analysis.waypointCount}</div>
-                <div style={{ opacity: 0.8 }}>Waypoints</div>
+                <div style={{ opacity: 0.8 }}>Waypoints Analyzed</div>
               </div>
             </div>
             
@@ -513,7 +574,8 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
               background: "rgba(0,0,0,0.3)",
               padding: "15px",
               borderRadius: "10px",
-              textAlign: "center"
+              textAlign: "center",
+              borderLeft: `4px solid ${riskColor(analysis.riskLevel).hex}`
             }}>
               <strong>Recommendation:</strong> {analysis.recommendation}
             </div>
@@ -524,7 +586,6 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
   );
 }
 
-// Main App component with state management
 export default function App() {
   const [origin, setOrigin] = React.useState("CYOW");
   const [destination, setDestination] = React.useState("CYYZ");
