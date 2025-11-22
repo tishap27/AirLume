@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
-import { MapPin, AlertTriangle, Cloud, Wind, Droplets, Gauge } from "lucide-react";
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const API_URL = "http://localhost:8080/airlume-web/resources/analysis";
 
@@ -14,371 +14,508 @@ const latLonToVec3 = (lat, lon, radius = 5) => {
   );
 };
 
+// Enhanced color scheme
 const riskColor = (risk) => {
-  const level = (risk || "").toUpperCase();
-  switch (level) {
-    case "CRITICAL":
-      return { hex: "#dc2626", rgb: "239, 68, 68", label: "CRITICAL" };
-    case "HIGH":
-      return { hex: "#ea580c", rgb: "234, 88, 12", label: "HIGH" };
-    case "MODERATE":
-      return { hex: "#f59e0b", rgb: "245, 158, 11", label: "MODERATE" };
-    default:
-      return { hex: "#10b981", rgb: "16, 185, 129", label: "LOW" };
+  switch ((risk || "").toUpperCase()) {
+    case "CRITICAL": return "#ff4444";
+    case "HIGH": return "#ffaa00";
+    case "MODERATE": return "#ffdd00";
+    case "LOW": return "#44ff44";
+    default: return "#888888";
   }
 };
 
-const getRiskBar = (percentage) => {
-  if (percentage > 35) return { color: "#dc2626", level: "CRITICAL" };
-  if (percentage > 25) return { color: "#ea580c", level: "HIGH" };
-  if (percentage > 15) return { color: "#f59e0b", level: "MODERATE" };
-  return { color: "#10b981", level: "LOW" };
+// Improved curved path creation
+const createGreatCirclePath = (start, end, segments = 50) => {
+  const points = [];
+  
+  // Convert to spherical coordinates
+  const startSpherical = new THREE.Spherical().setFromVector3(start);
+  const endSpherical = new THREE.Spherical().setFromVector3(end);
+  
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    
+    // Interpolate spherical coordinates
+    const phi = startSpherical.phi * (1 - t) + endSpherical.phi * t;
+    const theta = startSpherical.theta * (1 - t) + endSpherical.theta * t;
+    
+    const point = new THREE.Vector3().setFromSphericalCoords(5.05, phi, theta);
+    points.push(point);
+  }
+  
+  return points;
 };
 
-function GlobeFlight({ origin, destination }) {
+function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange }) {
   const mountRef = useRef(null);
   const [analysis, setAnalysis] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const sceneRef = useRef(null);
+  const cameraRef = useRef(null);
+  const rendererRef = useRef(null);
+  const controlsRef = useRef(null);
 
   useEffect(() => {
     setError(null);
     setAnalysis(null);
-    setLoading(true);
-
+    
+    console.log(`Fetching: ${API_URL}?origin=${origin}&destination=${destination}`);
+    
     fetch(`${API_URL}?origin=${origin}&destination=${destination}`, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
     })
-      .then((response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         return response.json();
       })
-      .then((data) => {
+      .then(data => {
+        console.log('Received data:', data);
         if (data.error) {
           setError(data.error);
         } else if (!data.origin || !data.destination) {
-          setError("Invalid response: missing route data");
+          setError('Invalid response: missing route data');
         } else {
           setAnalysis(data);
         }
       })
-      .catch((err) => {
+      .catch(err => {
+        console.error('Fetch error:', err);
         setError(`Connection failed: ${err.message}`);
-      })
-      .finally(() => setLoading(false));
+      });
   }, [origin, destination]);
 
   useEffect(() => {
-    if (!analysis) return;
+    if (!mountRef.current) return;
 
-    const width = 800;
+    // Initialize Three.js scene
+    const width = mountRef.current.clientWidth;
     const height = 600;
+    
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 16);
+    scene.background = new THREE.Color(0x001122);
+    sceneRef.current = scene;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(0, 0, 12);
+    cameraRef.current = camera;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
+    rendererRef.current = renderer;
+
+    // Clear previous renderer
+    while (mountRef.current.firstChild) {
+      mountRef.current.removeChild(mountRef.current.firstChild);
+    }
     mountRef.current.appendChild(renderer.domElement);
 
-    const light = new THREE.AmbientLight(0xffffff, 1.1);
-    scene.add(light);
+    // Add orbit controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.rotateSpeed = 0.5;
+    controlsRef.current = controls;
 
+    // Enhanced lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(10, 10, 5);
+    scene.add(directionalLight);
+
+    // Create earth with better texture
     const geometry = new THREE.SphereGeometry(5, 64, 64);
-    const texture = new THREE.TextureLoader().load(
-      "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
-    );
-    const material = new THREE.MeshPhongMaterial({ map: texture });
+    const textureLoader = new THREE.TextureLoader();
+    const earthTexture = textureLoader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
+    
+    const material = new THREE.MeshPhongMaterial({
+      map: earthTexture,
+      specular: new THREE.Color(0x333333),
+      shininess: 5
+    });
+    
     const earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
 
-    if (analysis.waypoints && analysis.waypoints.length > 0) {
-      const validWaypoints = analysis.waypoints.filter(
-        (wp) => wp.latitude !== 0 && wp.longitude !== 0
-      );
+    // Add atmospheric glow
+    const atmosphereGeometry = new THREE.SphereGeometry(5.1, 64, 64);
+    const atmosphereMaterial = new THREE.MeshBasicMaterial({
+      color: 0x88ccff,
+      transparent: true,
+      opacity: 0.1
+    });
+    const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    scene.add(atmosphere);
 
-      if (validWaypoints.length > 0) {
-        const arcPoints = validWaypoints.map((wp) =>
-          latLonToVec3(wp.latitude, wp.longitude)
-        );
-        const curve = new THREE.CatmullRomCurve3(arcPoints);
-        const curveGeom = new THREE.TubeGeometry(curve, 100, 0.06, 8, false);
-        const curveMat = new THREE.MeshBasicMaterial({ color: "#0ea5e9" });
-        scene.add(new THREE.Mesh(curveGeom, curveMat));
-
-        analysis.waypoints.forEach((wp) => {
-          if (wp.latitude !== 0 && wp.longitude !== 0) {
-            const vec = latLonToVec3(wp.latitude, wp.longitude, 5.03);
-            const color = riskColor(wp.riskLevel);
-            const markerGeom = new THREE.SphereGeometry(0.15, 24, 24);
-            const markerMat = new THREE.MeshBasicMaterial({ color: color.hex });
-            const marker = new THREE.Mesh(markerGeom, markerMat);
-            marker.position.copy(vec);
-            scene.add(marker);
-          }
-        });
-      }
-    }
-
-    let frameId;
+    // Animation loop
     const animate = () => {
-      earth.rotation.y += 0.0008;
+      requestAnimationFrame(animate);
+      earth.rotation.y += 0.001;
+      controls.update();
       renderer.render(scene, camera);
-      frameId = requestAnimationFrame(animate);
     };
     animate();
 
-    return () => {
-      cancelAnimationFrame(frameId);
-      renderer.dispose();
-      if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
-        mountRef.current.removeChild(renderer.domElement);
-      }
+    // Handle resize
+    const handleResize = () => {
+      if (!mountRef.current) return;
+      const newWidth = mountRef.current.clientWidth;
+      const newHeight = 600;
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(newWidth, newHeight);
     };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (renderer) renderer.dispose();
+      if (controls) controls.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!analysis || !sceneRef.current) return;
+
+    const scene = sceneRef.current;
+    
+    // Clear previous flight paths and markers
+    const objectsToRemove = [];
+    scene.children.forEach(child => {
+      if (child.userData.isFlightElement) {
+        objectsToRemove.push(child);
+      }
+    });
+    objectsToRemove.forEach(obj => scene.remove(obj));
+
+    // Draw flight route with waypoints
+    if (analysis.waypoints && analysis.waypoints.length > 1) {
+      const validWaypoints = analysis.waypoints.filter(wp => 
+        wp.latitude !== 0 && wp.longitude !== 0
+      );
+
+      if (validWaypoints.length > 1) {
+        // Create points for the entire route
+        const routePoints = [];
+        
+        for (let i = 0; i < validWaypoints.length; i++) {
+          const point = latLonToVec3(
+            validWaypoints[i].latitude, 
+            validWaypoints[i].longitude, 
+            5.05
+          );
+          routePoints.push(point);
+        }
+
+        // Create a smooth curve through all waypoints
+        if (routePoints.length >= 2) {
+          try {
+            const curve = new THREE.CatmullRomCurve3(routePoints);
+            curve.curveType = 'centripetal';
+            curve.tension = 0.5;
+
+            // Get points along the curve
+            const curvePoints = curve.getPoints(100);
+            
+            // Create the flight path as a line instead of tube for better reliability
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
+            const lineMaterial = new THREE.LineBasicMaterial({
+              color: 0x0088ff,
+              linewidth: 3,
+              transparent: true,
+              opacity: 0.8
+            });
+            const flightPath = new THREE.Line(lineGeometry, lineMaterial);
+            flightPath.userData.isFlightElement = true;
+            scene.add(flightPath);
+
+            // Add a thicker line for better visibility
+            const thickLineGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
+            const thickLineMaterial = new THREE.LineBasicMaterial({
+              color: 0x00ffff,
+              linewidth: 1,
+              transparent: true,
+              opacity: 0.3
+            });
+            const thickFlightPath = new THREE.Line(thickLineGeometry, thickLineMaterial);
+            thickFlightPath.userData.isFlightElement = true;
+            scene.add(thickFlightPath);
+
+          } catch (error) {
+            console.warn('Error creating curved path, using straight lines:', error);
+            // Fallback: create straight lines between waypoints
+            for (let i = 0; i < routePoints.length - 1; i++) {
+              const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                routePoints[i],
+                routePoints[i + 1]
+              ]);
+              const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0x0088ff,
+                linewidth: 2,
+                transparent: true,
+                opacity: 0.8
+              });
+              const line = new THREE.Line(lineGeometry, lineMaterial);
+              line.userData.isFlightElement = true;
+              scene.add(line);
+            }
+          }
+        }
+
+        // Add waypoint markers with risk colors
+        validWaypoints.forEach((wp, index) => {
+          const position = latLonToVec3(wp.latitude, wp.longitude, 5.08);
+          
+          // Risk sphere
+          const sphereGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+          const sphereMaterial = new THREE.MeshBasicMaterial({
+            color: riskColor(wp.riskLevel),
+            emissive: riskColor(wp.riskLevel),
+            emissiveIntensity: 0.5
+          });
+          const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+          sphere.position.copy(position);
+          sphere.userData.isFlightElement = true;
+          scene.add(sphere);
+
+          // Pulsing glow effect for high risk points
+          if (wp.riskLevel === "HIGH" || wp.riskLevel === "CRITICAL") {
+            const glowGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+              color: riskColor(wp.riskLevel),
+              transparent: true,
+              opacity: 0.3
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.position.copy(position);
+            glow.userData.isFlightElement = true;
+            scene.add(glow);
+
+            // Animate glow
+            const animateGlow = () => {
+              const scale = 1 + 0.3 * Math.sin(Date.now() * 0.005);
+              glow.scale.set(scale, scale, scale);
+              requestAnimationFrame(animateGlow);
+            };
+            animateGlow();
+          }
+
+          // Connection lines to earth
+          const earthPosition = latLonToVec3(wp.latitude, wp.longitude, 5.0);
+          const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+            earthPosition, position
+          ]);
+          const lineMaterial = new THREE.LineBasicMaterial({
+            color: riskColor(wp.riskLevel),
+            transparent: true,
+            opacity: 0.4
+          });
+          const line = new THREE.Line(lineGeometry, lineMaterial);
+          line.userData.isFlightElement = true;
+          scene.add(line);
+        });
+
+        // Add start and end markers
+        const startPos = latLonToVec3(
+          validWaypoints[0].latitude, 
+          validWaypoints[0].longitude, 
+          5.1
+        );
+        const endPos = latLonToVec3(
+          validWaypoints[validWaypoints.length - 1].latitude, 
+          validWaypoints[validWaypoints.length - 1].longitude, 
+          5.1
+        );
+
+        // Start marker (green)
+        const startGeometry = new THREE.SphereGeometry(0.12, 16, 16);
+        const startMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const startMarker = new THREE.Mesh(startGeometry, startMaterial);
+        startMarker.position.copy(startPos);
+        startMarker.userData.isFlightElement = true;
+        scene.add(startMarker);
+
+        // End marker (red)
+        const endGeometry = new THREE.SphereGeometry(0.12, 16, 16);
+        const endMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const endMarker = new THREE.Mesh(endGeometry, endMaterial);
+        endMarker.position.copy(endPos);
+        endMarker.userData.isFlightElement = true;
+        scene.add(endMarker);
+      }
+    }
   }, [analysis]);
 
-  const avgRisk = analysis ? parseFloat(analysis.averageRisk) : 0;
-  const maxRisk = analysis ? parseFloat(analysis.lightningProbability) : 0;
-
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Header */}
-      <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-white" />
+    <div style={{ background: "linear-gradient(135deg, #0c2461 0%, #1e3799 50%, #0a3d62 100%)", color: "#fff", minHeight: "100vh", padding: 32 }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <h1 style={{ 
+          fontSize: "2.5rem", 
+          marginBottom: "0.5rem",
+          background: "linear-gradient(45deg, #fff, #a0e7ff)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          textAlign: "center"
+        }}>
+          ✈️ Flight Path Globe Visualization
+        </h1>
+        <p style={{ 
+          textAlign: "center", 
+          marginBottom: "2rem",
+          fontSize: "1.1rem",
+          opacity: 0.8
+        }}>
+          Real-time 3D Lightning Risk Assessment
+        </p>
+        
+        <div style={{ 
+          background: "rgba(255,255,255,0.1)", 
+          padding: "20px", 
+          borderRadius: "15px",
+          marginBottom: "2rem",
+          backdropFilter: "blur(10px)"
+        }}>
+          <div style={{ display: "flex", gap: "20px", alignItems: "center", flexWrap: "wrap" }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", opacity: 0.8 }}>Origin ICAO:</label>
+              <input 
+                value={origin} 
+                onChange={e => onOriginChange(e.target.value.toUpperCase())}
+                style={{
+                  padding: "10px 15px",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  background: "rgba(0,0,0,0.3)",
+                  color: "white",
+                  fontSize: "1rem",
+                  width: "120px"
+                }}
+                placeholder="e.g., CYOW"
+              />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">AirLume</h1>
-              <p className="text-xs text-slate-400">Lightning Risk Prediction</p>
+              <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", opacity: 0.8 }}>Destination ICAO:</label>
+              <input 
+                value={destination} 
+                onChange={e => onDestinationChange(e.target.value.toUpperCase())}
+                style={{
+                  padding: "10px 15px",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  background: "rgba(0,0,0,0.3)",
+                  color: "white",
+                  fontSize: "1rem",
+                  width: "120px"
+                }}
+                placeholder="e.g., CYYZ"
+              />
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Left Panel - Controls & Info */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Route Input */}
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 space-y-3">
-              <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Route Planning</h2>
-              <div className="space-y-2">
-                <label className="block text-xs text-slate-400 font-medium">Origin (ICAO)</label>
-                <input
-                  type="text"
-                  defaultValue="CYOW"
-                  onChange={(e) => {
-                    const parent = e.target.closest(".lg\\:col-span-1");
-                    const destInput = parent.querySelector("[data-dest]");
-                    window.setRoute?.(e.target.value.toUpperCase(), destInput.value);
-                  }}
-                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
-                  placeholder="CYOW"
-                />
+            <div style={{ flex: 1, minWidth: "200px" }}>
+              <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", opacity: 0.8 }}>Instructions:</label>
+              <div style={{ fontSize: "0.9rem", opacity: 0.7 }}>
+                Drag to rotate • Scroll to zoom • Click waypoints for details
               </div>
-              <div className="space-y-2">
-                <label className="block text-xs text-slate-400 font-medium">Destination (ICAO)</label>
-                <input
-                  type="text"
-                  data-dest
-                  defaultValue="CYYZ"
-                  onChange={(e) => {
-                    const parent = e.target.closest(".lg\\:col-span-1");
-                    const origInput = parent.querySelector("input:not([data-dest])");
-                    window.setRoute?.(origInput.value, e.target.value.toUpperCase());
-                  }}
-                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
-                  placeholder="CYYZ"
-                />
-              </div>
-            </div>
-
-            {/* Status Card */}
-            {loading && (
-              <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-slate-300">Loading route data...</span>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 flex gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-200">Error</p>
-                  <p className="text-xs text-red-300 mt-1">{error}</p>
-                </div>
-              </div>
-            )}
-
-            {analysis && (
-              <>
-                {/* Route Summary */}
-                <div className="bg-gradient-to-br from-slate-800 to-slate-750 border border-slate-700 rounded-lg p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <p className="text-2xl font-bold text-white">{analysis.origin}</p>
-                      <p className="text-xs text-slate-400">Origin</p>
-                    </div>
-                    <div className="text-slate-500">→</div>
-                    <div className="flex-1 text-right">
-                      <p className="text-2xl font-bold text-white">{analysis.destination}</p>
-                      <p className="text-xs text-slate-400">Destination</p>
-                    </div>
-                  </div>
-                  <div className="border-t border-slate-700 pt-3 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Distance</span>
-                      <span className="font-semibold text-white">{analysis.totalDistance} km</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Waypoints</span>
-                      <span className="font-semibold text-white">{analysis.waypointCount}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Risk Metrics */}
-                <div className="space-y-2">
-                  <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold text-slate-400 uppercase">Max Risk</p>
-                      <span className={`text-lg font-bold ${getRiskBar(maxRisk).color === "#dc2626" ? "text-red-400" : getRiskBar(maxRisk).color === "#ea580c" ? "text-orange-400" : getRiskBar(maxRisk).color === "#f59e0b" ? "text-amber-400" : "text-green-400"}`}>
-                        {maxRisk}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="h-full transition-all duration-300 rounded-full"
-                        style={{
-                          width: `${maxRisk}%`,
-                          backgroundColor: getRiskBar(maxRisk).color,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold text-slate-400 uppercase">Avg Risk</p>
-                      <span className={`text-lg font-bold ${getRiskBar(avgRisk).color === "#dc2626" ? "text-red-400" : getRiskBar(avgRisk).color === "#ea580c" ? "text-orange-400" : getRiskBar(avgRisk).color === "#f59e0b" ? "text-amber-400" : "text-green-400"}`}>
-                        {avgRisk}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="h-full transition-all duration-300 rounded-full"
-                        style={{
-                          width: `${avgRisk}%`,
-                          backgroundColor: getRiskBar(avgRisk).color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recommendation */}
-                <div
-                  className={`rounded-lg p-3 border ${
-                    maxRisk > 35
-                      ? "bg-red-900/20 border-red-700"
-                      : "bg-amber-900/20 border-amber-700"
-                  }`}
-                >
-                  <p className="text-xs font-semibold text-slate-400 uppercase mb-2">Recommendation</p>
-                  <p className={`text-sm font-medium ${maxRisk > 35 ? "text-red-300" : "text-amber-300"}`}>
-                    {analysis.recommendation}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Center - Globe */}
-          <div className="lg:col-span-2">
-            <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
-              <div ref={mountRef} className="w-full" style={{ height: "600px" }} />
             </div>
           </div>
         </div>
 
-        {/* Waypoints Table */}
+        {error && (
+          <div style={{
+            background: "rgba(220, 53, 69, 0.2)",
+            border: "1px solid rgba(220, 53, 69, 0.5)",
+            padding: "15px",
+            borderRadius: "10px",
+            marginBottom: "20px",
+            textAlign: "center"
+          }}>
+            ⚠️ Error: {error}
+          </div>
+        )}
+
+        {!analysis && !error && (
+          <div style={{
+            background: "rgba(255,255,255,0.1)",
+            padding: "40px",
+            borderRadius: "15px",
+            textAlign: "center",
+            marginBottom: "20px"
+          }}>
+            <div style={{ fontSize: "3rem", marginBottom: "20px" }}>🌍</div>
+            <h3>Loading Route & Risk Analysis...</h3>
+            <p style={{ opacity: 0.7 }}>Fetching weather data and calculating lightning risks</p>
+          </div>
+        )}
+
+        <div 
+          ref={mountRef} 
+          style={{ 
+            width: "100%", 
+            height: "600px",
+            background: "radial-gradient(circle, #1a2980 0%, #26d0ce 100%)",
+            borderRadius: "15px",
+            overflow: "hidden",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+          }}
+        />
+
         {analysis && (
-          <div className="mt-4 bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
-            <div className="bg-slate-900 px-6 py-3 border-b border-slate-700">
-              <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">
-                Route Waypoints ({analysis.waypointCount})
-              </h3>
+          <div style={{
+            background: "rgba(255,255,255,0.1)",
+            padding: "25px",
+            borderRadius: "15px",
+            marginTop: "20px",
+            backdropFilter: "blur(10px)"
+          }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px", marginBottom: "20px" }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "2rem", marginBottom: "10px" }}>🛫</div>
+                <div style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{analysis.origin} → {analysis.destination}</div>
+                <div style={{ opacity: 0.8 }}>Flight Route</div>
+              </div>
+              
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "2rem", marginBottom: "10px" }}>📏</div>
+                <div style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{analysis.totalDistance} km</div>
+                <div style={{ opacity: 0.8 }}>Total Distance</div>
+              </div>
+              
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "2rem", marginBottom: "10px" }}>⚡</div>
+                <div style={{ 
+                  fontWeight: "bold", 
+                  fontSize: "1.2rem",
+                  color: riskColor(analysis.riskLevel)
+                }}>
+                  {analysis.lightningProbability}% Max Risk
+                </div>
+                <div style={{ opacity: 0.8 }}>{analysis.riskLevel} Level</div>
+              </div>
+              
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "2rem", marginBottom: "10px" }}>📍</div>
+                <div style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{analysis.waypointCount}</div>
+                <div style={{ opacity: 0.8 }}>Waypoints</div>
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-700 border-b border-slate-600">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase">Distance</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase">Lat / Lon</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase">Risk</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase">Level</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                  {analysis.waypoints.map((wp, idx) => {
-                    const riskInfo = getRiskBar(wp.riskPercentage || 0);
-                    return (
-                      <tr key={idx} className="hover:bg-slate-700/50 transition-colors">
-                        <td className="px-6 py-3 text-white font-medium">WP{idx + 1}</td>
-                        <td className="px-6 py-3 text-slate-300">
-                          {wp.distanceFromStart || (idx * 45)} km
-                        </td>
-                        <td className="px-6 py-3 text-slate-400 text-xs font-mono">
-                          {wp.latitude?.toFixed(3)}, {wp.longitude?.toFixed(3)}
-                        </td>
-                        <td className="px-6 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-24 bg-slate-700 rounded-full h-1.5">
-                              <div
-                                className="h-full rounded-full transition-all"
-                                style={{
-                                  width: `${wp.riskPercentage || 0}%`,
-                                  backgroundColor: riskInfo.color,
-                                }}
-                              />
-                            </div>
-                            <span className="font-semibold text-white min-w-12">
-                              {wp.riskPercentage || 0}%
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-3">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-semibold ${
-                              riskInfo.level === "CRITICAL"
-                                ? "bg-red-900/40 text-red-300"
-                                : riskInfo.level === "HIGH"
-                                ? "bg-orange-900/40 text-orange-300"
-                                : riskInfo.level === "MODERATE"
-                                ? "bg-amber-900/40 text-amber-300"
-                                : "bg-green-900/40 text-green-300"
-                            }`}
-                          >
-                            {riskInfo.level}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            
+            <div style={{
+              background: "rgba(0,0,0,0.3)",
+              padding: "15px",
+              borderRadius: "10px",
+              textAlign: "center"
+            }}>
+              <strong>Recommendation:</strong> {analysis.recommendation}
             </div>
           </div>
         )}
@@ -387,14 +524,17 @@ function GlobeFlight({ origin, destination }) {
   );
 }
 
+// Main App component with state management
 export default function App() {
   const [origin, setOrigin] = React.useState("CYOW");
   const [destination, setDestination] = React.useState("CYYZ");
 
-  window.setRoute = (orig, dest) => {
-    setOrigin(orig);
-    setDestination(dest);
-  };
-
-  return <GlobeFlight origin={origin} destination={destination} />;
+  return (
+    <GlobeFlight 
+      origin={origin}
+      destination={destination}
+      onOriginChange={setOrigin}
+      onDestinationChange={setDestination}
+    />
+  );
 }
