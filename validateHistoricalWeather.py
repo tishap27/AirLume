@@ -65,9 +65,9 @@ print("=" * 70)
 # Load historical weather data
 try:
     df = pd.read_csv('historical_weather_strikes.csv')
-    print(f"\n✓ Loaded {len(df)} strikes with historical weather")
+    print(f"\nLoaded {len(df)} strikes with historical weather")
 except:
-    print("\n✗ Cannot find historical_weather_strikes.csv")
+    print("\nCannot find historical_weather_strikes.csv")
     print("Run fetch_historical_weather.py first!")
     exit(1)
 
@@ -103,9 +103,9 @@ for idx, strike in df.iterrows():
     high_risk = risk >= 25.0
     
     if high_risk:
-        print(f"  ✓ DETECTED")
+        print(f"   DETECTED")
     else:
-        print(f"  ✗ MISSED")
+        print(f"   MISSED")
     
     results.append({
         'location': strike['location'],
@@ -135,13 +135,13 @@ print(f"Missed (predicted LOW): {missed}")
 print(f"\nDETECTION RATE: {detection_rate:.1f}%")
 
 if detection_rate >= 70:
-    print("\n✓✓ EXCELLENT - Model validated successfully")
+    print("\n Model validated successfully")
 elif detection_rate >= 50:
-    print("\n✓ ACCEPTABLE - Good predictive capability")
+    print("\n ACCEPTABLE - Good predictive capability")
 elif detection_rate >= 30:
-    print("\n△ MODERATE - Shows potential, needs refinement")
+    print("\n MODERATE - Shows potential, needs refinement")
 else:
-    print("\n⚠ NEEDS IMPROVEMENT - Consider threshold adjustment")
+    print("\n NEEDS IMPROVEMENT - Consider threshold adjustment")
 
 # Save
 results_df.to_csv('validation_historical_weather.csv', index=False)

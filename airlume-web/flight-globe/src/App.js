@@ -285,28 +285,17 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
 
           const curvePoints = curve.getPoints(150);
           
-          // Main flight path
+          // Main flight path - thin professional cyan
           const lineGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
           const lineMaterial = new THREE.LineBasicMaterial({
-            color: 0x00bbff,
-            linewidth: 2,
+            color: 0x00d9ff,
+            linewidth: 0.5,
             transparent: true,
-            opacity: 0.9
+            opacity: 1
           });
           const flightPath = new THREE.Line(lineGeometry, lineMaterial);
           flightPath.userData.isFlightElement = true;
           scene.add(flightPath);
-
-          // Glow effect
-          const glowMaterial = new THREE.LineBasicMaterial({
-            color: 0x00ffff,
-            linewidth: 1,
-            transparent: true,
-            opacity: 0.3
-          });
-          const glowPath = new THREE.Line(lineGeometry.clone(), glowMaterial);
-          glowPath.userData.isFlightElement = true;
-          scene.add(glowPath);
         } catch (error) {
           console.warn('Curve error, using straight lines');
         }
