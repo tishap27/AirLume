@@ -1,5 +1,6 @@
-fix: integrate flight level parameter in backend services
-
-- Update AirLumeService to pass altitude to C program
-- Add flightLevel query parameter to REST API (default: 0)
-- Maintain backward compatibility with overloaded methods
+Add: ML enhancement layer 
+- Add python_src/ml_enhancer.py to post-process C physics calculations
+- ML increases moderate risks by 10-15% based on empirical patterns
+- Handles both route mode (route_risk.txt) and single-point mode
+- Ml predictions written to lightning_risk_ml.txt
+- Currently uses rule-based logic; later ML model training

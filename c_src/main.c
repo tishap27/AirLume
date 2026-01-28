@@ -14,6 +14,7 @@
     #define PATH_SEP "/"
 #endif
 void simulate_realtime_flight(FlightRoute* route, double cruise_speed_kmh, int update_interval_min);
+void call_ml_enhancement() ;
 int main(int argc, char *argv[]) {
     printf("=== AirLume Lightning Strike Prediction System ===\n");
 
@@ -104,7 +105,11 @@ int main(int argc, char *argv[]) {
 
         // Write the max risk to lightning_risk.txt for Ada
         write_risk_to_file(assessment.max_risk);
-
+        printf("Risk data written to file for Ada system\n");
+    
+        //ML
+        call_ml_enhancement();
+    
         // Call Ada
         #ifdef _WIN32
             system("ada_src\\obj\\main.exe");
@@ -266,4 +271,41 @@ int main(int argc, char *argv[]) {
     printf("All systems operational!\n");
     
     return 0;
+}
+
+void call_ml_enhancement() {
+    printf("\n3. Calling ML Enhancement Layer...\n");
+    
+    // Call Python ML enhancer
+    #ifdef _WIN32
+        int result = system("cd /d C:\\CST8234\\AirLume && python python_src\\ml.py");
+    #else
+        int result = system("cd ~/CST8234/AirLume && python3 python_src/ml.py");
+    #endif
+    
+    if (result == 0) {
+        printf("ML enhancement successful\n");
+        
+        // Read the enhanced prediction
+        FILE *ml_file = fopen("lightning_risk_ml.txt", "r");
+        if (ml_file) {
+            float ml_risk;
+            if (fscanf(ml_file, "%f", &ml_risk) == 1) {
+                printf("ML Enhanced Risk: %.2f%%\n", ml_risk);
+            }
+            fclose(ml_file);
+        }
+        
+        // Show the ML decision
+        FILE *log_file = fopen("ml_enhancement.log", "r");
+        if (log_file) {
+            char line[256];
+            while (fgets(line, sizeof(line), log_file)) {
+                printf("  %s", line);
+            }
+            fclose(log_file);
+        }
+    } else {
+        printf("ML enhancement failed, using physics-only prediction\n");
+    }
 }
