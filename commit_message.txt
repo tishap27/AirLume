@@ -1,6 +1,3 @@
-Add: ML enhancement layer 
-- Add python_src/ml_enhancer.py to post-process C physics calculations
-- ML increases moderate risks by 10-15% based on empirical patterns
-- Handles both route mode (route_risk.txt) and single-point mode
-- Ml predictions written to lightning_risk_ml.txt
-- Currently uses rule-based logic; later ML model training
+feat: add ML model training pipeline with sample data
+
+Implements Gradient Boosting classifier training,cross-validation, and performance metrics. Includes sample data generator(500 fake scenarios) for testing before real flight data available.

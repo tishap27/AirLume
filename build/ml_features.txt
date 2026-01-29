@@ -1,0 +1,14 @@
+physics_prediction
+temp
+temp_abs
+humidity
+humidity_normalized
+pressure
+pressure_normalized
+wind_speed
+altitude
+latitude
+longitude
+physics_risk_category_moderate
+physics_risk_category_high
+physics_risk_category_severe
