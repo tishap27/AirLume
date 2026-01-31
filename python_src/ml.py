@@ -1,5 +1,5 @@
 """
-AirLume ML Enhancer
+AirLume ML 
 This gets called by C code to enhance physics predictions
 """
 
