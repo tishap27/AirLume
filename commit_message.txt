@@ -1,3 +1,6 @@
-feat: add ML model training pipeline with sample data
+Add: E-field CSV converter for real ML training data
 
-Implements Gradient Boosting classifier training,cross-validation, and performance metrics. Includes sample data generator(500 fake scenarios) for testing before real flight data available.
+- Converts airlume_usa_efield_100.csv -> training_data_real.csv
+- Creates physics predictions + actual lightning labels from USA measurements
+- Enables training ML on production E-field sensor data
+- No changes to existing train_ml_model.py or ml_enhancer.py workflow"
