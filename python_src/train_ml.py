@@ -260,7 +260,7 @@ def main():
     print("="*70)
     
     # Try to load existing training data
-    df = load_training_data('training_data.csv')
+    df = load_training_data('training_data_real.csv')
     
     # If no data exists, create sample data
     if df is None:
@@ -271,7 +271,7 @@ def main():
         if create_sample.lower() == 'y':
             df = create_sample_training_data()
         else:
-            print("\nExiting. Please create training_data.csv first.")
+            print("\nExiting. Please create training_data_real.csv first.")
             return
     
     # Prepare features
