@@ -1,9 +1,6 @@
 """
 AirLume ML Model Training Script
 Trains ML model to enhance C physics predictions
-
-Run this ONCE when you have collected training data
-Place in: python_src/train_ml_model.py
 """
 
 import pandas as pd

@@ -1,8 +1,7 @@
 """
 Convert airlume_usa_efield_100.csv to ML training data
-Uses YOUR existing real E-field measurements!
+Using existing real E-field measurements
 
-Place in: python_src/convert_efield_to_training.py
 """
 
 import pandas as pd
@@ -17,7 +16,6 @@ def load_efield_csv():
     
     if not os.path.exists(csv_file):
         print(f"ERROR: {csv_file} not found!")
-        print("Make sure you're running from C:\\CST8234\\AirLume")
         return None
     
     df = pd.read_csv(csv_file)
@@ -31,7 +29,7 @@ def load_efield_csv():
 
 def run_c_physics_on_conditions(temp, humidity, pressure, wind_speed, altitude, lat, lon):
     """
-    Run your ACTUAL C physics code on these conditions
+    Running ACTUAL C physics code on these conditions
     This gets the REAL prediction your C code would make!
     """
     
@@ -73,7 +71,7 @@ def run_c_physics_on_conditions(temp, humidity, pressure, wind_speed, altitude, 
 def determine_actual_outcome(row, physics_pred):
     """
     Determine if lightning ACTUALLY occurred
-    Based on E-field measurements in your CSV
+    Based on E-field measurements from CSV
     """
     
     # High E-field measurements indicate lightning activity
@@ -169,7 +167,7 @@ def balance_dataset(df):
     
     # If imbalanced, add synthetic "no lightning" cases
     if len(lightning_cases) > len(no_lightning_cases) * 2:
-        print("\n⚠ Dataset imbalanced - adding negative samples...")
+        print("\n Dataset imbalanced - adding negative samples...")
         
         needed = len(lightning_cases) - len(no_lightning_cases)
         synthetic_negatives = []
@@ -234,12 +232,9 @@ def main():
     print("="*70)
     print("1. Review the data:")
     print(f"   type {output_file}")
-    print("\n2. Update train_ml_model.py to use this file:")
-    print("   Change: df = load_training_data('training_data.csv')")
-    print("   To:     df = load_training_data('training_data_real.csv')")
     print("\n3. Train with REAL data:")
-    print("   python python_src/train_ml_model.py")
-    print("\n4. Your ML model will now be trained on REAL atmospheric measurements!")
+    print("   python python_src/model.py")
+    print("\n4. ML model will now be trained on REAL atmospheric measurements!")
 
 if __name__ == "__main__":
     main()
