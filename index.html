@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirLume - Predictive Lightning Detection for Aviation</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #1a1a1a;
+            --secondary: #666666;
+            --border: #e0e0e0;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --code-bg: #f8f9fa;
+            --shadow: rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--fg);
+            background: var(--bg);
+            font-size: 16px;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 100;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--fg);
+            text-decoration: none;
+        }
+
+        .logo:hover {
+            text-decoration: none;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        nav a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        nav a:hover {
+            color: var(--fg);
+            text-decoration: none;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero .tagline {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: var(--secondary);
+            max-width: 700px;
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--border);
+            color: var(--fg);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--fg);
+            text-decoration: none;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Section */
+        section {
+            padding: 4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        section .subtitle {
+            color: var(--secondary);
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            max-width: 700px;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature {
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: box-shadow 0.2s;
+        }
+
+        .feature:hover {
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .feature h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .feature p {
+            color: var(--secondary);
+            line-height: 1.6;
+        }
+
+        /* Architecture */
+        .architecture {
+            background: var(--code-bg);
+            padding: 2rem;
+            border-radius: 6px;
+            margin: 2rem 0;
+        }
+
+        .flow-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .step {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .step-number {
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-desc {
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+
+        /* Use Cases */
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .use-case {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .use-case-header {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .use-case-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .use-case h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .use-case-body {
+            padding: 1.5rem;
+        }
+
+        .use-case ul {
+            list-style: none;
+            margin-bottom: 1rem;
+        }
+
+        .use-case li {
+            padding: 0.5rem 0;
+            color: var(--secondary);
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .use-case li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        .use-case-footer {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        /* Tech Stack */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .tech-item {
+            text-align: center;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .tech-item strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--fg);
+        }
+
+        .tech-item span {
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 0 2rem;
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        footer h4 {
+            margin-bottom: 1rem;
+            color: var(--fg);
+            font-weight: 600;
+        }
+
+        footer ul {
+            list-style: none;
+        }
+
+        footer li {
+            margin-bottom: 0.5rem;
+        }
+
+        footer a {
+            color: var(--secondary);
+        }
+
+        footer a:hover {
+            color: var(--fg);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero .tagline {
+                font-size: 1.2rem;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .features-grid,
+            .use-cases-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="#" class="logo">AirLume</a>
+            <nav>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#architecture">Architecture</a></li>
+                    <li><a href="#use-cases">Use Cases</a></li>
+                    <li><a href="#technology">Technology</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>AirLume</h1>
+                <p class="tagline">Predictive Lightning Detection for Aviation Safety</p>
+                <p class="hero-description">
+                    Physics-based system that predicts lightning formation 60-90 minutes in advance along specific flight routes. 
+                    Enables precise route optimization and eliminates costly post-strike inspections through advanced atmospheric analysis.
+                </p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/tishap27/AirLume" class="btn btn-primary">View on GitHub</a>
+                    <a href="#use-cases" class="btn btn-secondary">Learn More</a>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value">60-90min</div>
+                        <div class="stat-label">Advance Warning</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">80%+</div>
+                        <div class="stat-label">Prediction Accuracy</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">10-15%</div>
+                        <div class="stat-label">Route Efficiency</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">$2B</div>
+                        <div class="stat-label">Industry Cost</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <div class="container">
+                <h2>Core Capabilities</h2>
+                <p class="subtitle">
+                    Moving beyond reactive lightning detection to predictive intelligence for aviation operations.
+                </p>
+
+                <div class="features-grid">
+                    <div class="feature">
+                        <h3>Predictive Formation Analysis</h3>
+                        <p>
+                            Advanced physics models analyze real-time atmospheric conditions to predict lightning formation 
+                            60-90 minutes before strikes occur along specific flight routes.
+                        </p>
+                    </div>
+
+                    <div class="feature">
+                        <h3>Precision Route Optimization</h3>
+                        <p>
+                            Targeted route adjustments avoid actual lightning risks while minimizing detours to 10-30 miles 
+                            instead of 100+ mile storm system avoidance.
+                        </p>
+                    </div>
+
+                    <div class="feature">
+                        <h3>Multi-Altitude Assessment</h3>
+                        <p>
+                            Comprehensive lightning probability analysis at different flight levels (FL200-FL400) with 
+                            optimal cruise altitude recommendations to reduce exposure.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <div class="container">
+                <h2>System Architecture</h2>
+                <p class="subtitle">
+                    Multi-language architecture optimized for safety-critical aviation applications.
+                </p>
+
+                <div class="architecture">
+                    <div class="flow-steps">
+                        <div class="step">
+                            <div class="step-number">Step 1</div>
+                            <div class="step-title">Data Integration</div>
+                            <div class="step-desc">Real-time atmospheric monitoring via NOAA/OpenWeatherMap APIs</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">Step 2</div>
+                            <div class="step-title">Prediction Engine</div>
+                            <div class="step-desc">Physics-based plasma formation analysis and lightning prediction</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">Step 3</div>
+                            <div class="step-title">Route Optimization</div>
+                            <div class="step-desc">Precise routing recommendations via Jakarta EE interface or RESTful API</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="use-cases">
+            <div class="container">
+                <h2>Target Markets</h2>
+                <p class="subtitle">
+                    Serving aviation organizations that prioritize safety and operational efficiency.
+                </p>
+
+                <div class="use-cases-grid">
+                    <div class="use-case">
+                        <div class="use-case-header">
+                            <div class="use-case-badge">Primary Target</div>
+                            <h3>Flight Training Schools</h3>
+                        </div>
+                        <div class="use-case-body">
+                            <ul>
+                                <li>Enhanced safety for student pilots</li>
+                                <li>Educational value in lightning physics</li>
+                                <li>Lower implementation risk</li>
+                                <li>Feedback-driven improvement cycle</li>
+                            </ul>
+                            <div class="use-case-footer">
+                                <strong>Target organizations:</strong> Ottawa Aviation Services, CAE, Flight Safety International
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="use-case">
+                        <div class="use-case-header">
+                            <div class="use-case-badge">Secondary Target</div>
+                            <h3>Regional Charter Operators</h3>
+                        </div>
+                        <div class="use-case-body">
+                            <ul>
+                                <li>Reduce expensive post-strike inspections</li>
+                                <li>Real-time route optimization</li>
+                                <li>Quick ROI through fuel savings</li>
+                                <li>Flexible, agile implementation</li>
+                            </ul>
+                            <div class="use-case-footer">
+                                <strong>Target organizations:</strong> Porter Airlines, Air Transat (10-50 aircraft fleets)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="technology">
+            <div class="container">
+                <h2>Technical Stack</h2>
+                <p class="subtitle">
+                    Multi-language system optimized for performance, safety, and enterprise integration.
+                </p>
+
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <strong>Accuracy</strong>
+                        <span>80%+ prediction rate validated on historical data</span>
+                    </div>
+                    <div class="tech-item">
+                        <strong>Reliability</strong>
+                        <span>95% uptime for real-time integration</span>
+                    </div>
+                    <div class="tech-item">
+                        <strong>Coverage</strong>
+                        <span>Ground to FL400 altitude analysis</span>
+                    </div>
+                    <div class="tech-item">
+                        <strong>Performance</strong>
+                        <span>C-based calculations for optimal performance</span>
+                    </div>
+                    <div class="tech-item">
+                        <strong>Safety</strong>
+                        <span>Ada implementation for critical safety compliance</span>
+                    </div>
+                    <div class="tech-item">
+                        <strong>Integration</strong>
+                        <span>Java enterprise connectors for existing systems</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="container">
+                <h2>Problem Statement</h2>
+                <p class="subtitle">
+                    Airlines face a costly dilemma with current lightning detection systems.
+                </p>
+
+                <div class="features-grid">
+                    <div class="feature">
+                        <h3>Costly Inspections</h3>
+                        <p>
+                            Approximately $2 billion spent annually on mandatory post-strike inspections across the industry, 
+                            even when aircraft protection systems function perfectly.
+                        </p>
+                    </div>
+
+                    <div class="feature">
+                        <h3>Inefficient Routing</h3>
+                        <p>
+                            Current systems require avoiding entire storm systems by 100+ miles, causing massive delays 
+                            and fuel waste as air traffic increases.
+                        </p>
+                    </div>
+
+                    <div class="feature">
+                        <h3>Reactive Systems</h3>
+                        <p>
+                            Existing lightning detection only identifies strikes after they occur, providing no advance 
+                            route optimization capability.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4>AirLume</h4>
+                    <p>
+                        Predictive lightning detection system revolutionizing aviation safety through 
+                        advanced physics-based weather intelligence.
+                    </p>
+                    <p style="margin-top: 1rem;">
+                        Developed by Tisha Patel as part of ENG4002 Capstone Project.
+                    </p>
+                </div>
+
+                <div>
+                    <h4>Project</h4>
+                    <ul>
+                        <li><a href="https://github.com/tishap27/AirLume">Source Code</a></li>
+                        <li><a href="https://github.com/tishap27/AirLume/releases">Downloads</a></li>
+                        <li><a href="https://github.com/tishap27/AirLume/wiki">Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="https://github.com/tishap27">GitHub</a></li>
+                        <li><a href="https://www.linkedin.com/in/tisha-patel-1068872b9/">LinkedIn</a></li>
+                        <li><a href="https://www.researchgate.net/profile/Tisha-Patel-18">ResearchGate</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2025 AirLume Project · Capstone · Aviation software and safety-critical systems</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
