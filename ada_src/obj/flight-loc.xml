@@ -42,9 +42,17 @@
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\arinc653_core.adb</vfs_file>
     </file_marker>
-    <file_marker current="true" column=" 4" line=" 19" >
+    <file_marker column=" 4" line=" 19" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\arinc653_core.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 22" line=" 10" >
+      <vfs_project />
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\Makefile</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 20" line=" 15" >
+      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\time_partition.ads</vfs_file>
     </file_marker>
   </Project>
 </Locations>

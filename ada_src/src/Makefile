@@ -3,7 +3,7 @@ GNATMAKE = gnatmake
 GNATCLEAN = gnatclean
 
 # Source files
-SOURCES = safety_types.ads \ arinc653_core.ads arinc653_core.adb \ physics_validator.ads physics_validator.adb \
+SOURCES = safety_types.ads \ arinc653_core.ads arinc653_core.adb \  time_partition.ads time_partition.adb \physics_validator.ads physics_validator.adb \
           safety_monitor.ads safety_monitor.adb main.adb
 
 # Output
