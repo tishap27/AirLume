@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <Locations >
-  <Project >
-    <file_marker column=" 3" line=" 12" >
+  <Project>
+    <vfs_file />
+    <file_marker column=" 14" line=" 94" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
     </file_marker>
-    <file_marker column=" 1" line=" 1" >
+    <file_marker column=" 18" line=" 27" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\safety_types.ads</vfs_file>
     </file_marker>
@@ -13,7 +14,7 @@
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\physics_validator.ads</vfs_file>
     </file_marker>
-    <file_marker column=" 1" line=" 1" >
+    <file_marker column=" 23" line=" 121" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\physics_validator.adb</vfs_file>
     </file_marker>
@@ -21,33 +22,17 @@
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\safety_monitor.ads</vfs_file>
     </file_marker>
-    <file_marker column=" 25" line=" 89" >
+    <file_marker column=" 36" line=" 106" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\safety_monitor.adb</vfs_file>
     </file_marker>
-    <file_marker column=" 1" line=" 32" >
+    <file_marker column=" 18" line=" 27" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
-      <vfs_file>C:\CST8234\AirLume\ada_src\src\safety_monitor.adb</vfs_file>
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\safety_types.ads</vfs_file>
     </file_marker>
-    <file_marker column=" 21" line=" 8" >
+    <file_marker current="true" column=" 19" line=" 17" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
-      <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
-    </file_marker>
-    <file_marker column=" 76" line=" 132" >
-      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
-      <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
-    </file_marker>
-    <file_marker column=" 16" line=" 133" >
-      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
-      <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
-    </file_marker>
-    <file_marker column=" 16" line=" 94" >
-      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
-      <vfs_file>C:\CST8234\AirLume\ada_src\src\main.adb</vfs_file>
-    </file_marker>
-    <file_marker current="true" column=" 55" line=" 95" >
-      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
-      <vfs_file>C:\CST8234\AirLume\ada_src\src\safety_monitor.adb</vfs_file>
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\arinc653_core.ads</vfs_file>
     </file_marker>
   </Project>
 </Locations>
