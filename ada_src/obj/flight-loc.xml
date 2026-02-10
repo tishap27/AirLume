@@ -30,9 +30,21 @@
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\safety_types.ads</vfs_file>
     </file_marker>
-    <file_marker current="true" column=" 19" line=" 17" >
+    <file_marker column=" 19" line=" 17" >
       <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
       <vfs_file>C:\CST8234\AirLume\ada_src\src\arinc653_core.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 17" line=" 40" >
+      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\arinc653_core.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 17" >
+      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\arinc653_core.adb</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 4" line=" 19" >
+      <vfs_project>C:\CST8234\AirLume\ada_src\flight.gpr</vfs_project>
+      <vfs_file>C:\CST8234\AirLume\ada_src\src\arinc653_core.adb</vfs_file>
     </file_marker>
   </Project>
 </Locations>
