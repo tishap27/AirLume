@@ -26,17 +26,23 @@ package body ada_main is
    E111 : Short_Integer; pragma Import (Ada, E111, "ada__strings__utf_encoding_E");
    E119 : Short_Integer; pragma Import (Ada, E119, "ada__tags_E");
    E109 : Short_Integer; pragma Import (Ada, E109, "ada__strings__text_buffers_E");
+   E182 : Short_Integer; pragma Import (Ada, E182, "interfaces__c__strings_E");
    E107 : Short_Integer; pragma Import (Ada, E107, "ada__streams_E");
    E138 : Short_Integer; pragma Import (Ada, E138, "system__file_control_block_E");
    E134 : Short_Integer; pragma Import (Ada, E134, "system__finalization_root_E");
    E132 : Short_Integer; pragma Import (Ada, E132, "ada__finalization_E");
    E131 : Short_Integer; pragma Import (Ada, E131, "system__file_io_E");
-   E180 : Short_Integer; pragma Import (Ada, E180, "ada__strings__unbounded_E");
-   E194 : Short_Integer; pragma Import (Ada, E194, "ada__calendar_E");
-   E205 : Short_Integer; pragma Import (Ada, E205, "ada__calendar__time_zones_E");
+   E211 : Short_Integer; pragma Import (Ada, E211, "ada__strings__unbounded_E");
+   E197 : Short_Integer; pragma Import (Ada, E197, "system__task_info_E");
+   E224 : Short_Integer; pragma Import (Ada, E224, "ada__calendar_E");
+   E222 : Short_Integer; pragma Import (Ada, E222, "ada__calendar__delays_E");
+   E233 : Short_Integer; pragma Import (Ada, E233, "ada__calendar__time_zones_E");
+   E176 : Short_Integer; pragma Import (Ada, E176, "ada__real_time_E");
    E105 : Short_Integer; pragma Import (Ada, E105, "ada__text_io_E");
-   E189 : Short_Integer; pragma Import (Ada, E189, "physics_validator_E");
-   E192 : Short_Integer; pragma Import (Ada, E192, "safety_monitor_E");
+   E220 : Short_Integer; pragma Import (Ada, E220, "arinc653_core_E");
+   E226 : Short_Integer; pragma Import (Ada, E226, "physics_validator_E");
+   E229 : Short_Integer; pragma Import (Ada, E229, "safety_monitor_E");
+   E236 : Short_Integer; pragma Import (Ada, E236, "time_partition_E");
 
    Sec_Default_Sized_Stacks : array (1 .. 1) of aliased System.Secondary_Stack.SS_Stack (System.Parameters.Runtime_Default_Sec_Stack_Size);
 
@@ -54,7 +60,7 @@ package body ada_main is
       begin
          F1;
       end;
-      E180 := E180 - 1;
+      E211 := E211 - 1;
       declare
          procedure F2;
          pragma Import (Ada, F2, "ada__strings__unbounded__finalize_spec");
@@ -134,6 +140,9 @@ package body ada_main is
       procedure Runtime_Initialize (Install_Handler : Integer);
       pragma Import (C, Runtime_Initialize, "__gnat_runtime_initialize");
 
+      procedure Tasking_Runtime_Initialize;
+      pragma Import (C, Tasking_Runtime_Initialize, "__gnat_tasking_runtime_initialize");
+
       Finalize_Library_Objects : No_Param_Proc;
       pragma Import (C, Finalize_Library_Objects, "__gnat_finalize_library_objects");
       Binder_Sec_Stacks_Count : Natural;
@@ -168,6 +177,7 @@ package body ada_main is
       Default_Sized_SS_Pool := Sec_Default_Sized_Stacks'Address;
 
       Runtime_Initialize (1);
+      Tasking_Runtime_Initialize;
 
       Finalize_Library_Objects := finalize_library'access;
 
@@ -210,6 +220,8 @@ package body ada_main is
       E119 := E119 + 1;
       Ada.Strings.Text_Buffers'Elab_Spec;
       E109 := E109 + 1;
+      Interfaces.C.Strings'Elab_Spec;
+      E182 := E182 + 1;
       Ada.Streams'Elab_Spec;
       E107 := E107 + 1;
       System.File_Control_Block'Elab_Spec;
@@ -221,17 +233,27 @@ package body ada_main is
       System.File_Io'Elab_Body;
       E131 := E131 + 1;
       Ada.Strings.Unbounded'Elab_Spec;
-      E180 := E180 + 1;
+      E211 := E211 + 1;
+      System.Task_Info'Elab_Spec;
+      E197 := E197 + 1;
       Ada.Calendar'Elab_Spec;
       Ada.Calendar'Elab_Body;
-      E194 := E194 + 1;
+      E224 := E224 + 1;
+      Ada.Calendar.Delays'Elab_Body;
+      E222 := E222 + 1;
       Ada.Calendar.Time_Zones'Elab_Spec;
-      E205 := E205 + 1;
+      E233 := E233 + 1;
+      Ada.Real_Time'Elab_Spec;
+      Ada.Real_Time'Elab_Body;
+      E176 := E176 + 1;
       Ada.Text_Io'Elab_Spec;
       Ada.Text_Io'Elab_Body;
       E105 := E105 + 1;
-      E189 := E189 + 1;
-      E192 := E192 + 1;
+      E220 := E220 + 1;
+      E226 := E226 + 1;
+      E229 := E229 + 1;
+      Time_Partition'Elab_Spec;
+      E236 := E236 + 1;
    end adainit;
 
    procedure Ada_Main_Program;
@@ -269,15 +291,21 @@ package body ada_main is
    end;
 
 --  BEGIN Object file/option list
+   --   C:\CST8234\AirLume\ada_src\obj\arinc653_core.o
    --   C:\CST8234\AirLume\ada_src\obj\safety_types.o
    --   C:\CST8234\AirLume\ada_src\obj\physics_validator.o
    --   C:\CST8234\AirLume\ada_src\obj\safety_monitor.o
+   --   C:\CST8234\AirLume\ada_src\obj\time_partition.o
    --   C:\CST8234\AirLume\ada_src\obj\main.o
    --   -LC:\CST8234\AirLume\ada_src\obj\
    --   -LC:\CST8234\AirLume\ada_src\obj\
    --   -LC:/users/tisha/appdata/local/alire/cache/toolchains/gnat_native_15.1.2_85aa1632/lib/gcc/x86_64-w64-mingw32/15.1.0/adalib/
    --   -static
+   --   -lgnarl
    --   -lgnat
+   --   -Xlinker
+   --   --stack=0x800000,0x1000
+   --   -mthreads
    --   -Wl,--stack=0x2000000
 --  END Object file/option list   
 

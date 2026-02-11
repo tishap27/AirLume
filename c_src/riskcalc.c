@@ -318,14 +318,15 @@ void print_risk_assessment(LightningRisk risk) {
     printf("LIGHTNING_RISK:%.2f\n", risk.lightning_probability);
 }
 
-void write_risk_to_file(double lightning_risk) {
-    FILE *risk_file = fopen("lightning_risk.txt", "w");
-    if (risk_file != NULL) {
-        fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", lightning_risk);
+void write_risk_to_file(double risk, WeatherData weather) {
+    FILE* risk_file = fopen("lightning_risk.txt", "w");
+    if (risk_file) {
+        fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", risk);
+        fprintf(risk_file, "TEMPERATURE:%.1f\n", weather.temperature);
+        fprintf(risk_file, "HUMIDITY:%.1f\n", weather.humidity);
+        fprintf(risk_file, "PRESSURE:%.1f\n", weather.pressure);
+        fprintf(risk_file, "WIND_SPEED:%.1f\n", weather.wind_speed);
         fclose(risk_file);
-        printf("Risk data written to file for Ada system\n");
-    } else {
-        printf("Error: Could not write risk file for Ada\n");
     }
 }
 

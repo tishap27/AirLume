@@ -1,0 +1,117 @@
+V "GNAT Lib v15"
+A -gnatA
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_FIXED_POINT
+RV NO_FLOATING_POINT
+RV NO_IO
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_ELABORATION_CODE
+
+U time_partition%b	time_partition.adb	c93ca5a1 NE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.float_text_io%s	a-flteio.ads		a-flteio.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W ada.text_io%s		a-textio.adb		a-textio.ali
+W arinc653_core%s	arinc653_core.adb	arinc653_core.ali
+Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.concat_3%s	s-conca3.adb		s-conca3.ali
+
+U time_partition%s	time_partition.ads	127ea95c EE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.real_time%s	a-reatim.adb		a-reatim.ali
+
+D ada.ads		20250425081800 76789da1 ada%s
+D a-except.ads		20250425081800 e7970cd9 ada.exceptions%s
+D a-flteio.ads		20250425081800 e18a47a0 ada.float_text_io%s
+D a-ioexce.ads		20250425081800 40018c65 ada.io_exceptions%s
+D a-reatim.ads		20250425081800 d11673fd ada.real_time%s
+D a-stream.ads		20250425081800 17477cbd ada.streams%s
+D a-string.ads		20250425081800 90ac6797 ada.strings%s
+D a-sttebu.ads		20250425081800 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20250425081800 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20250425081800 fbca0ad5 ada.tags%s
+D a-textio.ads		20250425081800 34ef47de ada.text_io%s
+D a-tiflio.ads		20250425081800 48a0360d ada.text_io.float_io%s
+D a-unccon.ads		20250425081800 0e9b276f ada.unchecked_conversion%s
+D arinc653_core.ads	20260210233144 a4ab99a8 arinc653_core%s
+D interfac.ads		20250425081800 9111f9c1 interfaces%s
+D i-c.ads		20250425081800 e94c966a interfaces.c%s
+D i-cstrin.ads		20250425081800 5409c1a4 interfaces.c.strings%s
+D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
+D system.ads		20250425081800 a869df9e system%s
+D s-atacco.ads		20250425081800 5868e3ba system.address_to_access_conversions%s
+D s-conca2.ads		20250425081800 b5fb73f7 system.concat_2%s
+D s-conca3.ads		20250425081800 8a7a19a2 system.concat_3%s
+D s-crtl.ads		20250425081800 beb39b9e system.crtl%s
+D s-exctab.ads		20250425081800 91bef6ef system.exception_table%s
+D s-ficobl.ads		20250425081800 dc5161d4 system.file_control_block%s
+D s-multip.ads		20250425081800 38ac9f73 system.multiprocessors%s
+D s-osinte.ads		20250425081800 35a74841 system.os_interface%s
+D s-oslock.ads		20250425081800 88eb514b system.os_locks%s
+D s-parame.ads		20250425081800 3597fc11 system.parameters%s
+D s-putima.ads		20250425081800 17291fe4 system.put_images%s
+D s-secsta.ads		20250425081800 578279f5 system.secondary_stack%s
+D s-soflin.ads		20250425081800 5d88fdea system.soft_links%s
+D s-stache.ads		20250425081800 0b81c1fe system.stack_checking%s
+D s-stausa.ads		20250425081800 5be75682 system.stack_usage%s
+D s-stalib.ads		20250425081800 1c9580f6 system.standard_library%s
+D s-stoele.ads		20250425081800 ccded4e8 system.storage_elements%s
+D s-tasinf.ads		20250425081800 601f6b72 system.task_info%s
+D s-taspri.ads		20250425081800 602eebc0 system.task_primitives%s
+D s-taprop.ads		20250425081800 750673ca system.task_primitives.operations%s
+D s-taskin.ads		20250425081800 38289021 system.tasking%s
+D s-traent.ads		20250425081800 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20250425081800 fa2a7f59 system.unsigned_types%s
+D s-wchcon.ads		20250425081800 d9032363 system.wch_con%s
+D s-win32.ads		20250425081800 f77987dc system.win32%s
+D time_partition.ads	20260210233812 c368daa1 time_partition%s
+D time_partition.adb	20260210234036 7b9ae6d6 time_partition%b
+G a e
+G c Z s b [start_timer time_partition 9 13 none]
+G c Z s b [check_budget time_partition 13 14 none]
+G r c none [check_budget time_partition 13 14 none] [emergency_halt arinc653_core 15 14 none]
+X 1 ada.ads
+18K9*Ada 22e8 45|1r6 1r25 46|1r6 1r23 2r6 2r29
+X 3 a-flteio.ads
+20K13*Float_Text_IO[12|46] 46|2w10 2r33
+X 5 a-reatim.ads
+46K13*Real_Time 193e18 45|1w10 1r29
+57O9*Time<duration> 45|9r32 13r35 46|9r32 14r35 15r13
+62O9*Time_Span<duration> 45|6r34 46|16r17
+69V13*Clock{57O9} 46|11s14 15s21
+79V14*"-"{62O9} 46|16s34
+113V14*">"{boolean} 46|19r18
+118V13*To_Duration{duration} 46|17s44
+127V13*Milliseconds{62O9} 45|6s47
+X 11 a-textio.ads
+58K13*Text_IO 785e16 46|1w10 1r27
+89I12*Field{integer}
+515U14*Put 46|24s10 32s10
+565U14*Put_Line 46|20s10 22s10 23s10 26s10 27s10 28s10 34s10
+X 12 a-tiflio.ads
+88U14*Put 46|25s10[3|20] 33s10[3|20]
+90i7 Fore{11|89I12} 46|25r26[3|20] 33r26[3|20]
+91i7 Aft{11|89I12} 46|25r37[3|20] 33r37[3|20]
+X 14 arinc653_core.ads
+1K9*ARINC653_Core 17e18 46|3w6 30r10
+15U14*Emergency_Halt 46|30s24
+X 34 s-stausa.ads
+207U14*Initialize 208i<c,__gnat_stack_usage_initialize>22
+272U14*Output_Results 276i<c,__gnat_stack_usage_output_results>22
+X 45 time_partition.ads
+3K9*Time_Partition 15l5 15e19 46|7b14 38l5 38t19
+6o4*MAX_EXECUTION_TIME{5|62O9} 46|19r20
+9V13*Start_Timer{5|57O9} 46|9b13 12l8 12t19
+13U14*Check_Budget 13>27 13>41 46|14b14 36l8 36t20
+13o27 Start{5|57O9} 46|14b27 16r36
+13a41 Operation{string} 46|14b41 23r35 32r33
+X 46 time_partition.adb
+15o7 Now{5|57O9} 16r30
+16o7 Elapsed{5|62O9} 17r56 19r10
+17f7 Elapsed_Ms{float} 25r14 33r14
+

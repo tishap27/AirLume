@@ -13,12 +13,16 @@
     #define PYTHON_CMD "python3"
     #define PATH_SEP "/"
 #endif
+
 void simulate_realtime_flight(FlightRoute* route, double cruise_speed_kmh, int update_interval_min);
-void call_ml_enhancement() ;
+void call_ml_enhancement();
+
 int main(int argc, char *argv[]) {
     printf("=== AirLume Lightning Strike Prediction System ===\n");
 
-     // Check if running in route mode
+    // ============================================================
+    // ROUTE ANALYSIS MODE
+    // ============================================================
     if (argc >= 3) {
         // Check for altitude flag
         int use_altitude_model = 0;
@@ -71,78 +75,69 @@ int main(int argc, char *argv[]) {
         print_route_summary(&route);
         
         // Assess risk along route
-        // Check if altitude was specified
-        int flight_altitude = 0;  // Default: ground-level
-        
-        if (argc >= 4) {
-            flight_altitude = atoi(argv[3]);
-            if (flight_altitude > 0) {
-                printf("\n*** Using flight level: FL%d (%d ft) ***\n", 
-                       flight_altitude / 100, flight_altitude);
-            }
-        }
-        
-        // Assess risk along route
         RouteRiskAssessment assessment;
-        if (flight_altitude > 0) {
-            assess_route_risk_at_altitude(&assessment, &route, flight_altitude);
+        if (altitude_ft > 0) {
+            assess_route_risk_at_altitude(&assessment, &route, altitude_ft);
         } else {
-            assess_route_risk(&assessment, &route);  // Ground-level default
+            assess_route_risk(&assessment, &route);
         }
         
         // Print results
         print_route_risk_profile(&assessment);
         
-        // Write for Ada
+        // *** WRITE FILES FOR ADA ***
+        
+        // 1. Write route_risk.txt (for Ada to read route info)
         FILE* route_file = fopen("route_risk.txt", "w");
         if (route_file) {
-            fprintf(route_file, "ROUTE:%s->%s\n", route.origin_name, route.destination_name);
+            fprintf(route_file, "ORIGIN:%s\n", route.origin_name);
+            fprintf(route_file, "DESTINATION:%s\n", route.destination_name);
+            fprintf(route_file, "DISTANCE:%.1f\n", route.total_distance);
             fprintf(route_file, "MAX_RISK:%.2f\n", assessment.max_risk);
             fprintf(route_file, "AVG_RISK:%.2f\n", assessment.avg_risk);
             fclose(route_file);
+            printf(" Route data written to route_risk.txt for Ada\n");
         }
-        printf("\n=== Calling Ada Safety System for Route ===\n");
-
-        // Write the max risk to lightning_risk.txt for Ada
-        write_risk_to_file(assessment.max_risk);
-        printf("Risk data written to file for Ada system\n");
-    
-        //ML
+        
+        // 2. Write lightning_risk.txt (for Ada to read weather/risk at max risk waypoint)
+        WaypointRisk* max_wp = &assessment.waypoint_risks[assessment.max_risk_waypoint];
+        FILE* risk_file = fopen("lightning_risk.txt", "w");
+        if (risk_file) {
+            fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", assessment.max_risk);
+            fprintf(risk_file, "TEMPERATURE:%.1f\n", max_wp->weather.temperature);
+            fprintf(risk_file, "HUMIDITY:%.1f\n", max_wp->weather.humidity);
+            fprintf(risk_file, "PRESSURE:%.1f\n", max_wp->weather.pressure);
+            fprintf(risk_file, "WIND_SPEED:%.1f\n", max_wp->weather.wind_speed);
+            fclose(risk_file);
+            printf(" Max waypoint weather written to lightning_risk.txt for Ada\n");
+        }
+        
+        printf("\n=== Calling ML Enhancement Layer ===\n");
         call_ml_enhancement();
-    
-        // Call Ada
+        
+        printf("\n=== Calling Ada Safety System ===\n");
         #ifdef _WIN32
             system("ada_src\\obj\\main.exe");
         #else
             system("./ada_src/obj/main.exe");
         #endif
+        
         printf("\n=== Route analysis complete ===\n");
         return 0;  // Exit after route mode
-
-        if (argc >= 4 && strcmp(argv[3], "--simulate") == 0) {
-         printf("\n>>> ENTERING REAL-TIME SIMULATION MODE <<<\n");
-    
-        double cruise_speed = 850.0;  // km/h (commercial jet)
-        int update_interval = 15;      // minutes
-    
-        simulate_realtime_flight(&route, cruise_speed, update_interval);
-        return 0;
-}
     }
-    // END OF ROUTE MODE SECTION ###
     
-
+    // ============================================================
+    // SINGLE-POINT MODE (default behavior)
+    // ============================================================
     printf("Trying CSV\n");
     printf("\nNote: For route analysis, use: ./airlume ORIGIN DEST\n");
     printf("Example: ./airlume CYOW CYYZ\n");
     printf("Running single-point mode...\n\n");
     
-    // Call Python 
+    // Call Python Weather API
     printf("\n1. Calling Python Weather API...\n");
-    //system("python3 ../python_src/weather.py");
-
-    FILE* weather_pipe; 
-   // char weather_output[1024];
+    
+    FILE* weather_pipe;
     char command[256];
     char weather_output[1024];
 
@@ -157,46 +152,39 @@ int main(int argc, char *argv[]) {
         printf("Error: Cannot execute Python weather module\n");
         return 1;
     }
-    WeatherData weather_data = {20.0, 60.0, 1013.0, 5.0}; // defaults
-    //char weather_output[1024];
-    double query_lat = 45.3202;  // Ottawa (will come from API)
+    
+    WeatherData weather_data = {20.0, 60.0, 1013.0, 5.0, 10000.0}; // defaults
+    double query_lat = 45.3202;  // Ottawa
     double query_lon = -75.6656;
     int query_altitude = 30000;  // feet
     
     // Read Python output and parse weather data
     while (fgets(weather_output, sizeof(weather_output), weather_pipe)) {
-    printf("%s", weather_output);
-    if (strstr(weather_output, "WEATHER_DATA:")) {
-        // Direct parsing right here
-        double temp, hum, pres, wind;
-        if (sscanf(weather_output, "WEATHER_DATA:%lf,%lf,%lf,%lf", 
-                   &temp, &hum, &pres, &wind) == 4) {
-            weather_data.temperature = temp;
-            weather_data.humidity = hum;
-            weather_data.pressure = pres;
-            weather_data.wind_speed = wind;
-            weather_data.altitude = 10000.0;
-            printf("[DEBUG] Direct parse SUCCESS: %.2f, %.2f, %.2f, %.2f\n",
-                   temp, hum, pres, wind);
-        } else {
-            printf("[DEBUG] Direct parse FAILED\n");
-            printf("[DEBUG] Line was: '%s'\n", weather_output);
+        printf("%s", weather_output);
+        if (strstr(weather_output, "WEATHER_DATA:")) {
+            double temp, hum, pres, wind;
+            if (sscanf(weather_output, "WEATHER_DATA:%lf,%lf,%lf,%lf", 
+                       &temp, &hum, &pres, &wind) == 4) {
+                weather_data.temperature = temp;
+                weather_data.humidity = hum;
+                weather_data.pressure = pres;
+                weather_data.wind_speed = wind;
+                weather_data.altitude = 10000.0;
+                printf("[DEBUG] Direct parse SUCCESS: %.2f, %.2f, %.2f, %.2f\n",
+                       temp, hum, pres, wind);
+            } else {
+                printf("[DEBUG] Direct parse FAILED\n");
+            }
         }
     }
-}
     pclose(weather_pipe);
+    
     printf("\n[DEBUG] After parsing: temp=%.2f, humidity=%.2f, pressure=%.2f\n", 
-       weather_data.temperature, weather_data.humidity, weather_data.pressure);
+           weather_data.temperature, weather_data.humidity, weather_data.pressure);
 
-    // Calculate lightning risk using physics
-    printf("\n Analyzing Lightning Risk via the CSV ...\n");
-    //LightningRisk risk = calculate_lightning_risk(weather_data);
-    //print_risk_assessment(risk);
-
-
-    //Writing risk to file for Ada
-   // write_risk_to_file(risk.lightning_probability);
-
+    // Calculate lightning risk
+    printf("\n2. Analyzing Lightning Risk via the CSV...\n");
+    
     EFieldRecord efield_data = find_nearest_efield("airlume_usa_efield_100.csv", 
                                                      query_lat, 
                                                      query_lon, 
@@ -212,8 +200,8 @@ int main(int argc, char *argv[]) {
     } else {
         // CSV available, use enhanced prediction
         printf("\n[] Calculating Risk with CSV-Enhanced Model\n");
-       // risk = calculate_lightning_risk_from_efield(weather_data, efield_data);
         risk = calculate_lightning_risk(weather_data);  // Pure physics only
+        
         // Enhanced output
         printf("\n=== COMBINED DATA ANALYSIS ===\n");
         printf("Query Location: (%.4f, %.4f) @ %d ft\n", query_lat, query_lon, query_altitude);
@@ -252,29 +240,45 @@ int main(int argc, char *argv[]) {
         printf("\nLIGHTNING_RISK:%.2f\n", risk.lightning_probability);
     }
     
-    write_risk_to_file(risk.lightning_probability);
-
-
-    // Call Ada 
-    printf("\n2. Calling Ada Flight System...\n");
-    //system("../ada_src/obj/main.exe");
+    // *** WRITE FILES FOR ADA (single-point mode) ***
     
+    // Write lightning_risk.txt
+    FILE* risk_file = fopen("lightning_risk.txt", "w");
+    if (risk_file) {
+        fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", risk.lightning_probability);
+        fprintf(risk_file, "TEMPERATURE:%.1f\n", weather_data.temperature);
+        fprintf(risk_file, "HUMIDITY:%.1f\n", weather_data.humidity);
+        fprintf(risk_file, "PRESSURE:%.1f\n", weather_data.pressure);
+        fprintf(risk_file, "WIND_SPEED:%.1f\n", weather_data.wind_speed);
+        fclose(risk_file);
+        printf(" Risk data written to lightning_risk.txt for Ada\n");
+    }
+    
+    // Write route_risk.txt (with default CYOW->CYYZ for single-point mode)
+    FILE* route_file = fopen("route_risk.txt", "w");
+    if (route_file) {
+        fprintf(route_file, "ORIGIN:CYOW\n");
+        fprintf(route_file, "DESTINATION:CYYZ\n");
+        fprintf(route_file, "DISTANCE:0.0\n");  // Single point = no route
+        fclose(route_file);
+        printf(" Route data written to route_risk.txt for Ada\n");
+    }
+
+    // Call Ada Safety System
+    printf("\n3. Calling Ada Flight System...\n");
     #ifdef _WIN32
         system("ada_src\\obj\\main.exe");
     #else
         system("./ada_src/obj/main.exe");
     #endif
     
-    
-    // C main controller
-    //printf("\n3. C Controller: Lightning risk = 2.4%%\n");
-    printf("All systems operational!\n");
+    printf("\nAll systems operational!\n");
     
     return 0;
 }
 
 void call_ml_enhancement() {
-    printf("\n3. Calling ML Enhancement Layer...\n");
+    printf("\n=== ML Enhancement Layer ===\n");
     
     // Call Python ML enhancer
     #ifdef _WIN32
@@ -284,7 +288,7 @@ void call_ml_enhancement() {
     #endif
     
     if (result == 0) {
-        printf("ML enhancement successful\n");
+        printf(" ML enhancement successful\n");
         
         // Read the enhanced prediction
         FILE *ml_file = fopen("lightning_risk_ml.txt", "r");

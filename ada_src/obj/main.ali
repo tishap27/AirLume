@@ -12,24 +12,30 @@ RV NO_EXCEPTION_HANDLERS
 RV NO_EXCEPTIONS
 RV NO_FLOATING_POINT
 RV NO_IO
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
 RV NO_DEFAULT_INITIALIZATION
 RV NO_DYNAMIC_SIZED_OBJECTS
 RV NO_IMPLEMENTATION_PRAGMAS
 
-U main%b		main.adb		9670eba3 NE OO SU IL
+U main%b		main.adb		91e3d897 NE OO SU IL
 W ada%s			ada.ads			ada.ali
 W ada.float_text_io%s	a-flteio.ads		a-flteio.ali
 W ada.integer_text_io%s	a-inteio.ads		a-inteio.ali
+W ada.real_time%s	a-reatim.adb		a-reatim.ali
 W ada.strings%s		a-string.ads		a-string.ali
 W ada.strings.fixed%s	a-strfix.adb		a-strfix.ali
 Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
 W ada.strings.unbounded%s  a-strunb.adb		a-strunb.ali
 W ada.text_io%s		a-textio.adb		a-textio.ali
+W arinc653_core%s	arinc653_core.adb	arinc653_core.ali
 W physics_validator%s	physics_validator.adb	physics_validator.ali
 W safety_monitor%s	safety_monitor.adb	safety_monitor.ali
 W safety_types%s	safety_types.ads	safety_types.ali
 Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
 Z system.val_flt%s	s-valflt.ads		s-valflt.ali
+W time_partition%s	time_partition.adb	time_partition.ali
 
 D ada.ads		20250425081800 76789da1 ada%s
 D a-charac.ads		20250425081800 2d3ec45b ada.characters%s
@@ -39,6 +45,7 @@ D a-finali.ads		20250425081800 bf4f806b ada.finalization%s
 D a-flteio.ads		20250425081800 e18a47a0 ada.float_text_io%s
 D a-inteio.ads		20250425081800 f64b89a4 ada.integer_text_io%s
 D a-ioexce.ads		20250425081800 40018c65 ada.io_exceptions%s
+D a-reatim.ads		20250425081800 d11673fd ada.real_time%s
 D a-stream.ads		20250425081800 17477cbd ada.streams%s
 D a-string.ads		20250425081800 90ac6797 ada.strings%s
 D a-strfix.ads		20250425081800 8648dedb ada.strings.fixed%s
@@ -52,14 +59,17 @@ D a-textio.ads		20250425081800 34ef47de ada.text_io%s
 D a-tiflio.ads		20250425081800 48a0360d ada.text_io.float_io%s
 D a-tiinio.ads		20250425081800 76699c8f ada.text_io.integer_io%s
 D a-unccon.ads		20250425081800 0e9b276f ada.unchecked_conversion%s
+D arinc653_core.ads	20260210233144 a4ab99a8 arinc653_core%s
 D interfac.ads		20250425081800 9111f9c1 interfaces%s
 D i-c.ads		20250425081800 e94c966a interfaces.c%s
+D i-cstrin.ads		20250425081800 5409c1a4 interfaces.c.strings%s
 D i-cstrea.ads		20250425081800 ffd01b9d interfaces.c_streams%s
-D main.adb		20251021182954 a34eb582 main%b
+D main.adb		20260211001944 1208b642 main%b
 D physics_validator.ads	20251021174504 e3056d02 physics_validator%s
 D safety_monitor.ads	20251021175132 33581107 safety_monitor%s
 D safety_types.ads	20251107010034 f102058e safety_types%s
 D system.ads		20250425081800 a869df9e system%s
+D s-atacco.ads		20250425081800 5868e3ba system.address_to_access_conversions%s
 D s-atocou.ads		20250425081800 dc18efc3 system.atomic_counters%s
 D s-conca2.ads		20250425081800 b5fb73f7 system.concat_2%s
 D s-crtl.ads		20250425081800 beb39b9e system.crtl%s
@@ -67,6 +77,8 @@ D s-exctab.ads		20250425081800 91bef6ef system.exception_table%s
 D s-ficobl.ads		20250425081800 dc5161d4 system.file_control_block%s
 D s-finpri.ads		20250425081800 5970d55a system.finalization_primitives%s
 D s-finroo.ads		20250425081800 0a7c3ed4 system.finalization_root%s
+D s-multip.ads		20250425081800 38ac9f73 system.multiprocessors%s
+D s-osinte.ads		20250425081800 35a74841 system.os_interface%s
 D s-oslock.ads		20250425081800 88eb514b system.os_locks%s
 D s-parame.ads		20250425081800 3597fc11 system.parameters%s
 D s-powflt.ads		20250425081800 a51ab9b8 system.powten_flt%s
@@ -75,92 +87,144 @@ D s-retsta.ads		20250425081800 0f6b06cb system.return_stack%s
 D s-secsta.ads		20250425081800 578279f5 system.secondary_stack%s
 D s-soflin.ads		20250425081800 5d88fdea system.soft_links%s
 D s-stache.ads		20250425081800 0b81c1fe system.stack_checking%s
+D s-stausa.ads		20250425081800 5be75682 system.stack_usage%s
 D s-stalib.ads		20250425081800 1c9580f6 system.standard_library%s
 D s-stoele.ads		20250425081800 ccded4e8 system.storage_elements%s
 D s-stratt.ads		20250425081800 516607ae system.stream_attributes%s
+D s-tasinf.ads		20250425081800 601f6b72 system.task_info%s
+D s-taspri.ads		20250425081800 602eebc0 system.task_primitives%s
+D s-taprop.ads		20250425081800 750673ca system.task_primitives.operations%s
+D s-taskin.ads		20250425081800 38289021 system.tasking%s
 D s-traent.ads		20250425081800 c81cbf8c system.traceback_entries%s
 D s-unstyp.ads		20250425081800 fa2a7f59 system.unsigned_types%s
 D s-valflt.ads		20250425081800 78fc9326 system.val_flt%s
 D s-valrea.ads		20250425081800 f0598c00 system.val_real%s
 D s-wchcon.ads		20250425081800 d9032363 system.wch_con%s
 D s-win32.ads		20250425081800 f77987dc system.win32%s
+D time_partition.ads	20260210233812 c368daa1 time_partition%s
 G a e
-G c Z b b [main standard 10 11 none]
-G r c none [main standard 10 11 none] [generate_safety_alert safety_monitor 9 14 none]
-G r c none [main standard 10 11 none] [validate_calculation physics_validator 6 13 none]
-G r c none [main standard 10 11 none] [enforce_safety_limits safety_monitor 6 13 none]
-G r c none [main standard 10 11 none] [log_safety_event safety_monitor 16 14 none]
+G c Z b b [main standard 13 11 none]
+G r s flight_route [main standard 13 11 none] [flight_routeIP safety_types 7 9 none]
+G r c none [main standard 13 11 none] [initialize_partition arinc653_core 6 14 none]
+G r c none [main standard 13 11 none] [set_normal_mode arinc653_core 9 14 none]
+G r c none [main standard 13 11 none] [start_timer time_partition 9 13 none]
+G r c none [main standard 13 11 none] [emergency_halt arinc653_core 15 14 none]
+G r c none [main standard 13 11 none] [check_budget time_partition 13 14 none]
+G r c none [main standard 13 11 none] [validate_calculation physics_validator 6 13 none]
+G r c none [main standard 13 11 none] [enforce_safety_limits safety_monitor 6 13 none]
+G r c none [main standard 13 11 none] [generate_safety_alert safety_monitor 9 14 none]
+G r c none [main standard 13 11 none] [log_safety_event safety_monitor 16 14 none]
+G r c none [main standard 13 11 none] [get_state arinc653_core 12 13 none]
 X 1 ada.ads
-18K9*Ada 22e8 25|1r6 1r23 2r6 2r29 3r6 3r31 4r6 4r33 5r6 5r29
+18K9*Ada 22e8 28|1r6 1r23 2r6 2r29 3r6 3r31 4r6 4r33 5r6 5r29 6r6 6r25 52r17
+. 52r76
 X 6 a-flteio.ads
-20K13*Float_Text_IO[19|46] 25|2w10 2r33
+20K13*Float_Text_IO[20|46] 28|2w10 2r33
 X 7 a-inteio.ads
-18K13*Integer_Text_IO[20|46] 25|3w10 3r35
-X 10 a-string.ads
-16K13*Strings 35e16 25|4r10 4r37 5r10 5r33
-X 11 a-strfix.ads
-49K21*Fixed 1390e22 25|5w18 5r41
-X 15 a-strunb.ads
-91K21*Unbounded 1641e26 25|4w18 4r45
-X 18 a-textio.ads
-58K13*Text_IO 785e16 25|1w10 1r27
-67P9*File_Type 25|26r16 99r21
-69n23*In_File{69E9} 25|40r23
-69n32*Out_File{69E9} 25|101r27
+18K13*Integer_Text_IO[21|46] 28|3w10 3r35
+X 9 a-reatim.ads
+46K13*Real_Time 193e18 28|6w10 6r29
+57O9*Time<duration> 28|38r44
+X 11 a-string.ads
+16K13*Strings 35e16 28|4r10 4r37 5r10 5r33 52r21 52r80
+33n37*Both{33E9} 28|52r88
+X 12 a-strfix.ads
+49K21*Fixed 1390e22 28|5w18 5r41 52r29
+1133V13*Trim{string} 28|52s35
+X 16 a-strunb.ads
+91K21*Unbounded 1641e26 28|4w18 4r45
+X 19 a-textio.ads
+58K13*Text_IO 785e16 28|1w10 1r27
+67P9*File_Type 28|30r16 31r17 216r21
+69n23*In_File{69E9} 28|74r21 124r23
+69n32*Out_File{69E9} 28|218r27
 89I12*Field{integer}
-99U14*Create 25|101s7
-115U14*Open 25|40s7
-131U14*Close 25|42s7 128s7
-277U14*New_Line 25|105s7
-508U14*Put 25|103s7
-515U14*Put 25|60s7
-521U14*Get_Line 25|41s7
-555U14*Put_Line 25|102s7 107s10 109s10 115s13 116s13 118s13 119s13 121s13
-. 122s13 124s13 125s13
-565U14*Put_Line 25|32s4 33s4 34s4 35s4 38s4 62s7 65s10 66s10 73s4 74s4 80s7
-. 84s7 85s7 90s4 91s4 131s4 132s4 133s4 134s4
-X 19 a-tiflio.ads
-74U14*Put 25|104s7[6|20]
-77i7 Fore{18|89I12} 25|104r40[6|20]
-78i7 Aft{18|89I12} 25|104r51[6|20]
-88U14*Put 25|61s7[6|20]
-90i7 Fore{18|89I12} 25|61r27[6|20]
-91i7 Aft{18|89I12} 25|61r38[6|20]
-X 25 main.adb
-10U11*main 10b11 136l5 136t9
-12r3 Current_Route{28|7R9} 68r61 92r65 95r60
-18f4 Lightning_Risk{float} 56m13 61r11 76r52 86r54 92r41 95r36 104r24
-19f4 Temperature{float} 76r7
-20f4 Humidity{float} 76r20
-21f4 Pressure{float} 76r30
-22f4 Wind_Speed{float} 76r40
-24b4 Validation_Passed{boolean} 75m4 79r11 95r75 106r10
-25e4 Status{28|4E9} 67m10 68r53 81m7 86m7 92r57 95r52 102r68 113r12 133r74
-26p4 Risk_File{18|67P9} 40m12 40r12 41r16 42m13 42r13
-27a4 Input_Line{string} 41m27 46r13 54r37
-28i4 Last{natural} 41m39 45r19 52r40 54r63
-29i4 Colon_Pos{natural} 47m13 52r10 52r28 54r48
-45i11 I{integer} 46r24 47r26
-54a13 Risk_String{string} 56r43
-99p7 Output_File{18|67P9} 101m14 101r14 102r16 103r11 104r11 105r16 107r19
-. 109r19 115r22 116r22 118r22 119r22 121r22 122r22 124r22 125r22 128m13 128r13
-X 26 physics_validator.ads
-3K9*Physics_Validator 25|7w6 75r25 26|22e22
-6V13*Validate_Calculation{boolean} 25|75s43
-X 27 safety_monitor.ads
-3K9*Safety_Monitor 25|8w6 68r10 86r17 92r4 95r4 27|23e19
-6V13*Enforce_Safety_Limits{28|4E9} 25|86s32
-9U14*Generate_Safety_Alert 25|68s25 92s19
-16U14*Log_Safety_Event 25|95s19
-X 28 safety_types.ads
-1K9*Safety_Types 25|6w6 6r24 28|27e17
-4E9*Safety_Status 25|25r13 102r48 133r54 28|4e60
-4n27*SAFE{4E9} 25|114r15
-4n33*CAUTION{4E9} 25|117r15
-4n42*DANGER{4E9} 25|120r15
-4n50*EMERGENCY{4E9} 25|67r20 81r17 123r15
-7R9*Flight_Route 25|12r19 28|11e14
-8a7*Origin{string} 25|13m7
-9a7*Destination{string} 25|14m7
-10f7*Distance_Km{float} 25|15m7
+99U14*Create 28|218s7
+115U14*Open 28|74s4 124s7
+131U14*Close 28|102s4 150s7 245s7
+277U14*New_Line 28|222s7
+341V13*End_Of_File{boolean} 28|77s14 127s17
+508U14*Put 28|220s7
+515U14*Put 28|104s7 105s7 106s7 107s7 108s7 154s7 157s7 160s7 163s7 166s7
+521U14*Get_Line 28|78s7 128s10
+555U14*Put_Line 28|219s7 223s7 224s7 226s7 227s7 232s13 233s13 235s13 236s13
+. 238s13 239s13 241s13 242s13
+565U14*Put_Line 28|63s4 64s4 65s4 66s4 67s4 71s4 110s7 114s10 120s4 121s4
+. 152s7 153s7 156s7 159s7 162s7 165s7 168s7 172s10 182s4 183s4 193s7 198s4
+. 199s4 207s4 208s4 248s4 249s4 250s4 251s4 252s4
+X 20 a-tiflio.ads
+74U14*Put 28|221s7[6|20]
+77i7 Fore{19|89I12} 28|221r40[6|20]
+78i7 Aft{19|89I12} 28|221r51[6|20]
+88U14*Put 28|109s7[6|20] 155s7[6|20] 158s7[6|20] 161s7[6|20] 164s7[6|20]
+. 167s7[6|20]
+90i7 Fore{19|89I12} 28|109r38[6|20] 155r27[6|20] 158r24[6|20] 161r21[6|20]
+. 164r21[6|20] 167r23[6|20]
+91i7 Aft{19|89I12} 28|109r49[6|20] 155r38[6|20] 158r35[6|20] 161r32[6|20]
+. 164r32[6|20] 167r34[6|20]
+X 23 arinc653_core.ads
+1K9*ARINC653_Core 17e18 28|10w6 60r4 61r4 115r10 173r10 194r7 225r16 225r52
+3E9*Partition_State 3e66 28|225r30
+6U14*Initialize_Partition 28|60s18
+9U14*Set_Normal_Mode 28|61s18
+12V13*Get_State{3E9} 28|225s66
+15U14*Emergency_Halt 28|115s24 173s24 194s21
+X 28 main.adb
+13U11*main 13b11 254l5 254t9
+16r4 Current_Route{31|7R9} 88m19 93m19 96m16 105r11 107r11 109r11 209r65
+. 212r60 226r41 227r46
+19f4 Lightning_Risk{float} 136m19 155r11 186r52 201r51 209r41 212r36 221r24
+20f4 Temperature{float} 138m19 158r11 186r7
+21f4 Humidity{float} 140m19 161r11 186r20
+22f4 Pressure{float} 142m19 164r11 186r30
+23f4 Wind_Speed{float} 144m19 167r11 186r40
+26b4 Validation_Passed{boolean} 185m4 192r11 212r75
+27e4 Status{31|4E9} 201m4 209r57 212r52 219r68 230r12 250r53
+30p4 Risk_File{19|67P9} 124m12 124r12 127r29 128r19 150m13 150r13
+31p4 Route_File{19|67P9} 74m9 74r9 77r26 78r16 102m10 102r10
+33a4 Input_Line{string} 78m28 82r30 128m30 132r33
+34i4 Last{natural} 78m40 80r10 82r44 128m42 130r13 132r47
+35i4 Colon_Pos{natural}
+38o4 T_Start{9|57O9} 70m4 178r32
+38o13 T_Read{9|57O9} 177m4 190r32
+38o21 T_Validate{9|57O9} 189m4 204r32
+38o33 T_Safety{9|57O9} 203m4
+41V13 Parse_Value{string} 41b13 41>25 55l8 55t19 83s31 133s34
+41a25 Line{string} 44r16 45r13 51r44 52r40 52r64
+42i7 Colon_Index{natural} 46m13 51r10 51r30 52r45
+44i11 I{integer} 45r18 46r28
+82a13 Line{string} 83r43 85r16 85r42 90r19 90r46 95r19 95r45
+83a13 Value{string} 87r19 88r43 88r49 88r64 92r19 93r48 93r54 93r69 96r57
+132a16 Line{string} 133r46 135r19 135r46 137r22 137r49 139r22 139r48 141r22
+. 141r48 143r22 143r49
+133a16 Value{string} 136r49 138r46 140r43 142r43 144r45
+216p7 Output_File{19|67P9} 218m14 218r14 219r16 220r11 221r11 222r16 223r16
+. 224r16 226r16 227r16 232r22 233r22 235r22 236r22 238r22 239r22 241r22 242r22
+. 245m13 245r13
+X 29 physics_validator.ads
+3K9*Physics_Validator 28|8w6 185r25 29|22e22
+6V13*Validate_Calculation{boolean} 28|185s43
+X 30 safety_monitor.ads
+3K9*Safety_Monitor 28|9w6 201r14 209r4 212r4 30|23e19
+6V13*Enforce_Safety_Limits{31|4E9} 28|201s29
+9U14*Generate_Safety_Alert 28|209s19
+16U14*Log_Safety_Event 28|212s19
+X 31 safety_types.ads
+1K9*Safety_Types 28|7w6 7r24 31|27e17
+4E9*Safety_Status 28|27r13 219r48 250r33 31|4e60
+4n27*SAFE{4E9} 28|231r15
+4n33*CAUTION{4E9} 28|234r15
+4n42*DANGER{4E9} 28|237r15
+4n50*EMERGENCY{4E9} 28|240r15
+7R9*Flight_Route 28|16r20 31|11e14
+8a7*Origin{string} 28|88m33 105r25 226r55
+9a7*Destination{string} 28|93m33 107r25 227r60
+10f7*Distance_Km{float} 28|96m30 109r25
+X 51 s-stausa.ads
+207U14*Initialize 208i<c,__gnat_stack_usage_initialize>22
+272U14*Output_Results 276i<c,__gnat_stack_usage_output_results>22
+X 65 time_partition.ads
+3K9*Time_Partition 28|11w6 70r15 177r14 178r4 189r18 190r4 203r16 204r4 65|15e19
+9V13*Start_Timer{9|57O9} 28|70s30 177s29 189s33 203s31
+13U14*Check_Budget 28|178s19 190s19 204s19
 

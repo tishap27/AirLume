@@ -219,20 +219,20 @@ void assess_route_risk_at_altitude(RouteRiskAssessment* assessment, FlightRoute*
     // Generate recommendation
     generate_flight_recommendation(assessment);
     
-    // *** NEW: Write max waypoint weather data for Ada validation ***
+    /*
     WaypointRisk* max_wp = &assessment->waypoint_risks[assessment->max_risk_waypoint];
     
     FILE* risk_file = fopen("lightning_risk.txt", "w");
     if (risk_file) {
-        fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", assessment->max_risk);
-        fprintf(risk_file, "WAYPOINT:%d\n", max_wp->waypoint_number);
-        fprintf(risk_file, "TEMPERATURE:%.2f\n", max_wp->weather.temperature);
-        fprintf(risk_file, "HUMIDITY:%.2f\n", max_wp->weather.humidity);
-        fprintf(risk_file, "PRESSURE:%.2f\n", max_wp->weather.pressure);
-        fprintf(risk_file, "WIND_SPEED:%.2f\n", max_wp->weather.wind_speed);
+        fprintf(risk_file, "LIGHTNING_RISK:%.1f\n", assessment->max_risk);
+        //fprintf(risk_file, "WAYPOINT:%d\n", max_wp->waypoint_number);
+        fprintf(risk_file, "TEMPERATURE:%.1f\n", max_wp->weather.temperature);
+        fprintf(risk_file, "HUMIDITY:%.1f\n", max_wp->weather.humidity);
+        fprintf(risk_file, "PRESSURE:%.1f\n", max_wp->weather.pressure);
+        fprintf(risk_file, "WIND_SPEED:%.1f\n", max_wp->weather.wind_speed);
         fclose(risk_file);
         printf("Risk data written to file for Ada system\n");
-    }
+    }*/
 }
 
 void generate_flight_recommendation(RouteRiskAssessment* assessment) {
