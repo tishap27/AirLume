@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include "config.h"
 
 // Include C headers
 extern "C" {
@@ -14,10 +15,11 @@ extern "C" {
     #include "../../c_src/csv_reader.c"
 }
 
-// Replace with your real values
-const char* ssid     = "YOUR_WIFI";
-const char* password = "YOUR_PASSWORD";
-const char* api_key  = "YOUR_API_KEY";
+
+// Now using correct wifi and password
+const char* ssid     = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
+const char* api_key  = WEATHER_API_KEY;
 
 // Forward declaration
 WeatherData fetch_weather(double lat, double lon);
@@ -63,8 +65,8 @@ WeatherData fetch_weather(double lat, double lon) {
                      "&appid=" + String(api_key) +
                      "&units=metric";
 
-        Serial.print("Requesting: ");
-        Serial.println(url);
+        Serial.print("Requesting Weather from api: ");
+        //Serial.println(url);
 
         http.begin(url);
         int code = http.GET();

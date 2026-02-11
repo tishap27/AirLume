@@ -49,6 +49,7 @@ esp32_platformio/.pio/
 *.key
 secrets.py
 config.local.*
+esp32_platformio/src/config.h
 
 # Temp files
 commit_message.txt
