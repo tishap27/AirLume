@@ -1,3 +1,8 @@
+// ESP32 compatibility layer
+#ifdef ESP32_BUILD
+    #include <Arduino.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

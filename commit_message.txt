@@ -1,6 +1,6 @@
-Add: E-field CSV converter for real ML training data
+Add: ESP32 embedded physics core runs on hardware
 
-- Converts airlume_usa_efield_100.csv -> training_data_real.csv
-- Creates physics predictions + actual lightning labels from USA measurements
-- Enables training ML on production E-field sensor data
-- No changes to existing train_ml_model.py or ml_enhancer.py workflow"
+Added:
+- PlatformIO project structure in esp32_platformio/
+- ESP32 compatibility guards in C source files (riskcalc.c, route_planning.c, etc.)
+- Arduino wrapper (main.cpp) with WiFi weather API integration(for now falls back on USB)

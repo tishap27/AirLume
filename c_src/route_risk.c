@@ -1,3 +1,18 @@
+// ESP32 compatibility layer - ignored by GCC
+#ifdef ESP32_BUILD
+    #include <Arduino.h>
+    // Redirect printf to Serial for ESP32
+    #define printf(...) Serial.printf(__VA_ARGS__)
+    // Stub out file operations (not needed on ESP32)
+    #define popen(cmd, mode) NULL
+    #define pclose(pipe) 0
+    #define system(cmd) -1
+    typedef void FILE;
+    #define fopen(name, mode) NULL
+    #define fclose(file)
+    #define fprintf(file, ...) Serial.printf(__VA_ARGS__)
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

@@ -31,7 +31,24 @@ Thumbs.db
 # Logs
 *.log
 
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+.pio/libdeps/
+.pio/build/
+.pio/cache/
+.pio/idedata/
+.pio/platforms/
+.pio/python3/
+
+# ESP32 PlatformIO specific
+esp32_platformio/.pio/
+
 # API Keys and secrets
 *.key
 secrets.py
 config.local.*
+
+# Temp files
+commit_message.txt
