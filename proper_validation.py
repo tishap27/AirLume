@@ -81,9 +81,9 @@ print("=" * 70)
 # Load the lightning data
 try:
     df = pd.read_csv('lightning_events_2024.csv')
-    print(f"\n✓ Loaded {len(df)} lightning strikes from 2024")
+    print(f"\n  Loaded {len(df)} lightning strikes from 2024")
 except:
-    print("\n✗ Cannot find lightning_events_2024.csv")
+    print("\n  Cannot find lightning_events_2024.csv")
     print("Run test_swdi_simple.py first to download the data")
     exit(1)
 
@@ -94,14 +94,14 @@ df['date'] = pd.to_datetime(df['BEGIN_YEARMONTH'], format='%Y%m')
 cutoff_date = datetime.now() - timedelta(days=60)
 recent_df = df[df['date'] >= cutoff_date]
 
-print(f"✓ Filtered to last 60 days: {len(recent_df)} strikes")
+print(f"  Filtered to last 60 days: {len(recent_df)} strikes")
 
 if len(recent_df) == 0:
     print("\n⚠ No strikes in last 60 days")
     print("Using last 6 months instead...")
     cutoff_date = datetime.now() - timedelta(days=180)
     recent_df = df[df['date'] >= cutoff_date]
-    print(f"✓ Found {len(recent_df)} strikes in last 6 months")
+    print(f"  Found {len(recent_df)} strikes in last 6 months")
 
 if len(recent_df) == 0:
     print("\n⚠ Still no recent strikes - using all 2024 data")
@@ -142,10 +142,10 @@ for idx, strike in recent_df.iterrows():
     high_risk = risk >= 25.0
     
     if high_risk:
-        print("  ✓ DETECTED")
+        print("    DETECTED")
         detected += 1
     else:
-        print("  ✗ MISSED")
+        print("    MISSED")
         missed += 1
     
     results.append({
@@ -179,9 +179,9 @@ print(f"Missed (predicted LOW): {missed}")
 print(f"\nDETECTION RATE: {detection_rate:.1f}%")
 
 if detection_rate >= 70:
-    print("\n✓ EXCELLENT - Ready for production")
+    print("\n  EXCELLENT - Ready for production")
 elif detection_rate >= 50:
-    print("\n✓ ACCEPTABLE - Good for MVP demonstration")
+    print("\n  ACCEPTABLE - Good for MVP demonstration")
 elif detection_rate >= 30:
     print("\n△ MODERATE - Shows potential, needs refinement")
 else:
@@ -213,7 +213,7 @@ print("\n" + "-" * 70)
 print("STRIKE-BY-STRIKE RESULTS:")
 print("-" * 70)
 for _, row in results_df.iterrows():
-    icon = "✓" if row['detected'] else "✗"
+    icon = " " if row['detected'] else " "
     print(f"{icon} {row['location']:40s} {row['date']} | "
           f"Risk: {row['risk']:5.1f}% | E: {row['e_field']:6.0f} V/m")
 

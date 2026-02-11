@@ -172,7 +172,7 @@ print("\n" + "-" * 70)
 print("STRIKE-BY-STRIKE RESULTS:")
 print("-" * 70)
 for _, row in results_df.iterrows():
-    icon = "✓" if row['detected'] else "✗"
+    icon = " " if row['detected'] else " "
     print(f"{icon} {row['location']:40s} | Risk: {row['risk']:5.1f}% | E: {row['e_field']:6.0f} V/m")
 
 print("\n" + "=" * 70)

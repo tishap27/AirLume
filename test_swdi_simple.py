@@ -29,7 +29,7 @@ def download_storm_events(year=2024, month=10):
         response = requests.get(base_url, timeout=10)
         
         if response.status_code == 200:
-            print("✓ SWDI server accessible")
+            print(" SWDI server accessible")
             
             # Look for details file for the year
             # Format: StormEvents_details-ftp_v1.0_dYYYY_cYYYYMMDD.csv.gz
@@ -55,25 +55,25 @@ def download_storm_events(year=2024, month=10):
                     with open(output_file, 'wb') as f:
                         f.write(file_response.content)
                     
-                    print(f"✓ Downloaded: {output_file} ({len(file_response.content)/1024/1024:.1f} MB)")
+                    print(f" Downloaded: {output_file} ({len(file_response.content)/1024/1024:.1f} MB)")
                     
                     # Read and decompress
                     print("Reading CSV...")
                     df = pd.read_csv(output_file, compression='gzip')
                     
-                    print(f"✓ Loaded {len(df)} events")
+                    print(f" Loaded {len(df)} events")
                     print(f"\nColumns: {', '.join(df.columns[:10])}...")
                     
                     # Filter for lightning events
                     if 'EVENT_TYPE' in df.columns:
                         lightning = df[df['EVENT_TYPE'] == 'Lightning']
-                        print(f"\n✓ Found {len(lightning)} LIGHTNING events")
+                        print(f"\n Found {len(lightning)} LIGHTNING events")
                         
                         if len(lightning) > 0:
                             # Save lightning-only CSV
                             lightning_file = f"lightning_events_{year}.csv"
                             lightning.to_csv(lightning_file, index=False)
-                            print(f"✓ Lightning events saved to: {lightning_file}")
+                            print(f" Lightning events saved to: {lightning_file}")
                             
                             # Show sample
                             print(f"\nSample lightning events:")
@@ -83,15 +83,15 @@ def download_storm_events(year=2024, month=10):
                     
                     return df
                 else:
-                    print(f"✗ Download failed: {file_response.status_code}")
+                    print(f" Download failed: {file_response.status_code}")
             else:
-                print(f"✗ No files found for year {year}")
+                print(f" No files found for year {year}")
                 print(f"Available files might use different format")
         else:
-            print(f"✗ Cannot access SWDI: {response.status_code}")
+            print(f" Cannot access SWDI: {response.status_code}")
             
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f" Error: {e}")
     
     return None
 
@@ -119,7 +119,7 @@ def get_storm_events_for_location(lat, lon, radius_km=100, year=2024):
         (df['BEGIN_LON'] <= lon + radius_deg)
     ]
     
-    print(f"\n✓ Found {len(nearby)} events within {radius_km} km")
+    print(f"\n Found {len(nearby)} events within {radius_km} km")
     
     if len(nearby) > 0:
         # Group by event type
@@ -143,7 +143,7 @@ def quick_test():
         response = requests.get(base_url, timeout=10)
         
         if response.status_code == 200:
-            print("✓ SWDI server is accessible")
+            print(" SWDI server is accessible")
             
             # Look for recent files
             import re
@@ -158,11 +158,11 @@ def quick_test():
             
             return True
         else:
-            print(f"✗ Server returned: {response.status_code}")
+            print(f" Server returned: {response.status_code}")
             return False
             
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f" Error: {e}")
         return False
 
 # Run tests
@@ -192,7 +192,7 @@ if storm_data is not None:
     ottawa_events = get_storm_events_for_location(45.4215, -75.6972, radius_km=200, year=2024)
     
     if ottawa_events is not None and len(ottawa_events) > 0:
-        print(f"\n✓ SUCCESS - Found storm events near Ottawa")
+        print(f"\n SUCCESS - Found storm events near Ottawa")
         ottawa_events.to_csv('ottawa_storm_events.csv', index=False)
         print(f"Saved to: ottawa_storm_events.csv")
 
