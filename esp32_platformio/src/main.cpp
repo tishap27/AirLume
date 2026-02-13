@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include "config.h"
+#include "esp_wpa2.h"
 
 // Include C headers
 extern "C" {
@@ -17,9 +18,14 @@ extern "C" {
 
 
 // Now using correct wifi and password
-const char* ssid     = WIFI_SSID;
+/*const char* ssid     = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
-const char* api_key  = WEATHER_API_KEY;
+const char* api_key  = WEATHER_API_KEY;*/
+
+const char* ssid = WIFI_SSID;
+const char* eap_identity = EAP_IDENTITY;
+const char* eap_password = EAP_PASSWORD;
+const char* api_key = WEATHER_API_KEY;
 
 // Forward declaration
 WeatherData fetch_weather(double lat, double lon);
@@ -32,7 +38,13 @@ bool connect_wifi(unsigned long timeout_ms = 15000) {
     WiFi.mode(WIFI_STA);
     delay(500);
 
-    WiFi.begin(ssid, password);
+    // Configure WPA2-Enterprise
+    esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)eap_identity, strlen(eap_identity));
+    esp_wifi_sta_wpa2_ent_set_username((uint8_t *)eap_identity, strlen(eap_identity));
+    esp_wifi_sta_wpa2_ent_set_password((uint8_t *)eap_password, strlen(eap_password));
+    esp_wifi_sta_wpa2_ent_enable();
+
+    WiFi.begin(ssid, eap_password);
 
     Serial.print("WiFi connecting");
     unsigned long start = millis();
