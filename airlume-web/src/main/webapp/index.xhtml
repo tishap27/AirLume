@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:f="http://xmlns.jcp.org/jsf/core">
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://xmlns.jcp.org/jsf/passthrough">
 
 <h:head>
 <title>AirLume Lightning Prediction System</title>
@@ -18,245 +19,31 @@
 
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    margin: 0;
     background: #020617;
     color: #e2e8f0;
-    position: relative;
-    overflow-x: hidden;
     min-height: 100vh;
+    position: relative;
 }
 
-/* ===== ATMOSPHERIC BACKGROUND BASE ===== */
+/* ===== BACKGROUND LAYERS (FORCED NON-INTERACTIVE) ===== */
 
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(ellipse at top, #1e3a8a 0%, #0f172a 30%, #020617 60%, #000 100%);
-    z-index: -5;
-}
-
-/* ===== STORM CLOUDS LAYER ===== */
-
-.storm-clouds {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -4;
-    overflow: hidden;
-    opacity: 0.25;
-}
-
-.cloud {
-    position: absolute;
-    background: radial-gradient(ellipse at center, rgba(71, 85, 105, 0.35) 0%, transparent 70%);
-    border-radius: 50%;
-    filter: blur(45px);
-    animation: driftCloud linear infinite;
-}
-
-.cloud-1 {
-    width: 450px;
-    height: 160px;
-    top: 8%;
-    left: -20%;
-    animation-duration: 90s;
-}
-
-.cloud-2 {
-    width: 550px;
-    height: 190px;
-    top: 22%;
-    left: -25%;
-    animation-duration: 110s;
-    animation-delay: -25s;
-}
-
-.cloud-3 {
-    width: 380px;
-    height: 150px;
-    top: 48%;
-    left: -15%;
-    animation-duration: 100s;
-    animation-delay: -45s;
-}
-
-.cloud-4 {
-    width: 480px;
-    height: 170px;
-    top: 68%;
-    left: -22%;
-    animation-duration: 95s;
-    animation-delay: -65s;
-}
-
-@keyframes driftCloud {
-    0% {
-        transform: translateX(0) translateY(0);
-    }
-    100% {
-        transform: translateX(calc(100vw + 550px)) translateY(-40px);
-    }
-}
-
-/* ===== ATMOSPHERIC GRID PATTERN ===== */
-
-.atmosphere-grid {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image:
-        linear-gradient(rgba(56, 189, 248, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56, 189, 248, 0.025) 1px, transparent 1px);
-    background-size: 60px 60px;
-    z-index: -3;
-    animation: gridPulse 10s ease-in-out infinite;
-}
-
-@keyframes gridPulse {
-    0%, 100% {
-        opacity: 0.5;
-    }
-    50% {
-        opacity: 0.2;
-    }
-}
-
-/* ===== FLIGHT PATH LINES ===== */
-
-.flight-paths {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -3;
-    overflow: hidden;
-}
-
-.flight-path {
-    position: absolute;
-    height: 1px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(56, 189, 248, 0.25) 30%, 
-        rgba(56, 189, 248, 0.15) 70%,
-        transparent 100%);
-    transform-origin: left center;
-    opacity: 0;
-}
-
-.path-1 {
-    top: 18%;
-    left: 0;
-    width: 65%;
-    animation: pathFade 12s ease-in-out infinite;
-    transform: rotate(-1.5deg);
-}
-
-.path-2 {
-    top: 38%;
-    left: 0;
-    width: 80%;
-    animation: pathFade 14s ease-in-out infinite;
-    animation-delay: 4s;
-    transform: rotate(1deg);
-}
-
-.path-3 {
-    top: 58%;
-    left: 0;
-    width: 58%;
-    animation: pathFade 13s ease-in-out infinite;
-    animation-delay: 7s;
-    transform: rotate(-0.8deg);
-}
-
-.path-4 {
-    top: 78%;
-    left: 0;
-    width: 72%;
-    animation: pathFade 15s ease-in-out infinite;
-    animation-delay: 10s;
-    transform: rotate(1.2deg);
-}
-
-@keyframes pathFade {
-    0%, 100% {
-        opacity: 0;
-        transform: translateX(0) rotate(var(--rotate, 0deg));
-    }
-    25%, 75% {
-        opacity: 0.6;
-        transform: translateX(120px) rotate(var(--rotate, 0deg));
-    }
-}
-
-/* ===== AIRCRAFT SILHOUETTES ===== */
-
+body::before,
+.storm-clouds,
+.atmosphere-grid,
+.flight-paths,
 .aircraft-layer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -2;
-    overflow: hidden;
+    pointer-events: none !important;
+    z-index: 0 !important;
 }
 
-.aircraft-silhouette {
-    position: absolute;
-    opacity: 0.08;
-    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.35));
-}
+/* ===== UI MUST ALWAYS BE ABOVE ===== */
 
-.aircraft-silhouette svg {
-    width: 90px;
-    height: auto;
-    fill: #38bdf8;
-}
-
-.aircraft-1 {
-    top: 16%;
-    left: -10%;
-    animation: flyPath1 40s linear infinite;
-}
-
-.aircraft-2 {
-    top: 54%;
-    left: -10%;
-    animation: flyPath2 45s linear infinite;
-    animation-delay: 15s;
-}
-
-@keyframes flyPath1 {
-    0% {
-        left: -10%;
-        transform: rotate(0deg);
-    }
-    100% {
-        left: 110%;
-        transform: rotate(0deg);
-    }
-}
-
-@keyframes flyPath2 {
-    0% {
-        left: -10%;
-        transform: rotate(0deg);
-    }
-    100% {
-        left: 110%;
-        transform: rotate(0deg);
-    }
+.header,
+.container,
+.form-section,
+.results-section {
+    position: relative;
+    z-index: 50;
 }
 
 /* ===== HEADER ===== */
@@ -268,45 +55,20 @@ body::before {
     align-items: center;
     gap: 20px;
     border-bottom: 2px solid rgba(56, 189, 248, 0.35);
-    backdrop-filter: blur(15px);
-    box-shadow: 
-        0 12px 35px rgba(0, 0, 0, 0.65),
-        0 0 50px rgba(56, 189, 248, 0.08);
-    position: relative;
-    z-index: 10;
-}
-
-.header::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 250px;
-    height: 2px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(56, 189, 248, 0.7) 50%, 
-        transparent 100%);
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
 }
 
 .logo-img {
     height: 64px;
-    filter: drop-shadow(0 4px 15px rgba(15, 23, 42, 0.95));
 }
 
 .header-title {
-    font-size: 2.1em;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+    font-size: 2em;
+    font-weight: bold;
 }
 
 .header-subtitle {
-    font-size: 0.95em;
+    font-size: 0.9em;
     color: #94a3b8;
-    letter-spacing: 0.5px;
 }
 
 /* ===== CONTAINER ===== */
@@ -314,247 +76,53 @@ body::before {
 .container {
     max-width: 1100px;
     margin: 40px auto;
-    padding: 0 20px 40px;
-    position: relative;
-    z-index: 1;
+    padding: 0 20px;
 }
 
-/* ===== FORM PANEL ===== */
+/* ===== FORM ===== */
 
 .form-section {
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.93), rgba(15, 23, 42, 0.87));
-    padding: 34px 34px 32px;
-    border-radius: 20px;
-    margin-bottom: 28px;
-    box-shadow: 
-        0 20px 65px rgba(0, 0, 0, 0.72),
-        0 0 35px rgba(56, 189, 248, 0.12);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(56, 189, 248, 0.28);
-    position: relative;
-    animation: slideUp 0.9s ease-out;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(35px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.form-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(56, 189, 248, 0.65) 25%, 
-        rgba(56, 189, 248, 0.85) 50%,
-        rgba(56, 189, 248, 0.65) 75%,
-        transparent 100%);
-    border-radius: 20px 20px 0 0;
-}
-
-.form-section h2 {
-    margin-top: 0;
-    margin-bottom: 22px;
-    font-size: 1.45em;
-    color: #e2e8f0;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-}
-
-/* ===== RESULTS / ERROR SECTIONS ===== */
-
-.results-section {
-    background: linear-gradient(150deg, rgba(6, 78, 59, 0.93), rgba(5, 46, 22, 0.89));
+    background: rgba(15, 23, 42, 0.9);
     padding: 30px;
-    border-radius: 20px;
-    border-left: 6px solid #22c55e;
-    box-shadow: 
-        0 20px 65px rgba(0, 0, 0, 0.77),
-        0 0 35px rgba(34, 197, 94, 0.22);
-    backdrop-filter: blur(16px);
-    animation: slideUp 0.9s ease-out;
+    border-radius: 16px;
+    border: 1px solid rgba(56, 189, 248, 0.25);
 }
-
-.error-section {
-    background: linear-gradient(150deg, rgba(127, 29, 29, 0.93), rgba(69, 10, 10, 0.89));
-    padding: 24px 26px;
-    border-radius: 18px;
-    border-left: 6px solid #ef4444;
-    box-shadow: 
-        0 16px 50px rgba(0, 0, 0, 0.72),
-        0 0 28px rgba(239, 68, 68, 0.22);
-}
-
-/* ===== INPUTS ===== */
 
 .input-field {
     width: 100%;
-    padding: 14px 15px;
-    border-radius: 10px;
-    border: 1px solid rgba(56, 189, 248, 0.32);
-    background: rgba(15, 23, 42, 0.97);
-    color: #e5e7eb;
-    font-size: 15px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    transition: all 0.3s ease;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #38bdf8;
+    background: #020617;
+    color: white;
 }
-
-.input-field::placeholder {
-    color: #64748b;
-}
-
-.input-field:focus {
-    border-color: #38bdf8;
-    box-shadow: 
-        0 0 0 1px rgba(56, 189, 248, 0.5),
-        0 0 22px rgba(56, 189, 248, 0.25);
-    background: rgba(15, 23, 42, 1);
-    outline: none;
-}
-
-/* ===== BUTTONS ===== */
 
 .btn {
     background: linear-gradient(135deg, #38bdf8, #0284c7);
-    padding: 14px 24px;
-    border-radius: 12px;
+    padding: 12px 22px;
+    border-radius: 10px;
     border: none;
-    color: #f9fafb;
-    font-weight: 600;
+    color: white;
     cursor: pointer;
-    transition: all 0.3s ease;
-    letter-spacing: 0.04em;
-    margin-top: 10px;
-    box-shadow: 0 5px 18px rgba(56, 189, 248, 0.35);
+    margin-top: 12px;
 }
 
 .btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 
-        0 12px 30px rgba(56, 189, 248, 0.5),
-        0 0 35px rgba(56, 189, 248, 0.35);
-    filter: brightness(1.12);
+    filter: brightness(1.2);
 }
-
-.btn:active {
-    transform: translateY(0);
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.85);
-}
-
-/* ===== TABLE ===== */
 
 table {
     width: 100%;
-    border-collapse: collapse;
 }
 
 td {
-    padding: 11px 13px;
-    font-size: 0.98em;
-    vertical-align: middle;
-    color: #cbd5e1;
-}
-
-/* ===== RISK COLORS ===== */
-
-.high-risk {
-    color: #fecaca;
-    font-weight: 700;
-    text-shadow: 0 0 12px rgba(254, 202, 202, 0.35);
-}
-
-.medium-risk {
-    color: #fed7aa;
-    font-weight: 700;
-    text-shadow: 0 0 12px rgba(254, 215, 170, 0.35);
-}
-
-.low-risk {
-    color: #bbf7d0;
-    font-weight: 700;
-    text-shadow: 0 0 12px rgba(187, 247, 208, 0.35);
-}
-
-/* ===== RESPONSIVE ===== */
-
-@media (max-width: 768px) {
-    .header {
-        flex-direction: row;
-        padding: 18px 20px;
-    }
-    .header-title {
-        font-size: 1.5em;
-    }
-    .form-section, .results-section {
-        padding: 24px 20px;
-    }
-    td {
-        display: block;
-        width: 100%;
-    }
-    
-    .aircraft-silhouette svg {
-        width: 65px;
-    }
-    
-    .storm-clouds, .atmosphere-grid, .flight-paths, .aircraft-layer {
-    pointer-events: none;
-    
-    .form-section, .container, table, .input-field, .btn {
-    position: relative;
-    z-index: 20 !important;
-}
-}
+    padding: 10px;
 }
 
 </style>
 </h:head>
 
 <h:body>
-
-<!-- Storm Clouds Layer -->
-<div class="storm-clouds">
-    <div class="cloud cloud-1"></div>
-    <div class="cloud cloud-2"></div>
-    <div class="cloud cloud-3"></div>
-    <div class="cloud cloud-4"></div>
-</div>
-
-<!-- Atmospheric Grid -->
-<div class="atmosphere-grid"></div>
-
-<!-- Flight Path Lines -->
-<div class="flight-paths">
-    <div class="flight-path path-1"></div>
-    <div class="flight-path path-2"></div>
-    <div class="flight-path path-3"></div>
-    <div class="flight-path path-4"></div>
-</div>
-
-<!-- Aircraft Silhouettes -->
-<div class="aircraft-layer">
-    <div class="aircraft-silhouette aircraft-1">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="rotate(90 12 12)"/>
-        </svg>
-    </div>
-    <div class="aircraft-silhouette aircraft-2">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="rotate(90 12 12)"/>
-        </svg>
-    </div>
-</div>
 
 <!-- HEADER -->
 <div class="header">
@@ -574,7 +142,6 @@ td {
 
 <div class="container">
 
-<!-- ===== FORM ===== -->
 <div class="form-section">
 
 <h2>Flight Route Analysis</h2>
@@ -584,22 +151,22 @@ td {
 <table>
 
 <tr>
-<td>Origin Airport (ICAO)</td>
+<td>Origin Airport</td>
 <td>
 <h:inputText value="#{flightController.origin}"
              styleClass="input-field"
-             required="true"
-             placeholder="CYOW"/>
+             p:placeholder="CYOW"
+             required="true"/>
 </td>
 </tr>
 
 <tr>
-<td>Destination Airport (ICAO)</td>
+<td>Destination Airport</td>
 <td>
 <h:inputText value="#{flightController.destination}"
              styleClass="input-field"
-             required="true"
-             placeholder="CYYZ"/>
+             p:placeholder="CYYZ"
+             required="true"/>
 </td>
 </tr>
 
@@ -608,7 +175,7 @@ td {
 <td>
 <h:selectOneMenu value="#{flightController.flightLevel}"
                  styleClass="input-field">
-<f:selectItem itemValue="0" itemLabel="Ground Level"/>
+<f:selectItem itemValue="0" itemLabel="Ground"/>
 <f:selectItem itemValue="200" itemLabel="FL200"/>
 <f:selectItem itemValue="300" itemLabel="FL300"/>
 <f:selectItem itemValue="350" itemLabel="FL350"/>
@@ -627,7 +194,7 @@ td {
 <h:button value="Visualize Route"
           outcome="route-visualization"
           styleClass="btn"
-          style="margin-left:15px;background:linear-gradient(135deg, #7c3aed, #4f46e5);box-shadow:0 5px 18px rgba(124, 58, 237, 0.35)"/>
+          style="margin-left:10px; background: purple"/>
 
 </td>
 </tr>
@@ -636,59 +203,7 @@ td {
 
 </h:form>
 
-<!-- ERROR MESSAGE -->
-<h:panelGroup rendered="#{not empty flightController.errorMessage}">
-<div class="error-section">
-⚠ #{flightController.errorMessage}
 </div>
-</h:panelGroup>
-
-</div>
-
-<!-- ===== RESULTS ===== -->
-<h:panelGroup rendered="#{flightController.analysisComplete}">
-
-<div class="results-section">
-
-<h2>Lightning Risk Assessment</h2>
-
-<p>
-Temperature: #{flightController.analysis.temperature}°C |
-Humidity: #{flightController.analysis.humidity}% |
-Pressure: #{flightController.analysis.pressure} hPa |
-Wind: #{flightController.analysis.windSpeed} m/s
-</p>
-
-<p>
-<strong>Probability:</strong>
-#{flightController.analysis.lightningProbability}%
-</p>
-
-<p>
-<strong>Risk Level:</strong>
-<span class="#{flightController.analysis.riskLevel == 'HIGH' ? 'high-risk' :
-              (flightController.analysis.riskLevel == 'MEDIUM' ? 'medium-risk' : 'low-risk')}">
-#{flightController.analysis.riskLevel}
-</span>
-</p>
-
-<p><strong>Status:</strong> #{flightController.analysis.safetyStatus}</p>
-<p><strong>Recommendation:</strong> #{flightController.analysis.recommendation}</p>
-
-<h:panelGroup rendered="#{flightController.analysis.newFlightLevel != null}">
-<p><strong>New Flight Level:</strong>
-#{flightController.analysis.newFlightLevel}</p>
-</h:panelGroup>
-
-<h:panelGroup rendered="#{flightController.analysis.alternateAirport != null}">
-<p><strong>Alternate Airport:</strong>
-#{flightController.analysis.alternateAirport}</p>
-</h:panelGroup>
-
-</div>
-
-</h:panelGroup>
-
 </div>
 
 </h:body>

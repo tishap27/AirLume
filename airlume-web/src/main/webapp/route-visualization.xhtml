@@ -2,203 +2,302 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
-      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+      xmlns:p="http://xmlns.jcp.org/jsf/passthrough">
 
 <h:head>
-    <title>AirLume Lightning Risk Analysis</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AirLume Lightning Risk Analysis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
 
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: linear-gradient(180deg, #020617 0%, #0f172a 60%, #020617 100%);
-    min-height: 100vh;
-    padding: 20px;
-    color: #e2e8f0;
+/* ===== GLOBAL ===== */
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body{
+    font-family:'Segoe UI',Arial,sans-serif;
+    background:#020617;
+    min-height:100vh;
+    padding:20px;
+    color:#e2e8f0;
+    position:relative;
+    overflow-x:hidden;
+}
+
+/* ===== STORM SKY ===== */
+
+body::before{
+    content:'';
+    position:fixed;
+    inset:0;
+    background:
+        radial-gradient(ellipse at top,#1e3a8a 0%,#0f172a 40%,#020617 70%,#000 100%);
+    z-index:-5;
+    pointer-events:none;
+}
+
+/* ===== GRID ===== */
+
+.atmosphere-grid{
+    position:fixed;
+    inset:0;
+    background-image:
+        linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+    background-size:60px 60px;
+    z-index:-4;
+    pointer-events:none;
+}
+
+/* ===== FLIGHT PATHS ===== */
+
+.flight-paths{
+    position:fixed;
+    inset:0;
+    z-index:-3;
+    pointer-events:none;
+}
+
+.flight-path{
+    position:absolute;
+    height:1px;
+    width:70%;
+    background:linear-gradient(90deg,
+        transparent 0%,
+        rgba(56,189,248,0.35) 40%,
+        rgba(56,189,248,0.15) 60%,
+        transparent 100%);
+    animation:movePath 14s linear infinite;
+}
+
+.path-1{ top:20%; }
+.path-2{ top:45%; animation-delay:4s; }
+.path-3{ top:70%; animation-delay:8s; }
+
+@keyframes movePath{
+    from{ transform:translateX(-200px); opacity:0;}
+    40%{ opacity:0.6;}
+    to{ transform:translateX(400px); opacity:0;}
+}
+
+/* ===== AIRCRAFT ===== */
+
+.aircraft-layer{
+    position:fixed;
+    inset:0;
+    z-index:-2;
+    pointer-events:none;
+}
+
+.aircraft{
+    position:absolute;
+    opacity:0.06;
+    animation:fly 45s linear infinite;
+}
+
+.aircraft svg{
+    width:80px;
+    fill:#38bdf8;
+}
+
+.aircraft-1{ top:25%; left:-10%; }
+.aircraft-2{ top:60%; left:-15%; animation-delay:18s; }
+
+@keyframes fly{
+    from{ left:-10%; }
+    to{ left:110%; }
 }
 
 /* ===== HEADER ===== */
-.app-header {
-    background: #0f172a;
-    border-radius: 20px 20px 0 0;
-    padding: 25px 40px;
-    border-bottom: 2px solid #1e293b;
+
+.app-header{
+    background:#0f172a;
+    border-radius:20px 20px 0 0;
+    padding:25px 40px;
+    border-bottom:2px solid #1e293b;
+    position:relative;
+    z-index:10;
 }
 
-.header-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+.header-content{
+    display:flex;
+    align-items:center;
+    gap:20px;
 }
 
-.logo-img {
-    height: 60px;
+.logo-img{ height:60px; }
+
+.title-section h1{
+    font-size:2em;
 }
 
-.title-section h1 {
-    color: #e2e8f0;
-    font-size: 2.2em;
+.title-section p{
+    color:#94a3b8;
 }
 
-.title-section p {
-    color: #94a3b8;
+/* ===== MAIN ===== */
+
+.content-wrapper{
+    background:#020617;
+    border-radius:0 0 20px 20px;
+    box-shadow:0 25px 50px rgba(0,0,0,0.7);
+    position:relative;
+    z-index:10;
 }
 
-/* ===== MAIN CONTENT ===== */
-
-.content-wrapper {
-    background: #020617;
-    border-radius: 0 0 20px 20px;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.7);
-}
-
-.content-grid {
-    display: grid;
-    grid-template-columns: 420px 1fr;
+.content-grid{
+    display:grid;
+    grid-template-columns:420px 1fr;
 }
 
 /* ===== SIDEBAR ===== */
-.sidebar {
-    padding: 40px;
-    border-right: 1px solid #1e293b;
+
+.sidebar{
+    padding:40px;
+    border-right:1px solid #1e293b;
 }
 
-.section-header {
-    font-size: 1.6em;
-    margin-bottom: 25px;
-    border-bottom: 2px solid #38bdf8;
-    padding-bottom: 10px;
+.section-header{
+    font-size:1.6em;
+    margin-bottom:25px;
+    border-bottom:2px solid #38bdf8;
+    padding-bottom:10px;
 }
 
-/* ===== INPUTS ===== */
-.input-group {
-    margin-bottom: 25px;
+.input-group{ margin-bottom:25px; }
+
+.input-label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
 }
 
-.input-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
+.input-field{
+    width:100%;
+    padding:16px;
+    border-radius:10px;
+    border:2px solid #1e293b;
+    background:#020617;
+    color:white;
+    font-size:18px;
+    text-transform:uppercase;
 }
 
-.input-field {
-    width: 100%;
-    padding: 16px;
-    border-radius: 10px;
-    border: 2px solid #1e293b;
-    background: #020617;
-    color: white;
-    font-size: 18px;
-    text-transform: uppercase;
+.input-field:focus{
+    border-color:#38bdf8;
+    outline:none;
 }
 
-.input-field:focus {
-    border-color: #38bdf8;
-    outline: none;
+.submit-button{
+    width:100%;
+    padding:18px;
+    background:linear-gradient(135deg,#38bdf8,#0284c7);
+    border:none;
+    border-radius:12px;
+    font-weight:bold;
+    font-size:17px;
+    color:white;
+    cursor:pointer;
 }
 
-/* ===== BUTTON ===== */
-.submit-button {
-    width: 100%;
-    padding: 18px;
-    background: linear-gradient(135deg, #38bdf8, #0284c7);
-    border: none;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 17px;
-    color: white;
-    cursor: pointer;
+.submit-button:hover{
+    filter:brightness(1.1);
 }
 
-/* ===== VISUAL AREA ===== */
-.viz-area {
-    padding: 40px;
+/* ===== VIS AREA ===== */
+
+.viz-area{
+    padding:40px;
 }
 
-/* ===== ROUTE BADGES ===== */
-.airport-badge {
-    background: #0284c7;
-    padding: 14px 30px;
-    border-radius: 12px;
-    font-family: monospace;
-    font-size: 26px;
+.route-badges{
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    margin-bottom:20px;
 }
 
-.route-badges {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-bottom: 20px;
+.airport-badge{
+    background:#0284c7;
+    padding:14px 30px;
+    border-radius:12px;
+    font-family:monospace;
+    font-size:26px;
 }
 
-.arrow-symbol {
-    font-size: 30px;
+.arrow-symbol{ font-size:30px; }
+
+.stats-row{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:20px;
+    margin-top:40px;
 }
 
-/* ===== STATS ===== */
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-    gap: 20px;
-    margin-top: 40px;
+.stat-card{
+    background:#0f172a;
+    padding:30px;
+    border-radius:15px;
+    text-align:center;
 }
 
-.stat-card {
-    background: #0f172a;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
+.stat-value{
+    font-size:36px;
+    font-weight:bold;
 }
 
-.stat-value {
-    font-size: 36px;
-    font-weight: bold;
+.status-alert{
+    margin-top:30px;
+    padding:20px;
+    border-radius:10px;
+    text-align:center;
 }
 
-/* ===== STATUS ALERTS ===== */
-.status-alert {
-    margin-top: 30px;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-}
+.success{ background:#14532d; }
+.error{ background:#7f1d1d; }
 
-.status-alert.success {
-    background: #14532d;
-}
-
-.status-alert.error {
-    background: #7f1d1d;
-}
 </style>
-
 </h:head>
 
 <h:body>
 
-<div class="app-header">
-    <div class="header-content">
+<!-- Background Layers -->
+<div class="atmosphere-grid"></div>
 
-        <!-- LOGO  -->
-       <h:graphicImage name="logo.png"
-                library="images"
-                styleClass="logo-img"/>
+<div class="flight-paths">
+    <div class="flight-path path-1"></div>
+    <div class="flight-path path-2"></div>
+    <div class="flight-path path-3"></div>
+</div>
 
-
-        <div class="title-section">
-            <h1>AirLume Lightning Prediction System</h1>
-            <p>Aircraft Lightning Strike Risk Assessment</p>
-        </div>
-
+<div class="aircraft-layer">
+    <div class="aircraft aircraft-1">
+        <svg viewBox="0 0 24 24">
+            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="rotate(90 12 12)"/>
+        </svg>
     </div>
+    <div class="aircraft aircraft-2">
+        <svg viewBox="0 0 24 24">
+            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="rotate(90 12 12)"/>
+        </svg>
+    </div>
+</div>
+
+<!-- HEADER -->
+<div class="app-header">
+<div class="header-content">
+<h:graphicImage name="logo.png" library="images" styleClass="logo-img"/>
+<div class="title-section">
+<h1>AirLume Lightning Prediction System</h1>
+<p>Aircraft Lightning Strike Risk Assessment</p>
+</div>
+</div>
 </div>
 
 <div class="content-wrapper">
 <div class="content-grid">
 
-<!-- ===== SIDEBAR ===== -->
+<!-- SIDEBAR -->
 <div class="sidebar">
 
 <h2 class="section-header">Flight Analysis</h2>
@@ -210,7 +309,7 @@ body {
 <h:inputText value="#{flightController.origin}"
              styleClass="input-field"
              maxlength="4"
-             placeholder="CYOW"
+             p:placeholder="CYOW"
              required="true"/>
 </div>
 
@@ -219,7 +318,7 @@ body {
 <h:inputText value="#{flightController.destination}"
              styleClass="input-field"
              maxlength="4"
-             placeholder="CYYZ"
+             p:placeholder="CYYZ"
              required="true"/>
 </div>
 
@@ -242,9 +341,7 @@ body {
 </h:form>
 
 <h:panelGroup rendered="#{flightController.analysisComplete}">
-<div class="status-alert success">
-Analysis Complete
-</div>
+<div class="status-alert success">Analysis Complete</div>
 </h:panelGroup>
 
 <h:panelGroup rendered="#{not empty flightController.errorMessage}">
@@ -255,7 +352,7 @@ Analysis Complete
 
 </div>
 
-<!-- ===== VISUALIZATION ===== -->
+<!-- VISUAL AREA -->
 <div class="viz-area">
 
 <h:panelGroup rendered="#{flightController.analysisComplete}">
