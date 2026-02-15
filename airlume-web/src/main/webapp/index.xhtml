@@ -1,185 +1,153 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:f="http://xmlns.jcp.org/jsf/core"
-      xmlns:p="http://xmlns.jcp.org/jsf/passthrough">
-
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
 <h:head>
-<title>AirLume Lightning Prediction System</title>
-
-<style>
-
-/* ===== GLOBAL ===== */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #020617;
-    color: #e2e8f0;
-    min-height: 100vh;
-    position: relative;
-}
-
-/* ===== BACKGROUND LAYERS (FORCED NON-INTERACTIVE) ===== */
-
-body::before,
-.storm-clouds,
-.atmosphere-grid,
-.flight-paths,
-.aircraft-layer {
-    pointer-events: none !important;
-    z-index: 0 !important;
-}
-
-/* ===== UI MUST ALWAYS BE ABOVE ===== */
-
-.header,
-.container,
-.form-section,
-.results-section {
-    position: relative;
-    z-index: 50;
-}
-
-/* ===== HEADER ===== */
-
-.header {
-    background: rgba(15, 23, 42, 0.88);
-    padding: 24px 40px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    border-bottom: 2px solid rgba(56, 189, 248, 0.35);
-}
-
-.logo-img {
-    height: 64px;
-}
-
-.header-title {
-    font-size: 2em;
-    font-weight: bold;
-}
-
-.header-subtitle {
-    font-size: 0.9em;
-    color: #94a3b8;
-}
-
-/* ===== CONTAINER ===== */
-
-.container {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 20px;
-}
-
-/* ===== FORM ===== */
-
-.form-section {
-    background: rgba(15, 23, 42, 0.9);
-    padding: 30px;
-    border-radius: 16px;
-    border: 1px solid rgba(56, 189, 248, 0.25);
-}
-
-.input-field {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #38bdf8;
-    background: #020617;
-    color: white;
-}
-
-.btn {
-    background: linear-gradient(135deg, #38bdf8, #0284c7);
-    padding: 12px 22px;
-    border-radius: 10px;
-    border: none;
-    color: white;
-    cursor: pointer;
-    margin-top: 12px;
-}
-
-.btn:hover {
-    filter: brightness(1.2);
-}
-
-table {
-    width: 100%;
-}
-
-td {
-    padding: 10px;
-}
-
-</style>
+    <title>AirLume Lightning Prediction System</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #020617;
+        color: #e2e8f0;
+        min-height: 100vh;
+    }
+    .header {
+        background: rgba(15, 23, 42, 0.9);
+        padding: 24px 40px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        border-bottom: 2px solid rgba(56, 189, 248, 0.35);
+    }
+    .logo-img {
+        height: 64px;
+    }
+    .header-title {
+        font-size: 2em;
+        font-weight: bold;
+    }
+    .header-subtitle {
+        font-size: 0.9em;
+        color: #94a3b8;
+    }
+    .container {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    .form-section {
+        background: rgba(15, 23, 42, 0.95);
+        padding: 30px;
+        border-radius: 16px;
+        border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    .input-field {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #38bdf8;
+        background: #020617;
+        color: white;
+    }
+    .btn {
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
+        padding: 12px 22px;
+        border-radius: 10px;
+        border: none;
+        color: white;
+        cursor: pointer;
+        margin-top: 12px;
+        font-weight: 600;
+    }
+    .btn:hover {
+        filter: brightness(1.2);
+    }
+    table {
+        width: 100%;
+    }
+    td {
+        padding: 10px;
+    }
+    .error-messages {
+        color: #f87171;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: rgba(248, 113, 113, 0.1);
+        border-radius: 8px;
+    }
+    </style>
 </h:head>
-
 <h:body>
-
 <!-- HEADER -->
 <div class="header">
-
-<h:graphicImage name="logo.png"
-                library="images"
-                styleClass="logo-img"/>
-
-<div>
-    <div class="header-title">AirLume Lightning Prediction</div>
-    <div class="header-subtitle">
-        Physics-Based Aircraft Lightning Strike Risk Analysis
+    <h:graphicImage name="logo.png"
+                    library="images"
+                    styleClass="logo-img"/>
+    <div>
+        <div class="header-title">AirLume Lightning Prediction</div>
+        <div class="header-subtitle">
+            Physics-Based Aircraft Lightning Strike Risk Analysis
+        </div>
     </div>
 </div>
 
-</div>
-
 <div class="container">
-
 <div class="form-section">
 
 <h2>Flight Route Analysis</h2>
 
-<h:form>
+<h:form id="analysisForm">
+    
+    <!-- SHOW VALIDATION ERRORS -->
+    <h:messages styleClass="error-messages" globalOnly="true"/>
 
 <table>
-
 <tr>
-<td>Origin Airport</td>
+<td>Origin Airport (ICAO)</td>
 <td>
-<h:inputText value="#{flightController.origin}"
+<h:inputText id="origin"
+             value="#{flightController.origin}"
              styleClass="input-field"
-             p:placeholder="CYOW"
-             required="true"/>
+             required="true"
+             requiredMessage="Origin airport is required"
+             validatorMessage="Please enter a valid ICAO code (e.g., CYOW)">
+    <f:passThroughAttribute name="placeholder" value="CYOW"/>
+    <f:validateLength minimum="4" maximum="4"/>
+</h:inputText>
 </td>
 </tr>
 
 <tr>
-<td>Destination Airport</td>
+<td>Destination Airport (ICAO)</td>
 <td>
-<h:inputText value="#{flightController.destination}"
+<h:inputText id="destination"
+             value="#{flightController.destination}"
              styleClass="input-field"
-             p:placeholder="CYYZ"
-             required="true"/>
+             required="true"
+             requiredMessage="Destination airport is required"
+             validatorMessage="Please enter a valid ICAO code (e.g., CYYZ)">
+    <f:passThroughAttribute name="placeholder" value="CYYZ"/>
+    <f:validateLength minimum="4" maximum="4"/>
+</h:inputText>
 </td>
 </tr>
 
 <tr>
 <td>Flight Level</td>
 <td>
-<h:selectOneMenu value="#{flightController.flightLevel}"
+<h:selectOneMenu id="flightLevel"
+                 value="#{flightController.flightLevel}"
                  styleClass="input-field">
-<f:selectItem itemValue="0" itemLabel="Ground"/>
-<f:selectItem itemValue="200" itemLabel="FL200"/>
-<f:selectItem itemValue="300" itemLabel="FL300"/>
-<f:selectItem itemValue="350" itemLabel="FL350"/>
-<f:selectItem itemValue="400" itemLabel="FL400"/>
+    <f:selectItem itemValue="0" itemLabel="Ground Level"/>
+    <f:selectItem itemValue="200" itemLabel="FL200 (20,000 ft)"/>
+    <f:selectItem itemValue="300" itemLabel="FL300 (30,000 ft)"/>
+    <f:selectItem itemValue="350" itemLabel="FL350 (35,000 ft)"/>
+    <f:selectItem itemValue="400" itemLabel="FL400 (40,000 ft)"/>
 </h:selectOneMenu>
 </td>
 </tr>
@@ -191,10 +159,11 @@ td {
                  action="#{flightController.analyzeRoute}"
                  styleClass="btn"/>
 
+
 <h:button value="Visualize Route"
           outcome="route-visualization"
           styleClass="btn"
-          style="margin-left:10px; background: purple"/>
+          style="margin-left:10px; background: linear-gradient(135deg, #7c3aed, #4f46e5);"/>
 
 </td>
 </tr>
@@ -202,6 +171,61 @@ td {
 </table>
 
 </h:form>
+
+<!-- ERROR DISPLAY -->
+<h:panelGroup rendered="#{not empty flightController.errorMessage}">
+    <div style="margin-top: 20px; padding: 20px; background: rgba(239, 68, 68, 0.15); border-left: 4px solid #ef4444; border-radius: 10px; color: #fca5a5;">
+        <strong>⚠️ Error:</strong> #{flightController.errorMessage}
+    </div>
+</h:panelGroup>
+
+<!-- SUCCESS RESULTS -->
+<h:panelGroup rendered="#{flightController.analysisComplete}">
+    <div style="margin-top: 20px; padding: 20px; background: rgba(34, 197, 94, 0.15); border-left: 4px solid #22c55e; border-radius: 10px;">
+        
+        <h3 style="color: #86efac; margin-bottom: 15px;">Lightning Risk Assessment Results</h3>
+        
+        <p style="margin-bottom: 10px;">
+            <strong>Weather:</strong> 
+            #{flightController.analysis.temperature}°C | 
+            #{flightController.analysis.humidity}% | 
+            #{flightController.analysis.pressure} hPa | 
+            Wind: #{flightController.analysis.windSpeed} m/s
+        </p>
+        
+        <p style="margin-bottom: 10px;">
+            <strong>Lightning Probability:</strong> #{flightController.analysis.lightningProbability}%
+        </p>
+        
+        <p style="margin-bottom: 10px;">
+            <strong>Risk Level:</strong> 
+            <span style="color: #{flightController.analysis.riskLevel == 'HIGH' ? '#fca5a5' : (flightController.analysis.riskLevel == 'MEDIUM' ? '#fdba74' : '#86efac')}; font-weight: bold;">
+                #{flightController.analysis.riskLevel}
+            </span>
+        </p>
+        
+        <p style="margin-bottom: 10px;">
+            <strong>Status:</strong> #{flightController.analysis.safetyStatus}
+        </p>
+        
+        <p style="margin-bottom: 10px;">
+            <strong>Recommendation:</strong> #{flightController.analysis.recommendation}
+        </p>
+        
+        <h:panelGroup rendered="#{flightController.analysis.newFlightLevel != null}">
+            <p style="margin-bottom: 10px;">
+                <strong>Suggested Flight Level:</strong> #{flightController.analysis.newFlightLevel}
+            </p>
+        </h:panelGroup>
+        
+        <h:panelGroup rendered="#{flightController.analysis.alternateAirport != null}">
+            <p style="margin-bottom: 10px;">
+                <strong>Alternate Airport:</strong> #{flightController.analysis.alternateAirport}
+            </p>
+        </h:panelGroup>
+        
+    </div>
+</h:panelGroup>
 
 </div>
 </div>
