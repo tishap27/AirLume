@@ -1,6 +1,10 @@
-Add: E-field CSV converter for real ML training data
+feat: connect JSF frontend to React globe via URL params and fix CORS
+- Add openGlobe() method to FlightController to redirect to React app
+  with origin, destination, flightLevel as URL params
+- Update App.jsx to read URL params on mount (URLSearchParams)
 
-- Converts airlume_usa_efield_100.csv -> training_data_real.csv
-- Creates physics predictions + actual lightning labels from USA measurements
-- Enables training ML on production E-field sensor data
-- No changes to existing train_ml_model.py or ml_enhancer.py workflow"
+CORS fixes:
+- Add CorsFilter.java - appends CORS headers to all responses
+- Add CorsPreflightResource.java - handles OPTIONS preflight requests
+- Add ApplicationConfig.java with @ApplicationPath("resources") to
+  register all JAX-RS resources and providers

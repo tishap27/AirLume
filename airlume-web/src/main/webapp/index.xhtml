@@ -160,11 +160,10 @@
                  styleClass="btn"/>
 
 
-<h:button value="Visualize Route"
-          outcome="route-visualization"
-          styleClass="btn"
-          style="margin-left:10px; background: linear-gradient(135deg, #7c3aed, #4f46e5);"/>
-
+<h:commandButton value="Visualize Route"
+                 styleClass="btn"
+                 style="margin-left:10px; background: linear-gradient(135deg, #7c3aed, #4f46e5);"
+                 action="#{flightController.openGlobe}"/>
 </td>
 </tr>
 

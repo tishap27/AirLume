@@ -506,10 +506,23 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
 }
 
 export default function App() {
-  const [origin, setOrigin]           = useState("CYOW");
-  const [destination, setDestination] = useState("CYYZ");
+  // Read ICAO codes from URL params (passed by JSF redirect)
+  // e.g. http://localhost:3000?origin=CYOW&destination=CYYZ
+  const params   = new URLSearchParams(window.location.search);
+  const initOrigin = params.get("origin")      || "CYOW";
+  const initDest   = params.get("destination") || "CYYZ";
+  const autoAnalyze = !!(params.get("origin") && params.get("destination"));
+
+  const [origin,      setOrigin]      = useState(initOrigin);
+  const [destination, setDestination] = useState(initDest);
+
   return (
-    <GlobeFlight origin={origin} destination={destination}
-      onOriginChange={setOrigin} onDestinationChange={setDestination} />
+    <GlobeFlight
+      origin={origin}
+      destination={destination}
+      onOriginChange={setOrigin}
+      onDestinationChange={setDestination}
+      autoAnalyze={autoAnalyze}
+    />
   );
 }
