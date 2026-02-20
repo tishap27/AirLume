@@ -432,12 +432,26 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
       background: "linear-gradient(160deg, #000d1a 0%, #001a2e 50%, #000814 100%)",
       minHeight: "100vh", fontFamily: "'Segoe UI', system-ui, sans-serif",
     }}>
+      <img 
+        src="/textures/logo.png" 
+        alt="AirLume" 
+        style={{ height: 60, width: "auto" }}
+       
+      />
       <h1 style={{
         textAlign: "center", fontSize: "2rem", fontWeight: 700,
         letterSpacing: "0.04em", marginBottom: 24,
         background: "linear-gradient(90deg, #00e0ff, #ffffff, #00e0ff)",
         WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
       }}>
+       <div style={{
+      display: "flex", alignItems: "center", justifyContent: "center",
+      gap: 20, padding: "25px 40px", background: "#0f172a",
+      borderRadius: "20px 20px 0 0", borderBottom: "2px solid #1e293b",
+      marginBottom: 8, boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+    }}>
+      
+      </div>
         ✈ AirLume Global Route Analyzer
       </h1>
 

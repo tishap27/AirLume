@@ -261,7 +261,7 @@ body::before{
 
 <h:body>
 
-<!-- Background Layers -->
+<!-- Background Layers  -->
 <div class="atmosphere-grid"></div>
 
 <div class="flight-paths">
@@ -286,7 +286,7 @@ body::before{
 <!-- HEADER -->
 <div class="app-header">
 <div class="header-content">
-<h:graphicImage name="logo.png" library="images" styleClass="logo-img"/>
+<img src="#{resource['images:logo.png']}" class="logo-img" alt="Logo"/>
 <div class="title-section">
 <h1>AirLume Lightning Prediction System</h1>
 <p>Aircraft Lightning Strike Risk Assessment</p>
@@ -353,7 +353,7 @@ body::before{
 </div>
 
 <!-- VISUAL AREA -->
-<div class="viz-area">
+
 
 <h:panelGroup rendered="#{flightController.analysisComplete}">
 
