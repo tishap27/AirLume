@@ -137,13 +137,11 @@ python python_src/weather.py --point 45.3225 -75.6692
 
 ## Contributing
 
-This is an academic project for ENG4002 - Project for Entrepreneurs course.
+ Project for Entrepreneurs
 
 ## Contact
 
 **Tisha Patel**
 - **GitHub:** [@tishap27](https://github.com/tishap27)
 - **Email:** tishaapatel08@gmail.com
-
-Done
 
