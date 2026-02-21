@@ -236,7 +236,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
 
     const angDist  = startVec.angleTo(endVec);
     const zoomDist = THREE.MathUtils.clamp(
-      EARTH_RADIUS + 1.5 + (angDist / Math.PI) * 12,
+      EARTH_RADIUS + 0.8 + (angDist / Math.PI) * 7,
       EARTH_RADIUS + 2, 20
     );
 
