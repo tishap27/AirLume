@@ -77,7 +77,203 @@ const smoothstep = (t) => t * t * (3 - 2 * t);
    COMPONENT
 ================================ */
 
-function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange }) {
+/* ================================
+   ANALYSIS RESULTS PANEL
+================================ */
+
+const riskHex = (risk) => "#" + riskColor(risk).toString(16).padStart(6, "0");
+
+const riskBg = (risk) => {
+  switch ((risk || "").toUpperCase()) {
+    case "CRITICAL": return "rgba(255,59,48,0.12)";
+    case "HIGH":     return "rgba(255,149,0,0.12)";
+    case "MODERATE": return "rgba(255,204,0,0.12)";
+    case "LOW":      return "rgba(52,199,89,0.12)";
+    default:         return "rgba(255,255,255,0.06)";
+  }
+};
+
+const recStyle = (risk) => {
+  const map = {
+    LOW:      { bg: "rgba(52,199,89,0.08)",  border: "rgba(52,199,89,0.35)",  icon: "✅" },
+    MODERATE: { bg: "rgba(255,204,0,0.08)",  border: "rgba(255,204,0,0.35)",  icon: "⚠️" },
+    HIGH:     { bg: "rgba(255,149,0,0.08)",  border: "rgba(255,149,0,0.35)",  icon: "🚨" },
+    CRITICAL: { bg: "rgba(255,59,48,0.08)",  border: "rgba(255,59,48,0.35)",  icon: "🛑" },
+  };
+  return map[(risk || "").toUpperCase()] || map.LOW;
+};
+
+function AnalysisPanel({ analysis, origin, destination }) {
+  const rec = recStyle(analysis.riskLevel);
+
+  const statCard = (label, value, unit = "") => (
+    <div style={{
+      background: "rgba(15,23,42,0.8)",
+      border: "1px solid rgba(56,189,248,0.15)",
+      borderRadius: 14, padding: "22px 18px", textAlign: "center",
+    }}>
+      <div style={{ fontSize: "0.72em", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 }}>{label}</div>
+      <div style={{ fontSize: "2em", fontWeight: 700, color: riskHex(analysis.riskLevel) }}>
+        {value}<span style={{ fontSize: "0.5em", color: "#94a3b8", marginLeft: 3 }}>{unit}</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ marginTop: 32, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+
+      {/* ── Route header ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginBottom: 28 }}>
+        {[origin, destination].map((code, i) => (
+          <React.Fragment key={i}>
+            {i === 1 && <span style={{ fontSize: "1.8em", color: "#475569" }}>→</span>}
+            <div style={{
+              background: "rgba(14,165,233,0.1)", border: "1px solid rgba(14,165,233,0.35)",
+              padding: "12px 28px", borderRadius: 12,
+              fontFamily: "monospace", fontSize: "1.8em", fontWeight: 700,
+              color: "#38bdf8", letterSpacing: 4,
+            }}>{code}</div>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Distance / waypoint count */}
+      {analysis.totalDistance > 0 && (
+        <div style={{ textAlign: "center", color: "#64748b", fontSize: "0.88em", marginBottom: 24 }}>
+          <span style={{ color: "#94a3b8", fontWeight: 600 }}>Total Distance:</span> {analysis.totalDistance} km
+          &nbsp;|&nbsp;
+          <span style={{ color: "#94a3b8", fontWeight: 600 }}>Waypoints:</span> {analysis.waypointCount}
+        </div>
+      )}
+
+      {/* ── Stats row ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 28 }}>
+        {statCard("⚡ Lightning Risk", `${parseFloat(analysis.lightningProbability).toFixed(1)}`, "%")}
+        <div style={{
+          background: "rgba(15,23,42,0.8)",
+          border: "1px solid rgba(56,189,248,0.15)",
+          borderRadius: 14, padding: "22px 18px", textAlign: "center",
+        }}>
+          <div style={{ fontSize: "0.72em", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 }}>📊 Risk Level</div>
+          <div style={{ fontSize: "1.6em", fontWeight: 700, color: riskHex(analysis.riskLevel) }}>{analysis.riskLevel}</div>
+        </div>
+        <div style={{
+          background: "rgba(15,23,42,0.8)",
+          border: "1px solid rgba(56,189,248,0.15)",
+          borderRadius: 14, padding: "22px 18px", textAlign: "center",
+        }}>
+          <div style={{ fontSize: "0.72em", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 }}>🛡️ Safety</div>
+          <div style={{ fontSize: "1.1em", fontWeight: 700, color: "#e2e8f0" }}>{analysis.safetyStatus}</div>
+        </div>
+        {analysis.averageRisk > 0 && statCard("📈 Avg Risk", `${parseFloat(analysis.averageRisk).toFixed(1)}`, "%")}
+      </div>
+
+      {/* ── Weather panel ── */}
+      <div style={{
+        background: "rgba(14,165,233,0.06)", border: "1px solid rgba(14,165,233,0.18)",
+        borderRadius: 16, padding: 24, marginBottom: 28,
+      }}>
+        <div style={{ fontSize: "0.85em", fontWeight: 700, color: "#38bdf8", marginBottom: 16 }}>🌤 Current Weather Conditions</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px,1fr))", gap: 12 }}>
+          {[
+            { icon: "🌡️", value: `${parseFloat(analysis.temperature).toFixed(1)}°C`, label: "Temperature" },
+            { icon: "💧", value: `${parseFloat(analysis.humidity).toFixed(1)}%`,    label: "Humidity" },
+            { icon: "📊", value: `${parseFloat(analysis.pressure).toFixed(0)}`,     label: "Pressure hPa" },
+            { icon: "💨", value: `${parseFloat(analysis.windSpeed).toFixed(1)} m/s`, label: "Wind Speed" },
+          ].map(({ icon, value, label }) => (
+            <div key={label} style={{
+              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: 10, padding: "16px 12px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: "1.6em", marginBottom: 6 }}>{icon}</div>
+              <div style={{ fontSize: "1.25em", fontWeight: 700, color: "#e2e8f0" }}>{value}</div>
+              <div style={{ fontSize: "0.7em", color: "#64748b", textTransform: "uppercase", marginTop: 4 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Suggestions ── */}
+      {analysis.newFlightLevel && (
+        <div style={{
+          background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.3)",
+          borderRadius: 10, padding: "14px 18px", marginBottom: 16, fontSize: "0.9em", color: "#c4b5fd",
+        }}>
+          ✈ <strong>Suggested Flight Level:</strong> {analysis.newFlightLevel}
+        </div>
+      )}
+      {analysis.alternateAirport && (
+        <div style={{
+          background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.3)",
+          borderRadius: 10, padding: "14px 18px", marginBottom: 24, fontSize: "0.9em", color: "#c4b5fd",
+        }}>
+          🔀 <strong>Alternate Airport:</strong> {analysis.alternateAirport}
+        </div>
+      )}
+
+      {/* ── Recommendation ── */}
+      <div style={{
+        background: rec.bg, border: `1px solid ${rec.border}`,
+        borderRadius: 14, padding: "24px 28px", textAlign: "center", marginBottom: 28,
+      }}>
+        <div style={{ fontSize: "2.2em", marginBottom: 10 }}>{rec.icon}</div>
+        <div style={{ fontSize: "0.95em", lineHeight: 1.7, color: "#cbd5e1" }}>{analysis.recommendation}</div>
+      </div>
+
+      {/* ── Waypoint cards ── */}
+      {analysis.waypoints?.length > 0 && (
+        <div style={{
+          background: "rgba(15,23,42,0.6)", border: "1px solid rgba(56,189,248,0.1)",
+          borderRadius: 16, padding: 24, marginBottom: 24,
+        }}>
+          <div style={{ fontSize: "0.85em", fontWeight: 700, color: "#38bdf8", marginBottom: 16 }}>
+            📍 Waypoint Analysis ({analysis.waypoints.length} points)
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px,1fr))", gap: 12 }}>
+            {analysis.waypoints.map((wp, i) => (
+              <div key={i} style={{
+                background: riskBg(wp.riskLevel || wp.risk),
+                borderLeft: `4px solid ${riskHex(wp.riskLevel || wp.risk)}`,
+                borderRadius: "0 10px 10px 0", padding: "14px 16px",
+              }}>
+                <div style={{ fontWeight: 700, color: "#e2e8f0", marginBottom: 8 }}>
+                  {wp.name || `Waypoint ${wp.number || i + 1}`}
+                </div>
+                {wp.distanceKm != null && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.83em", color: "#94a3b8", marginBottom: 4 }}>
+                    <span>Distance</span><strong style={{ color: "#e2e8f0" }}>{wp.distanceKm} km</strong>
+                  </div>
+                )}
+                {wp.riskPercent != null && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.83em", color: "#94a3b8", marginBottom: 4 }}>
+                    <span>Lightning Risk</span><strong style={{ color: "#e2e8f0" }}>{parseFloat(wp.riskPercent).toFixed(1)}%</strong>
+                  </div>
+                )}
+                {wp.latitude != null && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8em", color: "#64748b", marginBottom: 4 }}>
+                    <span>Position</span>
+                    <span>{parseFloat(wp.latitude).toFixed(2)}°, {parseFloat(wp.longitude).toFixed(2)}°</span>
+                  </div>
+                )}
+                <span style={{
+                  display: "inline-block", marginTop: 8, padding: "2px 10px", borderRadius: 20,
+                  background: riskBg(wp.riskLevel || wp.risk),
+                  color: riskHex(wp.riskLevel || wp.risk),
+                  border: `1px solid ${riskHex(wp.riskLevel || wp.risk)}`,
+                  fontSize: "0.75em", fontWeight: 700,
+                }}>
+                  {wp.riskLevel || wp.risk || "UNKNOWN"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange, autoAnalyze }) {
   const mountRef     = useRef(null);
   const sceneRef     = useRef();
   const cameraRef    = useRef();
@@ -220,6 +416,18 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
   }, []);
 
   /* ================================
+     AUTO-ANALYZE (when launched from JSF with URL params)
+  ================================ */
+  useEffect(() => {
+    if (!autoAnalyze) return;
+    // Wait for Three.js scene to be ready before triggering
+    const timer = setTimeout(() => {
+      handleSubmit();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [autoAnalyze]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ================================
      CAMERA FLY-TO
      startVec / endVec are in world
      space (from latLonToVec3, no rotation applied)
@@ -232,12 +440,13 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
     const mid = new THREE.Vector3()
       .copy(startVec).lerp(endVec, 0.5)
       .normalize()
-      .multiplyScalar(EARTH_RADIUS * 0.6);
+      .multiplyScalar(EARTH_RADIUS * 0.1); // near center of earth = camera looks at route midpoint on surface
 
     const angDist  = startVec.angleTo(endVec);
+    // Much tighter zoom — short routes (CYOW-CYYZ) get very close, long routes stay reasonable
     const zoomDist = THREE.MathUtils.clamp(
       EARTH_RADIUS + 0.8 + (angDist / Math.PI) * 7,
-      EARTH_RADIUS + 2, 20
+      EARTH_RADIUS + 1.2, 14
     );
 
     const camPos = mid.clone().normalize().multiplyScalar(zoomDist);
@@ -248,7 +457,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
       fromTarget: controls.target.clone(),
       toTarget:   mid.clone(),
       startTime:  Date.now(),
-      duration:   1800,
+      duration:   2200,
     };
   };
 
@@ -284,29 +493,79 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
     /* Fly camera to face the route */
     flyToRoute(startPt, endPt);
 
-    /* Route arc */
-    const routeLine = new THREE.Line(
+    /* Route arc — three layered lines for a glowing effect */
+    // Outer glow (wide, dim)
+    const glowLine = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(curvePoints),
-      new THREE.LineBasicMaterial({ color: 0x00e0ff })
+      new THREE.LineBasicMaterial({ color: 0x0044aa, transparent: true, opacity: 0.25 })
     );
-    overlay.add(routeLine);
+    overlay.add(glowLine);
 
-    /* Airport markers */
+    // Mid glow
+    const midLine = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(curvePoints),
+      new THREE.LineBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.55 })
+    );
+    overlay.add(midLine);
+
+    // Core bright line
+    const coreLine = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(curvePoints),
+      new THREE.LineBasicMaterial({ color: 0x00eeff, transparent: true, opacity: 1.0 })
+    );
+    overlay.add(coreLine);
+
+    // Dashed overlay — every other segment to create dash effect
+    const dashedPts = [];
+    for (let i = 0; i < curvePoints.length - 1; i++) {
+      if (Math.floor(i / 6) % 2 === 0) {
+        dashedPts.push(curvePoints[i], curvePoints[i + 1]);
+      }
+    }
+    const dashedGeo = new THREE.BufferGeometry().setFromPoints(dashedPts);
+    const dashedLine = new THREE.LineSegments(
+      dashedGeo,
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 })
+    );
+    overlay.add(dashedLine);
+
+    /* Airport markers — layered pin with glow rings */
     [[startPt, 0x00ff88], [endPt, 0xff4444]].forEach(([pos, col]) => {
+      // Core dot
       const dot = new THREE.Mesh(
-        new THREE.SphereGeometry(0.12, 16, 16),
+        new THREE.SphereGeometry(0.14, 20, 20),
         new THREE.MeshBasicMaterial({ color: col })
       );
       dot.position.copy(pos);
       overlay.add(dot);
 
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.15, 0.24, 32),
-        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+      // Inner ring
+      const ring1 = new THREE.Mesh(
+        new THREE.RingGeometry(0.18, 0.26, 40),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.7, side: THREE.DoubleSide })
       );
-      ring.position.copy(pos);
-      ring.lookAt(new THREE.Vector3(0, 0, 0));
-      overlay.add(ring);
+      ring1.position.copy(pos);
+      ring1.lookAt(new THREE.Vector3(0, 0, 0));
+      overlay.add(ring1);
+
+      // Outer pulse ring
+      const ring2 = new THREE.Mesh(
+        new THREE.RingGeometry(0.30, 0.36, 40),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
+      );
+      ring2.position.copy(pos);
+      ring2.lookAt(new THREE.Vector3(0, 0, 0));
+      overlay.add(ring2);
+
+      // Spike/pole pointing outward from surface
+      const spikeDir = pos.clone().normalize();
+      const spikeEnd = pos.clone().add(spikeDir.multiplyScalar(0.35));
+      const spikePts = [pos.clone(), spikeEnd];
+      const spike = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(spikePts),
+        new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.8 })
+      );
+      overlay.add(spike);
     });
 
     /* Animated plane */
@@ -432,20 +691,13 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
       background: "linear-gradient(160deg, #000d1a 0%, #001a2e 50%, #000814 100%)",
       minHeight: "100vh", fontFamily: "'Segoe UI', system-ui, sans-serif",
     }}>
-      <img 
-        src="/textures/logo.png" 
-        alt="AirLume" 
-        style={{ height: 60, width: "auto" }}
-       
-      />
       <h1 style={{
         textAlign: "center", fontSize: "2rem", fontWeight: 700,
         letterSpacing: "0.04em", marginBottom: 24,
         background: "linear-gradient(90deg, #00e0ff, #ffffff, #00e0ff)",
         WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
       }}>
-       
-        ✈ AirLume Route Analyzer
+        ✈ AirLume Global Route Analyzer
       </h1>
 
       <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
@@ -478,36 +730,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange 
         border: "1px solid rgba(0,224,255,0.1)",
       }} />
 
-      {analysis && (
-        <div style={{
-          marginTop: 24, padding: "20px 24px",
-          background: "rgba(0,224,255,0.05)",
-          border: "1px solid rgba(0,224,255,0.15)", borderRadius: 16,
-        }}>
-          <h2 style={{ margin: "0 0 12px", color: "#00e0ff", fontSize: "1.1rem" }}>
-            Route Analysis — {origin} → {destination}
-          </h2>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {analysis.waypoints?.map((wp, i) => (
-              <div key={i} style={{
-                padding: "8px 14px", background: "rgba(255,255,255,0.05)",
-                border: `1px solid ${wp.risk ? "#" + riskColor(wp.risk).toString(16).padStart(6,"0") : "rgba(255,255,255,0.1)"}`,
-                borderRadius: 8, fontSize: "0.82rem", color: "#ccc",
-              }}>
-                <strong style={{ color: "white" }}>{wp.name || `WP${i + 1}`}</strong>
-                {wp.risk && (
-                  <span style={{
-                    marginLeft: 8, padding: "2px 6px", borderRadius: 4,
-                    background: "#" + riskColor(wp.risk).toString(16).padStart(6,"0") + "33",
-                    color:      "#" + riskColor(wp.risk).toString(16).padStart(6,"0"),
-                    fontSize: "0.75rem", fontWeight: 700,
-                  }}>{wp.risk}</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {analysis && <AnalysisPanel analysis={analysis} origin={origin} destination={destination} />}
     </div>
   );
 }
