@@ -319,7 +319,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.minDistance   = 7;
+    controls.minDistance   = 6.0;
     controls.maxDistance   = 40;
     controlsRef.current = controls;
 
@@ -443,10 +443,13 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
       .multiplyScalar(EARTH_RADIUS * 0.1); // near center of earth = camera looks at route midpoint on surface
 
     const angDist  = startVec.angleTo(endVec);
-    // Much tighter zoom — short routes (CYOW-CYYZ) get very close, long routes stay reasonable
+    // Zoom scales aggressively with angular distance:
+    // Very short (CYOW-CYYZ ~0.05 rad) → zoom = ~5.8 (extremely tight)
+    // Medium (transatlantic ~1.2 rad)  → zoom = ~10
+    // Long (antipodal ~3 rad)          → zoom = ~14
     const zoomDist = THREE.MathUtils.clamp(
-      EARTH_RADIUS + 0.8 + (angDist / Math.PI) * 7,
-      EARTH_RADIUS + 1.2, 14
+      EARTH_RADIUS + 2.5 + (angDist / Math.PI) * 8,
+      EARTH_RADIUS + 2.5, 16
     );
 
     const camPos = mid.clone().normalize().multiplyScalar(zoomDist);
@@ -470,7 +473,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
      the overlay coords exactly match the earth surface
      at rotation.y = 0, which is where we lock the earth.
   ================================ */
-  const drawRoute = (oLat, oLon, dLat, dLon, waypointData) => {
+  const drawRoute = (oLat, oLon, dLat, dLon, waypointData, oCode = '', dCode = '') => {
     const overlay = overlayRef.current;
     const earth   = earthRef.current;
     if (!overlay || !earth) return;
@@ -493,110 +496,282 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
     /* Fly camera to face the route */
     flyToRoute(startPt, endPt);
 
-    /* Route arc — three layered lines for a glowing effect */
-    // Outer glow (wide, dim)
-    const glowLine = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(curvePoints),
-      new THREE.LineBasicMaterial({ color: 0x0044aa, transparent: true, opacity: 0.25 })
-    );
-    overlay.add(glowLine);
+    /* Route arc — gradient green→yellow→red segments */
+    // Build per-segment colored lines for gradient effect
+    const segCount = curvePoints.length - 1;
+    const arcPositions = [];
+    const arcColors    = [];
 
-    // Mid glow
-    const midLine = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(curvePoints),
-      new THREE.LineBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.55 })
-    );
-    overlay.add(midLine);
+    for (let i = 0; i < segCount; i++) {
+      const t  = i / segCount;
+      // green(0,230,118) → yellow(255,214,0) → red(255,59,48)
+      let r, g, b;
+      if (t < 0.5) {
+        const f = t * 2;
+        r = Math.round(0   + f * 255);
+        g = Math.round(230 - f * 16);
+        b = Math.round(118 - f * 118);
+      } else {
+        const f = (t - 0.5) * 2;
+        r = 255;
+        g = Math.round(214 - f * 214);
+        b = Math.round(0);
+      }
+      const col = new THREE.Color(r/255, g/255, b/255);
+      arcPositions.push(curvePoints[i], curvePoints[i + 1]);
+      arcColors.push(col.r, col.g, col.b, col.r, col.g, col.b);
+    }
 
-    // Core bright line
-    const coreLine = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(curvePoints),
-      new THREE.LineBasicMaterial({ color: 0x00eeff, transparent: true, opacity: 1.0 })
-    );
-    overlay.add(coreLine);
+    // Outer soft glow (uniform dark blue)
+    const glowGeo = new THREE.BufferGeometry().setFromPoints(curvePoints);
+    overlay.add(new THREE.Line(glowGeo,
+      new THREE.LineBasicMaterial({ color: 0x001a66, transparent: true, opacity: 0.4 })
+    ));
 
-    // Dashed overlay — every other segment to create dash effect
+    // Gradient core arc
+    const gradGeo = new THREE.BufferGeometry();
+    const flatPts = [];
+    arcPositions.forEach(v => flatPts.push(v.x, v.y, v.z));
+    gradGeo.setAttribute("position", new THREE.Float32BufferAttribute(flatPts, 3));
+    gradGeo.setAttribute("color",    new THREE.Float32BufferAttribute(arcColors, 3));
+    const gradMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95 });
+    overlay.add(new THREE.LineSegments(gradGeo, gradMat));
+
+    // Bright white dashed centerline overlay
     const dashedPts = [];
     for (let i = 0; i < curvePoints.length - 1; i++) {
-      if (Math.floor(i / 6) % 2 === 0) {
+      if (Math.floor(i / 8) % 2 === 0) {
         dashedPts.push(curvePoints[i], curvePoints[i + 1]);
       }
     }
-    const dashedGeo = new THREE.BufferGeometry().setFromPoints(dashedPts);
-    const dashedLine = new THREE.LineSegments(
-      dashedGeo,
-      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 })
-    );
-    overlay.add(dashedLine);
+    const dashedGeo = new THREE.BufferGeometry();
+    const dashedFlat = [];
+    dashedPts.forEach(v => dashedFlat.push(v.x, v.y, v.z));
+    dashedGeo.setAttribute("position", new THREE.Float32BufferAttribute(dashedFlat, 3));
+    overlay.add(new THREE.LineSegments(dashedGeo,
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 })
+    ));
 
-    /* Airport markers — layered pin with glow rings */
-    [[startPt, 0x00ff88], [endPt, 0xff4444]].forEach(([pos, col]) => {
-      // Core dot
-      const dot = new THREE.Mesh(
-        new THREE.SphereGeometry(0.14, 20, 20),
+    /* ── Airport markers with ICAO labels ── */
+    // ── Rounded rect helper ──
+    const roundRect = (ctx, x, y, w, h, r) => {
+      ctx.beginPath();
+      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+      ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+      ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+      ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+      ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+    };
+
+    // ── Airport pin: compact, clean ──
+    const makeAirportPin = (pos, col, icaoCode, isOrigin) => {
+      const outward  = pos.clone().normalize();
+      const hexCol   = "#" + col.toString(16).padStart(6, "0");
+      const poleH    = 0.14;
+      const poleTop  = pos.clone().add(outward.clone().multiplyScalar(poleH));
+
+      // Thin pole
+      overlay.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([pos.clone(), poleTop]),
+        new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.85 })
+      ));
+
+      // Small solid dot at surface
+      const baseDot = new THREE.Mesh(
+        new THREE.SphereGeometry(0.038, 14, 14),
         new THREE.MeshBasicMaterial({ color: col })
       );
-      dot.position.copy(pos);
-      overlay.add(dot);
+      baseDot.position.copy(pos);
+      overlay.add(baseDot);
 
-      // Inner ring
-      const ring1 = new THREE.Mesh(
-        new THREE.RingGeometry(0.18, 0.26, 40),
-        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.7, side: THREE.DoubleSide })
+      // Single thin pulse ring
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.065, 0.088, 40),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
       );
-      ring1.position.copy(pos);
-      ring1.lookAt(new THREE.Vector3(0, 0, 0));
-      overlay.add(ring1);
+      ring.position.copy(pos);
+      ring.lookAt(new THREE.Vector3(0,0,0));
+      overlay.add(ring);
 
-      // Outer pulse ring
-      const ring2 = new THREE.Mesh(
-        new THREE.RingGeometry(0.30, 0.36, 40),
-        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
-      );
-      ring2.position.copy(pos);
-      ring2.lookAt(new THREE.Vector3(0, 0, 0));
-      overlay.add(ring2);
+      // Label sprite — crisp, compact
+      const CW = 320, CH = 80;
+      const canvas = document.createElement("canvas");
+      canvas.width  = CW;
+      canvas.height = CH;
+      const ctx = canvas.getContext("2d");
 
-      // Spike/pole pointing outward from surface
-      const spikeDir = pos.clone().normalize();
-      const spikeEnd = pos.clone().add(spikeDir.multiplyScalar(0.35));
-      const spikePts = [pos.clone(), spikeEnd];
-      const spike = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(spikePts),
-        new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.8 })
+      // Dark glass background
+      ctx.fillStyle = "rgba(8,12,24,0.88)";
+      roundRect(ctx, 0, 0, CW, CH, 18);
+      ctx.fill();
+
+      // Colored left accent bar
+      ctx.fillStyle = hexCol;
+      roundRect(ctx, 0, 0, 10, CH, [18, 0, 0, 18]);
+      ctx.fill();
+
+      // Colored border
+      ctx.strokeStyle = hexCol + "99";
+      ctx.lineWidth = 2.5;
+      roundRect(ctx, 1, 1, CW-2, CH-2, 17);
+      ctx.stroke();
+
+      // ICAO code — large monospace
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 38px 'Courier New', monospace";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(icaoCode, 26, 34);
+
+      // Tiny tag pill (ORIGIN / DEST)
+      const tag = isOrigin ? "ORIGIN" : "DEST";
+      ctx.fillStyle = hexCol + "33";
+      roundRect(ctx, 22, 52, 80, 20, 6);
+      ctx.fill();
+      ctx.fillStyle = hexCol;
+      ctx.font = "bold 15px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(tag, 28, 62);
+
+      // Small dot indicator top-right
+      ctx.beginPath();
+      ctx.arc(CW - 22, 22, 7, 0, Math.PI * 2);
+      ctx.fillStyle = hexCol;
+      ctx.fill();
+
+      const tex = new THREE.CanvasTexture(canvas);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
+      // Offset labels laterally so they don't overlap on short routes
+      // Compute a "sideways" direction perpendicular to outward and world-up
+      const worldUp  = new THREE.Vector3(0, 1, 0);
+      const sideDir  = new THREE.Vector3().crossVectors(outward, worldUp).normalize();
+      const offset   = isOrigin ? 0.20 : -0.20;
+      const labelPos = pos.clone()
+        .add(outward.clone().multiplyScalar(poleH + 0.22))
+        .add(sideDir.clone().multiplyScalar(offset));
+      sprite.position.copy(labelPos);
+      sprite.scale.set(0.28, 0.075, 1);
+      overlay.add(sprite);
+    };
+
+    makeAirportPin(startPt, 0x00e676, oCode || 'ORIG', true);
+    makeAirportPin(endPt,   0xff4444, dCode || 'DEST', false);
+
+    /* ── Realistic plane: narrow fuselage, wide swept wings, proper tail ── */
+    const planeGroup = new THREE.Group();
+    const S = 0.12; // tiny plane — correct scale relative to globe
+
+    // Fuselage — slender tube, tapered at tail
+    const fuselage = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.018*S, 0.011*S, 0.30*S, 10),
+      new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.3, metalness: 0.6 })
+    );
+    planeGroup.add(fuselage);
+
+    // Nose — sharp cone
+    const nose = new THREE.Mesh(
+      new THREE.ConeGeometry(0.018*S, 0.09*S, 10),
+      new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.3, metalness: 0.6 })
+    );
+    nose.position.y = 0.195*S;
+    planeGroup.add(nose);
+
+    // Main wings — realistic swept delta shape
+    const W = new THREE.Shape();
+    W.moveTo( 0,       0.06*S);   // wing root leading edge
+    W.lineTo(-0.26*S, -0.05*S);   // left tip leading edge
+    W.lineTo(-0.22*S, -0.10*S);   // left tip trailing
+    W.lineTo( 0,      -0.02*S);   // wing root trailing
+    W.lineTo( 0.22*S, -0.10*S);
+    W.lineTo( 0.26*S, -0.05*S);
+    W.closePath();
+    const wings = new THREE.Mesh(
+      new THREE.ShapeGeometry(W),
+      new THREE.MeshStandardMaterial({ color: 0xe8f0ff, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide })
+    );
+    wings.rotation.x = Math.PI / 2;
+    wings.position.y = 0.02*S;
+    planeGroup.add(wings);
+
+    // Engine nacelles on wings
+    [-0.14*S, 0.14*S].forEach(xOff => {
+      const nacelle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.012*S, 0.010*S, 0.08*S, 8),
+        new THREE.MeshStandardMaterial({ color: 0x888ea8, roughness: 0.4, metalness: 0.7 })
       );
-      overlay.add(spike);
+      nacelle.position.set(xOff, 0.01*S, 0.02*S);
+      nacelle.rotation.z = Math.PI / 2;  // horizontal
+      planeGroup.add(nacelle);
     });
 
-    /* Animated plane */
-    const plane = new THREE.Mesh(
-      new THREE.ConeGeometry(0.1, 0.28, 16),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    // Vertical tail fin — taller, swept
+    const VT = new THREE.Shape();
+    VT.moveTo(0, 0);
+    VT.lineTo(0,      0.13*S);
+    VT.lineTo(-0.07*S, 0.04*S);
+    VT.lineTo(-0.06*S, 0);
+    VT.closePath();
+    const vTail = new THREE.Mesh(
+      new THREE.ShapeGeometry(VT),
+      new THREE.MeshStandardMaterial({ color: 0xe8f0ff, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide })
     );
-    overlay.add(plane);
+    vTail.position.y = -0.10*S;
+    planeGroup.add(vTail);
 
-    const trailMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 });
+    // Horizontal stabilizers — small & swept
+    const HT = new THREE.Shape();
+    HT.moveTo(0,       0.01*S);
+    HT.lineTo(-0.10*S,-0.03*S);
+    HT.lineTo(-0.08*S,-0.06*S);
+    HT.lineTo(0,      -0.01*S);
+    HT.lineTo( 0.08*S,-0.06*S);
+    HT.lineTo( 0.10*S,-0.03*S);
+    HT.closePath();
+    const hTail = new THREE.Mesh(
+      new THREE.ShapeGeometry(HT),
+      new THREE.MeshStandardMaterial({ color: 0xe8f0ff, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide })
+    );
+    hTail.rotation.x = Math.PI / 2;
+    hTail.position.y = -0.13*S;
+    planeGroup.add(hTail);
+
+    // Cockpit windows strip (dark tinted glass)
+    const cockpit = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.0195*S, 0.0195*S, 0.045*S, 10),
+      new THREE.MeshStandardMaterial({ color: 0x223355, roughness: 0.1, metalness: 0.9 })
+    );
+    cockpit.position.y = 0.155*S;
+    planeGroup.add(cockpit);
+
+    overlay.add(planeGroup);
+
+    // Fading blue contrail
+    const trailMat = new THREE.LineBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.45 });
     let progress = 0;
 
     const animatePlane = () => {
       planeAnimRef.current = requestAnimationFrame(animatePlane);
-      progress += 0.0009;
+      progress += 0.0007;
       if (progress > 1) progress = 0;
 
       const idx  = Math.floor(progress * (curvePoints.length - 1));
       const cur  = curvePoints[idx];
       const next = curvePoints[Math.min(idx + 1, curvePoints.length - 1)];
 
-      plane.position.copy(cur);
-      plane.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        new THREE.Vector3().subVectors(next, cur).normalize()
-      );
+      planeGroup.position.copy(cur);
 
-      /* Trail */
+      // Correct orientation: fuselage (Y) → flight direction, nose up relative to surface
+      const forward = new THREE.Vector3().subVectors(next, cur).normalize();
+      const surfaceUp = cur.clone().normalize();
+      const right = new THREE.Vector3().crossVectors(forward, surfaceUp).normalize();
+      const planeUp = new THREE.Vector3().crossVectors(right, forward).normalize();
+      const rotMat = new THREE.Matrix4().makeBasis(right, forward, planeUp);
+      planeGroup.quaternion.setFromRotationMatrix(rotMat);
+
+      // Blue contrail
       const oldTrail = overlay.getObjectByName("trail");
       if (oldTrail) overlay.remove(oldTrail);
-      const tPts = curvePoints.slice(Math.max(0, idx - 30), idx + 1);
+      const tPts = curvePoints.slice(Math.max(0, idx - 55), idx + 1);
       if (tPts.length > 1) {
         const trail = new THREE.Line(new THREE.BufferGeometry().setFromPoints(tPts), trailMat);
         trail.name = "trail";
@@ -629,7 +804,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
     const oInfo = AIRPORTS[origin];
     const dInfo = AIRPORTS[destination];
     if (oInfo && dInfo) {
-      drawRoute(oInfo.lat, oInfo.lon, dInfo.lat, dInfo.lon, null);
+      drawRoute(oInfo.lat, oInfo.lon, dInfo.lat, dInfo.lon, null, origin, destination);
       setHasRoute(true);
     }
 
@@ -644,9 +819,9 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
         if (wps.length >= 2) {
           drawRoute(wps[0].latitude, wps[0].longitude,
                     wps[wps.length - 1].latitude, wps[wps.length - 1].longitude,
-                    data.waypoints);
+                    data.waypoints, origin, destination);
         } else if (oInfo && dInfo) {
-          drawRoute(oInfo.lat, oInfo.lon, dInfo.lat, dInfo.lon, data.waypoints);
+          drawRoute(oInfo.lat, oInfo.lon, dInfo.lat, dInfo.lon, data.waypoints, origin, destination);
         }
       })
       .catch(err => setError(err.message))
