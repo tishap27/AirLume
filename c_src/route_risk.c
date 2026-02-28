@@ -43,7 +43,7 @@ int fetch_route_weather(FlightRoute* route, WeatherData* weather_array, int alti
     }
     
     write_waypoints_to_file(route);
-    printf("✓ Waypoints written to waypoints.txt\n");
+    printf(" Waypoints written to waypoints.txt\n");
     
     char command[512];
     
@@ -112,12 +112,12 @@ int fetch_route_weather(FlightRoute* route, WeatherData* weather_array, int alti
                 weather_array[wp_index].wind_speed = wind;
                 weather_array[wp_index].altitude = 30000.0;
                 
-                printf("  ✓ WP%d: %.1f°C, %.0f%%, %.0f hPa, %.1f m/s\n",
+                printf(" WP%d: %.1f°C, %.0f%%, %.0f hPa, %.1f m/s\n",
                        wp_index + 1, temp, hum, pres, wind);
                 
                 wp_index++;
             } else {
-                printf("  ✗ Failed to parse weather data\n");  // DEBUG
+                printf("  Failed to parse weather data\n");  // DEBUG
             }
         }
     }
