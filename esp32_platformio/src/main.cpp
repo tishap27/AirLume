@@ -4,7 +4,7 @@
 #include <TFT_eSPI.h>
 #include "config.h"
 
-// CRITICAL: Tell C code we're on ESP32
+
 #define ESP32_BUILD
 
 // Include C headers
@@ -44,7 +44,7 @@ RoutePoint waypoints[8];
 int currentWP = 0;
 int totalWP = 0;
 
-// ========== WIFI FUNCTIONS ==========
+//WIFI FUNCTIONS 
 
 bool connect_wifi(unsigned long timeout_ms = 15000) {
     Serial.println("Starting WiFi");
@@ -112,7 +112,7 @@ WeatherData fetch_weather(double lat, double lon) {
     return weather;
 }
 
-// ========== ROUTE CALCULATION ==========
+//ROUTE CALCULATION
 
 void calculateRoute() {
     Serial.println("Calculating route...");
@@ -159,7 +159,7 @@ void loadWaypointData(int wp) {
     Serial.printf("  Risk: %.1f%%\n", risk.lightning_probability);
 }
 
-// ========== LCD FUNCTIONS ==========
+//LCD FUNCTIONS
 
 void setupDisplay() {
     Serial.println("Init display...");
@@ -279,7 +279,7 @@ void updateDisplay() {
     drawControls();
 }
 
-// ========== BUTTON HANDLING ==========
+//BUTTON HANDLING
 
 void setupButtons() {
     pinMode(BTN_A, INPUT_PULLUP);
@@ -322,7 +322,7 @@ void handleButtons() {
     }
 }
 
-// ========== SETUP & LOOP ==========
+//SETUP & LOOP
 
 void setup() {
     Serial.begin(115200);
