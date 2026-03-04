@@ -26,19 +26,7 @@ const AIRPORTS = {
 /* ================================
    UTILITIES
 ================================ */
-
-/**
- * Standard spherical → cartesian.
- * lon=0 → +X axis, increases eastward.
- * This is the "textbook" mapping that matches a standard
- * equirectangular texture (lon 0 at center → seam at ±180).
- * THREE's SphereGeometry UV maps lon 0 (texture center-left)
- * to the +X side, so we just use the simple formula here
- * and let the earth mesh rotation handle orientation.
- */
 const latLonToVec3 = (lat, lon, r = EARTH_RADIUS) => {
-  // Matches Three.js SphereGeometry exactly: x=-sin(phi)*cos(theta), y=cos(phi), z=sin(phi)*sin(theta)
-  // With earthGroup.rotation.y = Math.PI, the NASA Blue Marble texture (lon0 at left edge) aligns perfectly
   const phi   = THREE.MathUtils.degToRad(90 - lat);
   const theta = THREE.MathUtils.degToRad(lon);
   return new THREE.Vector3(
@@ -73,14 +61,10 @@ const createGreatCircle = (start, end, segments = 200) => {
 
 const smoothstep = (t) => t * t * (3 - 2 * t);
 
-/* ================================
-   COMPONENT
-================================ */
 
 /* ================================
    ANALYSIS RESULTS PANEL
 ================================ */
-
 const riskHex = (risk) => "#" + riskColor(risk).toString(16).padStart(6, "0");
 
 const riskBg = (risk) => {
@@ -121,8 +105,6 @@ function AnalysisPanel({ analysis, origin, destination }) {
 
   return (
     <div style={{ marginTop: 32, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
-
-      {/* ── Route header ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginBottom: 28 }}>
         {[origin, destination].map((code, i) => (
           <React.Fragment key={i}>
@@ -137,7 +119,6 @@ function AnalysisPanel({ analysis, origin, destination }) {
         ))}
       </div>
 
-      {/* Distance / waypoint count */}
       {analysis.totalDistance > 0 && (
         <div style={{ textAlign: "center", color: "#64748b", fontSize: "0.88em", marginBottom: 24 }}>
           <span style={{ color: "#94a3b8", fontWeight: 600 }}>Total Distance:</span> {analysis.totalDistance} km
@@ -146,20 +127,17 @@ function AnalysisPanel({ analysis, origin, destination }) {
         </div>
       )}
 
-      {/* ── Stats row ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 28 }}>
         {statCard("⚡ Lightning Risk", `${parseFloat(analysis.lightningProbability).toFixed(1)}`, "%")}
         <div style={{
-          background: "rgba(15,23,42,0.8)",
-          border: "1px solid rgba(56,189,248,0.15)",
+          background: "rgba(15,23,42,0.8)", border: "1px solid rgba(56,189,248,0.15)",
           borderRadius: 14, padding: "22px 18px", textAlign: "center",
         }}>
           <div style={{ fontSize: "0.72em", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 }}>📊 Risk Level</div>
           <div style={{ fontSize: "1.6em", fontWeight: 700, color: riskHex(analysis.riskLevel) }}>{analysis.riskLevel}</div>
         </div>
         <div style={{
-          background: "rgba(15,23,42,0.8)",
-          border: "1px solid rgba(56,189,248,0.15)",
+          background: "rgba(15,23,42,0.8)", border: "1px solid rgba(56,189,248,0.15)",
           borderRadius: 14, padding: "22px 18px", textAlign: "center",
         }}>
           <div style={{ fontSize: "0.72em", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 }}>🛡️ Safety</div>
@@ -168,7 +146,6 @@ function AnalysisPanel({ analysis, origin, destination }) {
         {analysis.averageRisk > 0 && statCard("📈 Avg Risk", `${parseFloat(analysis.averageRisk).toFixed(1)}`, "%")}
       </div>
 
-      {/* ── Weather panel ── */}
       <div style={{
         background: "rgba(14,165,233,0.06)", border: "1px solid rgba(14,165,233,0.18)",
         borderRadius: 16, padding: 24, marginBottom: 28,
@@ -193,7 +170,6 @@ function AnalysisPanel({ analysis, origin, destination }) {
         </div>
       </div>
 
-      {/* ── Suggestions ── */}
       {analysis.newFlightLevel && (
         <div style={{
           background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.3)",
@@ -211,7 +187,6 @@ function AnalysisPanel({ analysis, origin, destination }) {
         </div>
       )}
 
-      {/* ── Recommendation ── */}
       <div style={{
         background: rec.bg, border: `1px solid ${rec.border}`,
         borderRadius: 14, padding: "24px 28px", textAlign: "center", marginBottom: 28,
@@ -220,7 +195,6 @@ function AnalysisPanel({ analysis, origin, destination }) {
         <div style={{ fontSize: "0.95em", lineHeight: 1.7, color: "#cbd5e1" }}>{analysis.recommendation}</div>
       </div>
 
-      {/* ── Waypoint cards ── */}
       {analysis.waypoints?.length > 0 && (
         <div style={{
           background: "rgba(15,23,42,0.6)", border: "1px solid rgba(56,189,248,0.1)",
@@ -273,18 +247,24 @@ function AnalysisPanel({ analysis, origin, destination }) {
   );
 }
 
+/* ================================
+   MAIN GLOBE COMPONENT
+================================ */
 function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange, autoAnalyze }) {
   const mountRef     = useRef(null);
   const sceneRef     = useRef();
   const cameraRef    = useRef();
   const rendererRef  = useRef();
   const controlsRef  = useRef();
-  const earthRef     = useRef();       // the earth GROUP (spins)
-  const overlayRef   = useRef();       // static group — markers live here, never spins
+  const earthRef     = useRef();
+  const overlayRef   = useRef();
   const animRef      = useRef();
-  const planeAnimRef = useRef();
   const spinRef      = useRef(true);
   const flyRef       = useRef(null);
+
+  // Plane HTML overlay (avoids all WebGL blending issues)
+  const planeElRef    = useRef(null);   // the <div> element
+  const planeRouteRef = useRef(null);   // { points[], progress }
 
   const [analysis, setAnalysis] = useState(null);
   const [error,    setError]    = useState(null);
@@ -292,30 +272,35 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
   const [hasRoute, setHasRoute] = useState(false);
 
   /* ================================
-     INIT SCENE
+     INIT THREE.JS SCENE
   ================================ */
   useEffect(() => {
     const mount  = mountRef.current;
-    const width  = mount.clientWidth;
+    const width  = mount.parentElement?.clientWidth || mount.clientWidth || 800;
     const height = 600;
 
+    /* Scene */
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000814);
     sceneRef.current = scene;
 
+    /* Camera */
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 0, 14);
     cameraRef.current = camera;
 
+    /* Renderer */
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.outputColorSpace    = THREE.SRGBColorSpace;
-    renderer.toneMapping         = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMapping         = THREE.NoToneMapping;      // no tone mapping = no blowout ever
+    renderer.toneMappingExposure = 1.0;
+    renderer.setClearColor(0x000814, 1);                     // explicit opaque dark clear — never goes white
     rendererRef.current = renderer;
     mount.appendChild(renderer.domElement);
 
+    /* Controls */
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
@@ -339,50 +324,70 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
     starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
     scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.18, sizeAttenuation: true })));
 
-    /* Earth GROUP — only this spins */
+    /* Earth group (spins) */
     const earthGroup = new THREE.Group();
-    earthGroup.rotation.y = Math.PI; // NASA Blue Marble: lon=0 is at texture LEFT edge, not center
+    earthGroup.rotation.y = Math.PI;
     scene.add(earthGroup);
     earthRef.current = earthGroup;
 
     const earthMesh = new THREE.Mesh(
       new THREE.SphereGeometry(EARTH_RADIUS, 128, 128),
-      new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0x1a6b4a, roughness: 0.55, metalness: 0 })
     );
     earthGroup.add(earthMesh);
 
-    new THREE.TextureLoader().load(
-      "/textures/earth1.jpeg",
-      (tex) => {
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-        earthMesh.material.map = tex;
+    // Try local texture first, fall back to Three.js CDN, then solid color
+    const tryLoadTexture = (urls, idx = 0) => {
+      if (idx >= urls.length) {
+        earthMesh.material.color.set(0x1a6b4a);
+        earthMesh.material.roughness = 0.8;
         earthMesh.material.needsUpdate = true;
-      },
-      undefined,
-      () => { earthMesh.material.color.set(0x1a6b4a); earthMesh.material.needsUpdate = true; }
-    );
+        return;
+      }
+      new THREE.TextureLoader().load(
+        urls[idx],
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          earthMesh.material.map = tex;
+          earthMesh.material.color.set(0xffffff); // reset so texture shows full color
+          earthMesh.material.needsUpdate = true;
+        },
+        undefined,
+        () => tryLoadTexture(urls, idx + 1)
+      );
+    };
+    tryLoadTexture([
+      "/textures/earth1.jpeg",
+      "/earth.jpg",
+      "https://threejs.org/examples/textures/planets/earth_daymap.jpg",
+      "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_daymap.jpg",
+    ]);
 
-    /* Atmosphere (part of earthGroup so it doesn't matter, it's symmetric) */
-    earthGroup.add(new THREE.Mesh(
-      new THREE.SphereGeometry(EARTH_RADIUS + 0.18, 64, 64),
-      new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.12 })
-    ));
-    scene.add(new THREE.Mesh(
-      new THREE.SphereGeometry(EARTH_RADIUS + 0.45, 64, 64),
-      new THREE.MeshBasicMaterial({ color: 0x2255cc, transparent: true, opacity: 0.04, side: THREE.BackSide })
-    ));
+    /* No atmosphere sphere — transparent meshes corrupt the depth buffer */
 
-    /* OVERLAY GROUP — NEVER rotates. Markers and routes go here. */
+
+    /* Overlay group (never rotates — markers & plane live here) */
     const overlay = new THREE.Group();
     scene.add(overlay);
     overlayRef.current = overlay;
 
-    /* Main loop */
+    /* Plane is rendered as an HTML <div> over the canvas.
+       This completely avoids WebGL alpha/depth blending issues.
+       The animate loop projects the world position to screen coords
+       and moves the div each frame. */
+
+    /* ── animate loop ── */
+    const REFERENCE_DIST = 14;
+    const BASE_PX        = 48;
+
     const animate = () => {
       animRef.current = requestAnimationFrame(animate);
+
+      /* Earth auto-spin */
       if (spinRef.current) earthGroup.rotation.y += 0.0006;
 
+      /* Smooth camera fly */
       const fly = flyRef.current;
       if (fly) {
         const t = Math.min((Date.now() - fly.startTime) / fly.duration, 1);
@@ -392,11 +397,68 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
         if (t >= 1) flyRef.current = null;
       }
 
+      /* ── Plane HTML overlay: advance position + project to screen ── */
+      const route   = planeRouteRef.current;
+      const planeEl = planeElRef.current;
+
+      if (route && planeEl) {
+        route.progress = (route.progress + 0.00018) % 1;
+
+        const pts  = route.points;
+        const rawI = route.progress * (pts.length - 1);
+        const i0   = Math.floor(rawI);
+        const i1   = Math.min(i0 + 1, pts.length - 1);
+        const frac = rawI - i0;
+
+        const pos = new THREE.Vector3().lerpVectors(pts[i0], pts[i1], frac);
+
+        // Project world → NDC → pixels
+        const ndc    = pos.clone().project(camera);
+        const canvas = renderer.domElement;
+        const px     = ( ndc.x * 0.5 + 0.5) * canvas.clientWidth;
+        const py     = (-ndc.y * 0.5 + 0.5) * canvas.clientHeight;
+
+        // Hide if behind the globe (ndc.z > 1 means behind camera/clipped)
+        const behindGlobe = pos.length() < EARTH_RADIUS - 0.1 || ndc.z > 1;
+        planeEl.style.display = behindGlobe ? "none" : "block";
+        planeEl.style.left    = px + "px";
+        planeEl.style.top     = py + "px";
+
+        // Rotation: point nose toward direction of travel in screen space
+        if (i0 < pts.length - 1) {
+          const a  = pos.clone().project(camera);
+          const b  = pts[i1].clone().project(camera);
+          const deg = Math.atan2(b.x - a.x, -(b.y - a.y)) * 180 / Math.PI;
+          planeEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
+        }
+
+        // FR24-style scale: proportional to camera distance
+        const camDist  = camera.position.length();
+        const scale    = camDist / REFERENCE_DIST;
+        const sizePx   = Math.round(BASE_PX * scale);
+        planeEl.style.width  = sizePx + "px";
+        planeEl.style.height = sizePx + "px";
+
+        /* Contrail — WebGL line is fine (opaque-ish, no blending with earth) */
+        const oldTrail = overlay.getObjectByName("trail");
+        if (oldTrail) { overlay.remove(oldTrail); oldTrail.geometry.dispose(); }
+        const trailPts = pts.slice(Math.max(0, i0 - 50), i0 + 1);
+        if (trailPts.length > 1) {
+          const trail = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints(trailPts),
+            new THREE.LineBasicMaterial({ color: 0x00d9ff, transparent: false })
+          );
+          trail.name = "trail";
+          overlay.add(trail);
+        }
+      }
+
       controls.update();
       renderer.render(scene, camera);
     };
     animate();
 
+    /* Resize handler */
     const handleResize = () => {
       if (!mount) return;
       const w = mount.clientWidth;
@@ -409,28 +471,22 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
     return () => {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animRef.current);
-      if (planeAnimRef.current) cancelAnimationFrame(planeAnimRef.current);
       renderer.dispose();
       if (mount?.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
   }, []);
 
   /* ================================
-     AUTO-ANALYZE (when launched from JSF with URL params)
+     AUTO-ANALYZE (JSF URL params)
   ================================ */
   useEffect(() => {
     if (!autoAnalyze) return;
-    // Wait for Three.js scene to be ready before triggering
-    const timer = setTimeout(() => {
-      handleSubmit();
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [autoAnalyze]); // eslint-disable-line react-hooks/exhaustive-deps
+    const t = setTimeout(() => handleSubmit(), 400);
+    return () => clearTimeout(t);
+  }, [autoAnalyze]); // eslint-disable-line
 
   /* ================================
      CAMERA FLY-TO
-     startVec / endVec are in world
-     space (from latLonToVec3, no rotation applied)
   ================================ */
   const flyToRoute = (startVec, endVec) => {
     const camera   = cameraRef.current;
@@ -440,18 +496,13 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
     const mid = new THREE.Vector3()
       .copy(startVec).lerp(endVec, 0.5)
       .normalize()
-      .multiplyScalar(EARTH_RADIUS * 0.1); // near center of earth = camera looks at route midpoint on surface
+      .multiplyScalar(EARTH_RADIUS * 0.1);
 
     const angDist  = startVec.angleTo(endVec);
-    // Zoom scales aggressively with angular distance:
-    // Very short (CYOW-CYYZ ~0.05 rad) → zoom = ~5.8 (extremely tight)
-    // Medium (transatlantic ~1.2 rad)  → zoom = ~10
-    // Long (antipodal ~3 rad)          → zoom = ~14
     const zoomDist = THREE.MathUtils.clamp(
       EARTH_RADIUS + 2.5 + (angDist / Math.PI) * 8,
       EARTH_RADIUS + 2.5, 16
     );
-
     const camPos = mid.clone().normalize().multiplyScalar(zoomDist);
 
     flyRef.current = {
@@ -465,95 +516,56 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
   };
 
   /* ================================
-     DRAW ROUTE
-     All objects go into overlayRef (never rotates).
-     Because latLonToVec3 puts points in a coordinate
-     system where lon=0→+X, and THREE's SphereGeometry
-     also maps lon=0→+X (before any group rotation),
-     the overlay coords exactly match the earth surface
-     at rotation.y = 0, which is where we lock the earth.
+     DRAW ROUTE + ACTIVATE PLANE
   ================================ */
   const drawRoute = (oLat, oLon, dLat, dLon, waypointData, oCode = '', dCode = '') => {
     const overlay = overlayRef.current;
     const earth   = earthRef.current;
     if (!overlay || !earth) return;
 
-    /* Cancel old plane anim */
-    if (planeAnimRef.current) cancelAnimationFrame(planeAnimRef.current);
+    /* Clear old route objects
+       Spread first — overlay.children is a live array */
+    [...overlay.children].forEach(c => {
+      overlay.remove(c);
+      if (c.geometry) c.geometry.dispose();
+    });
 
-    /* Clear overlay */
-    while (overlay.children.length) overlay.remove(overlay.children[0]);
-
-    /* Stop earth spinning and snap its rotation to 0
-       so the texture's lon=0 lines up with our coord system */
-    spinRef.current = false;
-    earth.rotation.y = Math.PI; // lock to texture-corrected orientation
+    spinRef.current   = false;
+    earth.rotation.y  = Math.PI;
 
     const startPt     = latLonToVec3(oLat, oLon);
     const endPt       = latLonToVec3(dLat, dLon);
     const curvePoints = createGreatCircle(startPt, endPt);
 
-    /* Fly camera to face the route */
     flyToRoute(startPt, endPt);
 
-    /* Route arc — gradient green→yellow→red segments */
-    // Build per-segment colored lines for gradient effect
-    const segCount = curvePoints.length - 1;
-    const arcPositions = [];
-    const arcColors    = [];
-
-    for (let i = 0; i < segCount; i++) {
-      const t  = i / segCount;
-      // green(0,230,118) → yellow(255,214,0) → red(255,59,48)
+    /* Gradient route arc */
+    const flatPts   = [];
+    const arcColors = [];
+    for (let i = 0; i < curvePoints.length - 1; i++) {
+      const t = i / (curvePoints.length - 1);
       let r, g, b;
       if (t < 0.5) {
-        const f = t * 2;
-        r = Math.round(0   + f * 255);
-        g = Math.round(230 - f * 16);
-        b = Math.round(118 - f * 118);
+        const f = t * 2; r = Math.round(f * 255); g = Math.round(230 - f * 16); b = Math.round(118 - f * 118);
       } else {
-        const f = (t - 0.5) * 2;
-        r = 255;
-        g = Math.round(214 - f * 214);
-        b = Math.round(0);
+        const f = (t - 0.5) * 2; r = 255; g = Math.round(214 - f * 214); b = 0;
       }
       const col = new THREE.Color(r/255, g/255, b/255);
-      arcPositions.push(curvePoints[i], curvePoints[i + 1]);
-      arcColors.push(col.r, col.g, col.b, col.r, col.g, col.b);
+      const a = curvePoints[i], bb2 = curvePoints[i+1];
+      flatPts.push(a.x,a.y,a.z, bb2.x,bb2.y,bb2.z);
+      arcColors.push(col.r,col.g,col.b, col.r,col.g,col.b);
     }
 
-    // Outer soft glow (uniform dark blue)
-    const glowGeo = new THREE.BufferGeometry().setFromPoints(curvePoints);
-    overlay.add(new THREE.Line(glowGeo,
-      new THREE.LineBasicMaterial({ color: 0x001a66, transparent: true, opacity: 0.4 })
-    ));
-
-    // Gradient core arc
+    // Gradient
     const gradGeo = new THREE.BufferGeometry();
-    const flatPts = [];
-    arcPositions.forEach(v => flatPts.push(v.x, v.y, v.z));
     gradGeo.setAttribute("position", new THREE.Float32BufferAttribute(flatPts, 3));
     gradGeo.setAttribute("color",    new THREE.Float32BufferAttribute(arcColors, 3));
-    const gradMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95 });
-    overlay.add(new THREE.LineSegments(gradGeo, gradMat));
-
-    // Bright white dashed centerline overlay
-    const dashedPts = [];
-    for (let i = 0; i < curvePoints.length - 1; i++) {
-      if (Math.floor(i / 8) % 2 === 0) {
-        dashedPts.push(curvePoints[i], curvePoints[i + 1]);
-      }
-    }
-    const dashedGeo = new THREE.BufferGeometry();
-    const dashedFlat = [];
-    dashedPts.forEach(v => dashedFlat.push(v.x, v.y, v.z));
-    dashedGeo.setAttribute("position", new THREE.Float32BufferAttribute(dashedFlat, 3));
-    overlay.add(new THREE.LineSegments(dashedGeo,
-      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 })
+    overlay.add(new THREE.LineSegments(gradGeo,
+      new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95 })
     ));
 
-    /* ── Airport markers with ICAO labels ── */
-    // ── Rounded rect helper ──
+
+    /* Airport pins */
     const roundRect = (ctx, x, y, w, h, r) => {
       ctx.beginPath();
       ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
@@ -563,239 +575,77 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
       ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
     };
 
-    // ── Airport pin: compact, clean ──
     const makeAirportPin = (pos, col, icaoCode, isOrigin) => {
-      const outward  = pos.clone().normalize();
-      const hexCol   = "#" + col.toString(16).padStart(6, "0");
-      const poleH    = 0.14;
-      const poleTop  = pos.clone().add(outward.clone().multiplyScalar(poleH));
+      const outward = pos.clone().normalize();
+      const hexCol  = "#" + col.toString(16).padStart(6, "0");
+      const poleH   = 0.14;
+      const poleTop = pos.clone().add(outward.clone().multiplyScalar(poleH));
 
-      // Thin pole
       overlay.add(new THREE.Line(
         new THREE.BufferGeometry().setFromPoints([pos.clone(), poleTop]),
         new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.85 })
       ));
 
-      // Small solid dot at surface
-      const baseDot = new THREE.Mesh(
+      const dot = new THREE.Mesh(
         new THREE.SphereGeometry(0.038, 14, 14),
         new THREE.MeshBasicMaterial({ color: col })
       );
-      baseDot.position.copy(pos);
-      overlay.add(baseDot);
+      dot.position.copy(pos);
+      overlay.add(dot);
 
-      // Single thin pulse ring
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.065, 0.088, 40),
-        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
-      );
-      ring.position.copy(pos);
-      ring.lookAt(new THREE.Vector3(0,0,0));
-      overlay.add(ring);
 
-      // Label sprite — crisp, compact
       const CW = 320, CH = 80;
       const canvas = document.createElement("canvas");
-      canvas.width  = CW;
-      canvas.height = CH;
+      canvas.width = CW; canvas.height = CH;
       const ctx = canvas.getContext("2d");
 
-      // Dark glass background
       ctx.fillStyle = "rgba(8,12,24,0.88)";
-      roundRect(ctx, 0, 0, CW, CH, 18);
-      ctx.fill();
+      roundRect(ctx, 0, 0, CW, CH, 18); ctx.fill();
 
-      // Colored left accent bar
       ctx.fillStyle = hexCol;
-      roundRect(ctx, 0, 0, 10, CH, [18, 0, 0, 18]);
-      ctx.fill();
+      roundRect(ctx, 0, 0, 10, CH, [18,0,0,18]); ctx.fill();
 
-      // Colored border
-      ctx.strokeStyle = hexCol + "99";
-      ctx.lineWidth = 2.5;
-      roundRect(ctx, 1, 1, CW-2, CH-2, 17);
-      ctx.stroke();
+      ctx.strokeStyle = hexCol + "99"; ctx.lineWidth = 2.5;
+      roundRect(ctx, 1, 1, CW-2, CH-2, 17); ctx.stroke();
 
-      // ICAO code — large monospace
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 38px 'Courier New', monospace";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = "left"; ctx.textBaseline = "middle";
       ctx.fillText(icaoCode, 26, 34);
 
-      // Tiny tag pill (ORIGIN / DEST)
-      const tag = isOrigin ? "ORIGIN" : "DEST";
       ctx.fillStyle = hexCol + "33";
-      roundRect(ctx, 22, 52, 80, 20, 6);
-      ctx.fill();
+      roundRect(ctx, 22, 52, 80, 20, 6); ctx.fill();
       ctx.fillStyle = hexCol;
-      ctx.font = "bold 15px sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillText(tag, 28, 62);
+      ctx.font = "bold 15px sans-serif"; ctx.textAlign = "left";
+      ctx.fillText(isOrigin ? "ORIGIN" : "DEST", 28, 62);
 
-      // Small dot indicator top-right
-      ctx.beginPath();
-      ctx.arc(CW - 22, 22, 7, 0, Math.PI * 2);
-      ctx.fillStyle = hexCol;
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(CW-22, 22, 7, 0, Math.PI*2);
+      ctx.fillStyle = hexCol; ctx.fill();
 
-      const tex = new THREE.CanvasTexture(canvas);
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
-      // Offset labels laterally so they don't overlap on short routes
-      // Compute a "sideways" direction perpendicular to outward and world-up
-      const worldUp  = new THREE.Vector3(0, 1, 0);
-      const sideDir  = new THREE.Vector3().crossVectors(outward, worldUp).normalize();
-      const offset   = isOrigin ? 0.20 : -0.20;
+      const tex    = new THREE.CanvasTexture(canvas);
+      const lSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
+      const worldUp = new THREE.Vector3(0,1,0);
+      const sideDir = new THREE.Vector3().crossVectors(outward, worldUp).normalize();
       const labelPos = pos.clone()
         .add(outward.clone().multiplyScalar(poleH + 0.22))
-        .add(sideDir.clone().multiplyScalar(offset));
-      sprite.position.copy(labelPos);
-      sprite.scale.set(0.28, 0.075, 1);
-      overlay.add(sprite);
+        .add(sideDir.clone().multiplyScalar(isOrigin ? 0.20 : -0.20));
+      lSprite.position.copy(labelPos);
+      lSprite.scale.set(0.28, 0.075, 1);
+      overlay.add(lSprite);
     };
 
-    makeAirportPin(startPt, 0x00e676, oCode || 'ORIG', true);
-    makeAirportPin(endPt,   0xff4444, dCode || 'DEST', false);
+    makeAirportPin(startPt, 0x00e676, oCode || "ORIG", true);
+    makeAirportPin(endPt,   0xff4444, dCode || "DEST", false);
 
-    /* ── Realistic plane: narrow fuselage, wide swept wings, proper tail ── */
-    const planeGroup = new THREE.Group();
-    const S = 0.12; // tiny plane — correct scale relative to globe
+    /* Activate plane HTML overlay */
+    if (planeElRef.current) planeElRef.current.style.display = "block";
+    planeRouteRef.current = { points: curvePoints, progress: 0 };
 
-    // Fuselage — slender tube, tapered at tail
-    const fuselage = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.018*S, 0.011*S, 0.30*S, 10),
-      new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.3, metalness: 0.6 })
-    );
-    planeGroup.add(fuselage);
 
-    // Nose — sharp cone
-    const nose = new THREE.Mesh(
-      new THREE.ConeGeometry(0.018*S, 0.09*S, 10),
-      new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.3, metalness: 0.6 })
-    );
-    nose.position.y = 0.195*S;
-    planeGroup.add(nose);
-
-    // Main wings — realistic swept delta shape
-    const W = new THREE.Shape();
-    W.moveTo( 0,       0.06*S);   // wing root leading edge
-    W.lineTo(-0.26*S, -0.05*S);   // left tip leading edge
-    W.lineTo(-0.22*S, -0.10*S);   // left tip trailing
-    W.lineTo( 0,      -0.02*S);   // wing root trailing
-    W.lineTo( 0.22*S, -0.10*S);
-    W.lineTo( 0.26*S, -0.05*S);
-    W.closePath();
-    const wings = new THREE.Mesh(
-      new THREE.ShapeGeometry(W),
-      new THREE.MeshStandardMaterial({ color: 0xe8f0ff, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide })
-    );
-    wings.rotation.x = Math.PI / 2;
-    wings.position.y = 0.02*S;
-    planeGroup.add(wings);
-
-    // Engine nacelles on wings
-    [-0.14*S, 0.14*S].forEach(xOff => {
-      const nacelle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.012*S, 0.010*S, 0.08*S, 8),
-        new THREE.MeshStandardMaterial({ color: 0x888ea8, roughness: 0.4, metalness: 0.7 })
-      );
-      nacelle.position.set(xOff, 0.01*S, 0.02*S);
-      nacelle.rotation.z = Math.PI / 2;  // horizontal
-      planeGroup.add(nacelle);
-    });
-
-    // Vertical tail fin — taller, swept
-    const VT = new THREE.Shape();
-    VT.moveTo(0, 0);
-    VT.lineTo(0,      0.13*S);
-    VT.lineTo(-0.07*S, 0.04*S);
-    VT.lineTo(-0.06*S, 0);
-    VT.closePath();
-    const vTail = new THREE.Mesh(
-      new THREE.ShapeGeometry(VT),
-      new THREE.MeshStandardMaterial({ color: 0xe8f0ff, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide })
-    );
-    vTail.position.y = -0.10*S;
-    planeGroup.add(vTail);
-
-    // Horizontal stabilizers — small & swept
-    const HT = new THREE.Shape();
-    HT.moveTo(0,       0.01*S);
-    HT.lineTo(-0.10*S,-0.03*S);
-    HT.lineTo(-0.08*S,-0.06*S);
-    HT.lineTo(0,      -0.01*S);
-    HT.lineTo( 0.08*S,-0.06*S);
-    HT.lineTo( 0.10*S,-0.03*S);
-    HT.closePath();
-    const hTail = new THREE.Mesh(
-      new THREE.ShapeGeometry(HT),
-      new THREE.MeshStandardMaterial({ color: 0xe8f0ff, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide })
-    );
-    hTail.rotation.x = Math.PI / 2;
-    hTail.position.y = -0.13*S;
-    planeGroup.add(hTail);
-
-    // Cockpit windows strip (dark tinted glass)
-    const cockpit = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.0195*S, 0.0195*S, 0.045*S, 10),
-      new THREE.MeshStandardMaterial({ color: 0x223355, roughness: 0.1, metalness: 0.9 })
-    );
-    cockpit.position.y = 0.155*S;
-    planeGroup.add(cockpit);
-
-    overlay.add(planeGroup);
-
-    // Fading blue contrail
-    const trailMat = new THREE.LineBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.45 });
-    let progress = 0;
-
-    const animatePlane = () => {
-      planeAnimRef.current = requestAnimationFrame(animatePlane);
-      progress += 0.0007;
-      if (progress > 1) progress = 0;
-
-      const idx  = Math.floor(progress * (curvePoints.length - 1));
-      const cur  = curvePoints[idx];
-      const next = curvePoints[Math.min(idx + 1, curvePoints.length - 1)];
-
-      planeGroup.position.copy(cur);
-
-      // Correct orientation: fuselage (Y) → flight direction, nose up relative to surface
-      const forward = new THREE.Vector3().subVectors(next, cur).normalize();
-      const surfaceUp = cur.clone().normalize();
-      const right = new THREE.Vector3().crossVectors(forward, surfaceUp).normalize();
-      const planeUp = new THREE.Vector3().crossVectors(right, forward).normalize();
-      const rotMat = new THREE.Matrix4().makeBasis(right, forward, planeUp);
-      planeGroup.quaternion.setFromRotationMatrix(rotMat);
-
-      // Blue contrail
-      const oldTrail = overlay.getObjectByName("trail");
-      if (oldTrail) overlay.remove(oldTrail);
-      const tPts = curvePoints.slice(Math.max(0, idx - 55), idx + 1);
-      if (tPts.length > 1) {
-        const trail = new THREE.Line(new THREE.BufferGeometry().setFromPoints(tPts), trailMat);
-        trail.name = "trail";
-        overlay.add(trail);
-      }
-    };
-    animatePlane();
-
-    /* Waypoint risk dots */
-    if (waypointData) {
-      waypointData.forEach(wp => {
-        if (!wp.latitude || !wp.longitude) return;
-        const dot = new THREE.Mesh(
-          new THREE.SphereGeometry(0.07, 8, 8),
-          new THREE.MeshBasicMaterial({ color: riskColor(wp.risk) })
-        );
-        dot.position.copy(latLonToVec3(wp.latitude, wp.longitude));
-        overlay.add(dot);
-      });
-    }
   };
 
   /* ================================
-     ANALYZE
+     SUBMIT / RESET
   ================================ */
   const handleSubmit = () => {
     if (!origin || !destination) { setError("Enter both ICAO codes"); return; }
@@ -818,7 +668,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
         const wps = data.waypoints.filter(w => w.latitude && w.longitude);
         if (wps.length >= 2) {
           drawRoute(wps[0].latitude, wps[0].longitude,
-                    wps[wps.length - 1].latitude, wps[wps.length - 1].longitude,
+                    wps[wps.length-1].latitude, wps[wps.length-1].longitude,
                     data.waypoints, origin, destination);
         } else if (oInfo && dInfo) {
           drawRoute(oInfo.lat, oInfo.lon, dInfo.lat, dInfo.lon, data.waypoints, origin, destination);
@@ -831,12 +681,17 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
   const handleReset = () => {
     spinRef.current = true;
     if (earthRef.current) earthRef.current.rotation.y = Math.PI;
-    setAnalysis(null);
-    setHasRoute(false);
-    setError(null);
-    if (planeAnimRef.current) cancelAnimationFrame(planeAnimRef.current);
+    setAnalysis(null); setHasRoute(false); setError(null);
+
+    if (planeElRef.current) planeElRef.current.style.display = "none";
+    planeRouteRef.current = null;
+
     const overlay = overlayRef.current;
-    if (overlay) while (overlay.children.length) overlay.remove(overlay.children[0]);
+    if (overlay) {
+      [...overlay.children]
+        .filter(c => c.name !== "__keep__")
+        .forEach(c => { overlay.remove(c); if (c.geometry) c.geometry.dispose(); });
+    }
 
     flyRef.current = {
       fromPos:    cameraRef.current.position.clone(),
@@ -849,7 +704,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
   };
 
   /* ================================
-     UI
+     RENDER
   ================================ */
   const inputStyle = {
     padding: "10px 16px",
@@ -884,7 +739,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
           padding: "10px 26px", background: "rgba(0,224,255,0.15)",
           border: "1px solid rgba(0,224,255,0.6)", borderRadius: 8,
           color: "#00e0ff", fontSize: "1rem", fontWeight: 600,
-          cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, transition: "all 0.2s",
+          cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1,
         }}>
           {loading ? "Analyzing…" : "Analyze Route"}
         </button>
@@ -899,23 +754,60 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
 
       {error && <div style={{ color: "#ff6b6b", textAlign: "center", marginBottom: 12 }}>⚠ {error}</div>}
 
-      <div ref={mountRef} style={{
-        width: "100%", height: 600, borderRadius: 20, overflow: "hidden",
+      {/* Wrapper: position:relative so the plane <div> can be absolute over the canvas */}
+      <div style={{ position: "relative", width: "100%", height: 600, borderRadius: 20, overflow: "hidden",
         boxShadow: "0 0 80px rgba(0,100,255,0.15), 0 30px 60px rgba(0,0,0,0.6)",
         border: "1px solid rgba(0,224,255,0.1)",
-      }} />
+      }}>
+        {/* Three.js canvas */}
+        <div ref={mountRef} style={{ width: "100%", height: "100%" }} />
+
+        {/* ── HTML plane icon — sits above canvas, zero WebGL blending ── */}
+        <div ref={planeElRef} style={{
+          display:        "none",           /* hidden until route loaded */
+          position:       "absolute",
+          pointerEvents:  "none",           /* don't block orbit controls */
+          width:          48,
+          height:         48,
+          transformOrigin:"center center",
+          transform:      "translate(-50%,-50%)",
+          filter:         "drop-shadow(0 0 6px rgba(0,210,255,0.9))",
+          zIndex:         10,
+        }}>
+          {/* SVG plane — top-down commercial jet, white with cyan glow */}
+          <svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            {/* Fuselage */}
+            <ellipse cx="50" cy="50" rx="7" ry="38" fill="#ffffff"/>
+            {/* Nose */}
+            <polygon points="50,5 44,28 56,28" fill="#f0f0f0"/>
+            {/* Main wings */}
+            <polygon points="50,38 8,62 14,70 50,52 86,70 92,62" fill="#e8f0ff"/>
+            {/* Engine L */}
+            <ellipse cx="20" cy="60" rx="7" ry="12" fill="#cccccc"/>
+            <ellipse cx="20" cy="51" rx="7" ry="5" fill="#555555"/>
+            {/* Engine R */}
+            <ellipse cx="80" cy="60" rx="7" ry="12" fill="#cccccc"/>
+            <ellipse cx="80" cy="51" rx="7" ry="5" fill="#555555"/>
+            {/* H-stabilizers */}
+            <polygon points="50,75 28,88 32,94 50,82 68,94 72,88" fill="#e0e8ff"/>
+            {/* Cockpit */}
+            <ellipse cx="50" cy="22" rx="5" ry="9" fill="#1a4fa0" opacity="0.9"/>
+          </svg>
+        </div>
+      </div>
 
       {analysis && <AnalysisPanel analysis={analysis} origin={origin} destination={destination} />}
     </div>
   );
 }
 
+/* ================================
+   APP ENTRY
+================================ */
 export default function App() {
-  // Read ICAO codes from URL params (passed by JSF redirect)
-  // e.g. http://localhost:3000?origin=CYOW&destination=CYYZ
-  const params   = new URLSearchParams(window.location.search);
-  const initOrigin = params.get("origin")      || "CYOW";
-  const initDest   = params.get("destination") || "CYYZ";
+  const params      = new URLSearchParams(window.location.search);
+  const initOrigin  = params.get("origin")      || "CYOW";
+  const initDest    = params.get("destination") || "CYYZ";
   const autoAnalyze = !!(params.get("origin") && params.get("destination"));
 
   const [origin,      setOrigin]      = useState(initOrigin);
