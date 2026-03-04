@@ -424,17 +424,25 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
         planeEl.style.left    = px + "px";
         planeEl.style.top     = py + "px";
 
-        // Rotation: point nose toward direction of travel in screen space
-        if (i0 < pts.length - 1) {
-          const a  = pos.clone().project(camera);
-          const b  = pts[i1].clone().project(camera);
-          const deg = Math.atan2(b.x - a.x, -(b.y - a.y)) * 180 / Math.PI;
+        // Rotation: nose always points toward destination
+        // Project current pos and destination to CSS pixel space, compute angle
+        // NDC: x right=+1, y up=+1. CSS pixels: x right, y DOWN.
+        // So NDC→pixel: px = (ndcX*0.5+0.5)*W,  py = (-ndcY*0.5+0.5)*H
+        // Direction vector in pixel space: (destPx-curPx, destPy-curPy)
+        // SVG nose points UP (CSS -Y), so angle = atan2(dx, -dy)
+        {
+          const destNdc = pts[pts.length - 1].clone().project(camera);
+          const destPx  = ( destNdc.x * 0.5 + 0.5) * renderer.domElement.clientWidth;
+          const destPy  = (-destNdc.y * 0.5 + 0.5) * renderer.domElement.clientHeight;
+          const dx = destPx - px;
+          const dy = destPy - py;
+          const deg = Math.atan2(dx, -dy) * 180 / Math.PI;
           planeEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
         }
 
         // FR24-style scale: proportional to camera distance
         const camDist  = camera.position.length();
-        const scale    = camDist / REFERENCE_DIST;
+        const scale    = REFERENCE_DIST / camDist;
         const sizePx   = Math.round(BASE_PX * scale);
         planeEl.style.width  = sizePx + "px";
         planeEl.style.height = sizePx + "px";
