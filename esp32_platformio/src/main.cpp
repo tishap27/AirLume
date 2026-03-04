@@ -39,10 +39,25 @@ struct RoutePoint {
     int distance;
     bool dataLoaded;
 };
+// Airport options
+const char* origins[] = {"CYOW", "CYUL", "CYVR"};      // Ottawa, Montreal, Vancouver
+const char* destinations[] = {"CYYZ", "CYYC", "CYEG"}; // Toronto, Calgary, Edmonton
+int selectedOrigin = 0;
+int selectedDest = 0;
 
 RoutePoint waypoints[8];
 int currentWP = 0;
 int totalWP = 0;
+bool routeCalculated = false;
+
+// UI State
+enum UIState {
+    SELECT_ORIGIN,
+    SELECT_DEST,
+    SHOW_ROUTE
+};
+
+UIState currentState = SELECT_ORIGIN;
 
 //WIFI FUNCTIONS 
 
@@ -117,20 +132,22 @@ WeatherData fetch_weather(double lat, double lon) {
 void calculateRoute() {
     Serial.println("Calculating route...");
     
+    const char* origin = origins[selectedOrigin];
+    const char* dest = destinations[selectedDest];
+    
     double lat1, lon1, lat2, lon2;
     
-    if (!lookup_airport_coordinates("CYOW", &lat1, &lon1) ||
-        !lookup_airport_coordinates("CYYZ", &lat2, &lon2)) {
+    // Use YOUR C function to lookup coordinates
+    if (!lookup_airport_coordinates(origin, &lat1, &lon1) ||
+        !lookup_airport_coordinates(dest, &lat2, &lon2)) {
         Serial.println("Airport lookup failed!");
-        // Use hardcoded fallback
-        lat1 = 45.3225; lon1 = -75.6692;  // CYOW
-        lat2 = 43.6772; lon2 = -79.6306;  // CYYZ
+        return;
     }
 
     totalWP = 8;
     double distance = haversine_distance(lat1, lon1, lat2, lon2);
-    
-    Serial.printf("Route: CYOW->CYYZ = %.1f km\n", distance);
+    Serial.printf("Route: %s->%s = %.1f km\n", origin, dest, distance);
+   
     
     for (int i = 0; i < totalWP; i++) {
         double fraction = (double)i / (totalWP - 1);
@@ -139,6 +156,7 @@ void calculateRoute() {
         waypoints[i].distance = (int)(distance * fraction);
         waypoints[i].dataLoaded = false;
     }
+    routeCalculated = true;
 }
 
 void loadWaypointData(int wp) {
@@ -171,14 +189,79 @@ void setupDisplay() {
     tft.init();
     delay(50);
     
-    tft.setRotation(2);  // Match your working code
-    tft.invertDisplay(true);  // Match your working code
+    tft.setRotation(2);  
+    tft.invertDisplay(true);  
     delay(50);
     
     tft.fillScreen(TFT_BLACK);
     delay(50);
     
     Serial.println("Display ready!");
+}
+
+void drawOriginSelection() {
+    tft.fillScreen(TFT_BLACK);
+    
+    // Title
+    tft.setTextSize(2);
+    tft.setTextColor(TFT_CYAN);
+    tft.setCursor(30, 20);
+    tft.print("SELECT ORIGIN");
+    
+    // Instructions
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_WHITE);
+    tft.setCursor(20, 50);
+    tft.print("A: Next  X: Confirm");
+    
+    // Airport options
+    tft.setTextSize(2);
+    for (int i = 0; i < 3; i++) {
+        if (i == selectedOrigin) {
+            // Highlight selected
+            tft.fillRect(10, 80 + i*40, 220, 35, TFT_NAVY);
+            tft.setTextColor(TFT_YELLOW);
+        } else {
+            tft.setTextColor(TFT_WHITE);
+        }
+        tft.setCursor(30, 90 + i*40);
+        tft.print(origins[i]);
+    }
+}
+
+void drawDestSelection() {
+    tft.fillScreen(TFT_BLACK);
+    
+    // Title
+    tft.setTextSize(2);
+    tft.setTextColor(TFT_CYAN);
+    tft.setCursor(15, 20);
+    tft.print("SELECT DESTINATION");
+    
+    // Show selected origin
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_GREEN);
+    tft.setCursor(20, 50);
+    tft.print("From: ");
+    tft.print(origins[selectedOrigin]);
+    
+    // Instructions
+    tft.setTextColor(TFT_WHITE);
+    tft.setCursor(20, 65);
+    tft.print("A: Next  X: Confirm");
+    
+    // Airport options
+    tft.setTextSize(2);
+    for (int i = 0; i < 3; i++) {
+        if (i == selectedDest) {
+            tft.fillRect(10, 90 + i*40, 220, 35, TFT_NAVY);
+            tft.setTextColor(TFT_YELLOW);
+        } else {
+            tft.setTextColor(TFT_WHITE);
+        }
+        tft.setCursor(30, 100 + i*40);
+        tft.print(destinations[i]);
+    }
 }
 
 void drawHeader() {
@@ -194,11 +277,11 @@ void drawWaypointInfo() {
     
     tft.setTextSize(2);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setCursor(10, 45);
+     tft.setCursor(10, 60);
     tft.printf("WP %d/%d       ", currentWP + 1, totalWP);
     
     tft.setTextSize(1);
-    tft.setCursor(10, 70);
+    tft.setCursor(10, 85);
     tft.printf("Distance: %d km   ", wp.distance);
 }
 
@@ -254,12 +337,18 @@ void drawWeatherData() {
 void drawControls() {
     tft.setTextSize(1);
     tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-    tft.setCursor(10, 215);
-    tft.print("A:Next B:Prev X:Refresh");
+    tft.setCursor(10, 220);
+    tft.print("A:Next B:Prev Y: Menu X:Refresh");
 }
 
 void updateDisplay() {
-    RoutePoint &wp = waypoints[currentWP];
+   if (currentState == SELECT_ORIGIN) {
+        drawOriginSelection();
+    } else if (currentState == SELECT_DEST) {
+        drawDestSelection();
+    } else if (currentState == SHOW_ROUTE) {
+        RoutePoint &wp = waypoints[currentWP];
+        
     
     if (!wp.dataLoaded) {
         tft.fillScreen(TFT_BLACK);
@@ -278,6 +367,7 @@ void updateDisplay() {
     drawWeatherData();
     drawControls();
 }
+}
 
 //BUTTON HANDLING
 
@@ -289,39 +379,75 @@ void setupButtons() {
 }
 
 void handleButtons() {
-    if (digitalRead(BTN_A) == LOW) {
-        currentWP = (currentWP + 1) % totalWP;
-        updateDisplay();
+   if (digitalRead(BTN_A) == LOW) {
+        if (currentState == SELECT_ORIGIN) {
+            selectedOrigin = (selectedOrigin + 1) % 3;
+            updateDisplay();
+        } else if (currentState == SELECT_DEST) {
+            selectedDest = (selectedDest + 1) % 3;
+            updateDisplay();
+        } else if (currentState == SHOW_ROUTE && totalWP > 0) {  // ← CHECK totalWP!
+            currentWP = (currentWP + 1) % totalWP;
+            updateDisplay();
+        }
         while (digitalRead(BTN_A) == LOW) delay(10);
         delay(200);
     }
     
-    if (digitalRead(BTN_B) == LOW) {
+    // Button B - Previous
+    if (digitalRead(BTN_B) == LOW && currentState == SHOW_ROUTE && totalWP > 0) {  // ← CHECK totalWP!
         currentWP = (currentWP - 1 + totalWP) % totalWP;
         updateDisplay();
         while (digitalRead(BTN_B) == LOW) delay(10);
         delay(200);
     }
     
+    // Button X - Confirm/Select
     if (digitalRead(BTN_X) == LOW) {
-        tft.fillScreen(TFT_BLACK);
-        tft.setCursor(40, 100);
-        tft.setTextColor(TFT_WHITE);
-        tft.setTextSize(2);
-        tft.print("Refreshing...");
-        
-        for (int i = 0; i < totalWP; i++) {
-            waypoints[i].dataLoaded = false;
+        if (currentState == SELECT_ORIGIN) {
+            currentState = SELECT_DEST;
+            updateDisplay();
+        } else if (currentState == SELECT_DEST) {
+            // Calculate route and switch to route view
+            tft.fillScreen(TFT_BLACK);
+            tft.setCursor(30, 100);
+            tft.setTextColor(TFT_WHITE);
+            tft.setTextSize(2);
+            tft.print("Calculating");
+            tft.setCursor(40, 120);
+            tft.print("Route...");
+            
+            calculateRoute();
+            loadWaypointData(0);
+            
+            currentState = SHOW_ROUTE;
+            currentWP = 0;
+            updateDisplay();
+        } else if (currentState == SHOW_ROUTE && totalWP > 0) {  // ← Refresh
+            // Mark all waypoints as not loaded
+            for (int i = 0; i < totalWP; i++) {
+                waypoints[i].dataLoaded = false;
+            }
+            loadWaypointData(currentWP);
+            updateDisplay();
         }
-        
-        loadWaypointData(currentWP);
-        updateDisplay();
-        
         while (digitalRead(BTN_X) == LOW) delay(10);
         delay(200);
     }
+    
+    // Button Y - Back to menu
+    if (digitalRead(BTN_Y) == LOW && currentState == SHOW_ROUTE) {
+        currentState = SELECT_ORIGIN;
+        selectedOrigin = 0;
+        selectedDest = 0;
+        routeCalculated = false;
+        totalWP = 0;  // ← RESET totalWP!
+        currentWP = 0;
+        updateDisplay();
+        while (digitalRead(BTN_Y) == LOW) delay(10);
+        delay(200);
+    }
 }
-
 //SETUP & LOOP
 
 void setup() {
@@ -338,16 +464,9 @@ void setup() {
     tft.print("Connecting...");
     
     connect_wifi();
-    
-    tft.fillScreen(TFT_BLACK);
-    tft.setCursor(30, 100);
-    tft.print("Calculating");
-    tft.setCursor(40, 120);
-    tft.print("Route...");
-    
-    calculateRoute();
-    loadWaypointData(0);
     updateDisplay();
+
+    
     
     Serial.println("=== Setup Complete ===\n");
 }
