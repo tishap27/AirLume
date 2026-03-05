@@ -442,7 +442,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
 
         // FR24-style scale: proportional to camera distance
         const camDist  = camera.position.length();
-        const scale    = REFERENCE_DIST / camDist;
+        const scale    = camDist / REFERENCE_DIST ;
         const sizePx   = Math.round(BASE_PX * scale);
         planeEl.style.width  = sizePx + "px";
         planeEl.style.height = sizePx + "px";
