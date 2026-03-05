@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-const API_URL = "http://localhost:8080/airlume-web/resources/analysis";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/airlume-web/resources/analysis";
 const EARTH_RADIUS = 5;
 
 const AIRPORTS = {
