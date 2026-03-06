@@ -326,7 +326,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
 
     /* Earth group (spins) */
     const earthGroup = new THREE.Group();
-    earthGroup.rotation.y = Math.PI;
+    earthGroup.rotation.y = 0;
     scene.add(earthGroup);
     earthRef.current = earthGroup;
 
@@ -385,7 +385,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
       animRef.current = requestAnimationFrame(animate);
 
       /* Earth auto-spin */
-      if (spinRef.current) earthGroup.rotation.y += 0.0006;
+      if (spinRef.current) earthGroup.rotation.y += 0.0086;
 
       /* Smooth camera fly */
       const fly = flyRef.current;
