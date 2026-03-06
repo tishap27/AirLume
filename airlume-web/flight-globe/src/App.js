@@ -729,14 +729,22 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
       background: "linear-gradient(160deg, #000d1a 0%, #001a2e 50%, #000814 100%)",
       minHeight: "100vh", fontFamily: "'Segoe UI', system-ui, sans-serif",
     }}>
-      <h1 style={{
-        textAlign: "center", fontSize: "2rem", fontWeight: 700,
-        letterSpacing: "0.04em", marginBottom: 24,
-        background: "linear-gradient(90deg, #00e0ff, #ffffff, #00e0ff)",
-        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-      }}>
-        ✈ AirLume Global Route Analyzer
-      </h1>
+      {/* Header row: logo left + title center */}
+      <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, minHeight: 60 }}>
+        <img
+          src="textures/logo.png"
+          alt="AirLume logo"
+          style={{ position: "absolute", left: 0, height: 52, width: "auto", objectFit: "contain" }}
+        />
+        <h1 style={{
+          textAlign: "center", fontSize: "2rem", fontWeight: 700,
+          letterSpacing: "0.04em", margin: 0,
+          background: "linear-gradient(90deg, #00e0ff, #ffffff, #00e0ff)",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+        }}>
+          ✈ AirLume Route Analyzer
+        </h1>
+      </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
         <input value={origin} onChange={e => onOriginChange(e.target.value.toUpperCase())}
