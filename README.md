@@ -113,9 +113,16 @@ python weather.py --route ../waypoints.txt
 
 ```
 AirLume/
-├── ada_src/              # Ada safety-critical flight systems
-│   ├── flight.adb        # Main safety validation module
-│   └── flight.ads        # Ada specification
+├── ada_src/                    # Ada safety-critical flight systems
+│   ├── flight.adb              # Main safety validation module
+│   ├── flight.ads              # Ada specification
+│   ├──physics_validator.adb    # Independent E-field risk calculation
+│   ├── physics_validator.ads   # Physics validator specification
+│   ├── safety_monitor.adb      # Alert generation & regulatory enforcement
+│   ├── safety_monitor.ads      # Safety monitor specification
+│   ├── arinc653_core.adb       # Partition management & emergency halt
+│   ├── time_partition.adb      # 100ms execution budget enforcement
+│   └── safety_types.ads        # Shared type definitions
 ├── c_src/                # C physics engine and controllers
 │   ├── main.c            # Main entry point
 │   ├── route_planning.c  # Waypoint generation
