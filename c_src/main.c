@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     // Calculate lightning risk
     printf("\n2. Analyzing Lightning Risk via the CSV...\n");
     
-    EFieldRecord efield_data = find_nearest_efield("airlume_usa_efield_100.csv", 
+    EFieldRecord efield_data = find_nearest_efield("data/airlume_usa_efield_100.csv", 
                                                      query_lat, 
                                                      query_lon, 
                                                      query_altitude);

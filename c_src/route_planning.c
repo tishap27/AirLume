@@ -117,7 +117,7 @@ void load_airports_csv(const char* filename) {
 int lookup_airport_coordinates(const char* icao_code, double* lat, double* lon) {
     // Load CSV if not already loaded
     if (!airports_loaded) {
-        load_airports_csv("CA-airports.csv");
+        load_airports_csv("data/CA-airports.csv");
     }
 
     for (int i = 0; i < num_airports; i++) {
