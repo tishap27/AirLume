@@ -79,7 +79,7 @@ package body Safety_Monitor is
       Now : Time := Clock;
    begin
       -- Create audit trail (required for aviation safety)
-      Create(Log_File, Append_File, "safety_audit.log");
+      Create(Log_File, Append_File, "logs/safety_audit.log");
 
       Put_Line(Log_File, "=== AIRLUME SAFETY EVENT ===");
       Put(Log_File, "Timestamp: ");
