@@ -37,3 +37,5 @@ secrets.py
 config.local.*
 
 esp32_platformio/
+
+commit_message.txt
