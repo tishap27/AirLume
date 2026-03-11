@@ -12,15 +12,15 @@ def read_physics_prediction():
     
     # Debug: show current directory and files
     print(f"DEBUG: Current directory: {os.getcwd()}")
-    print(f"DEBUG: route_risk.txt exists: {os.path.exists('route_risk.txt')}")
-    print(f"DEBUG: lightning_risk.txt exists: {os.path.exists('lightning_risk.txt')}")
-    print(f"DEBUG: lightningrisk.txt exists: {os.path.exists('lightningrisk.txt')}")
+    print(f"DEBUG: logs/route_risk.txt exists: {os.path.exists('logs/route_risk.txt')}")
+    print(f"DEBUG: logs/lightning_risk.txt exists: {os.path.exists('logs/lightning_risk.txt')}")
+    print(f"DEBUG: logs/lightningrisk.txt exists: {os.path.exists('logs/lightningrisk.txt')}")
     
     # Try route_risk.txt first (for route mode)
-    if os.path.exists('route_risk.txt'):
+    if os.path.exists('logs/route_risk.txt'):
         try:
             print("DEBUG: Reading route_risk.txt...")
-            with open('route_risk.txt', 'r') as f:
+            with open('logs/route_risk.txt', 'r') as f:
                 content = f.read()
                 print(f"DEBUG: route_risk.txt content:\n{content}")
                 f.seek(0)  # Go back to start
@@ -34,7 +34,7 @@ def read_physics_prediction():
     
     # Fall back to lightning_risk.txt (single-point mode)
     
-    for filename in ['lightning_risk.txt', 'lightningrisk.txt']:
+    for filename in ['logs/lightning_risk.txt', 'logs/lightningrisk.txt']:
         if os.path.exists(filename):
             try:
                 print(f"DEBUG: Reading {filename}...")
@@ -54,9 +54,9 @@ def read_route_info():
     """Read route information if available"""
     route_info = {'mode': 'single-point'}
     
-    if os.path.exists('route_risk.txt'):
+    if os.path.exists('logs/route_risk.txt'):
         try:
-            with open('route_risk.txt', 'r') as f:
+            with open('logs/route_risk.txt', 'r') as f:
                 for line in f:
                     if line.startswith('ROUTE:'):
                         route_info['route'] = line.split(':')[1].strip()
@@ -72,7 +72,7 @@ def read_atmospheric_conditions():
     """Read atmospheric conditions from waypoints file"""
     try:
         conditions = []
-        with open('waypoints.txt', 'r') as f:
+        with open('logs/waypoints.txt', 'r') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#'):
@@ -123,7 +123,7 @@ def enhance_prediction(physics_risk, model, route_info):
 def write_enhanced_prediction(enhanced_risk, physics_risk, route_info):
     """Write ML-enhanced prediction to file for Ada to read"""
     try:
-        with open('lightning_risk_ml.txt', 'w') as f:
+        with open('logs/lightning_risk_ml.txt', 'w') as f:
             f.write(f"{enhanced_risk:.2f}\n")
         
         # Also write a detailed log
@@ -194,7 +194,7 @@ def main():
     
     # Step 6: Write result
     if write_enhanced_prediction(enhanced_risk, physics_risk, route_info):
-        print(" Enhanced prediction written to lightning_risk_ml.txt")
+        print(" Enhanced prediction written to logs/lightning_risk_ml.txt")
         print("=== ML Enhancement Complete ===")
         sys.exit(0)
     else:

@@ -319,7 +319,7 @@ void print_risk_assessment(LightningRisk risk) {
 }
 
 void write_risk_to_file(double risk, WeatherData weather) {
-    FILE* risk_file = fopen("lightning_risk.txt", "w");
+    FILE* risk_file = fopen("logs/lightning_risk.txt", "w");
     if (risk_file) {
         fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", risk);
         fprintf(risk_file, "TEMPERATURE:%.1f\n", weather.temperature);

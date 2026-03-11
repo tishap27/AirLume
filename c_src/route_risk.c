@@ -17,7 +17,7 @@ void classify_risk_level(double risk_percent, char* level) {
 }
 
 void write_waypoints_to_file(FlightRoute* route) {
-    FILE* fp = fopen("waypoints.txt", "w");
+    FILE* fp = fopen("logs/waypoints.txt", "w");
     if (!fp) return;
     
     fprintf(fp, "# Waypoints for route %s -> %s\n", 
@@ -43,7 +43,7 @@ int fetch_route_weather(FlightRoute* route, WeatherData* weather_array, int alti
     }
     
     write_waypoints_to_file(route);
-    printf(" Waypoints written to waypoints.txt\n");
+    printf(" Waypoints written to logs/waypoints.txt\n");
     
     char command[512];
     
@@ -69,7 +69,7 @@ int fetch_route_weather(FlightRoute* route, WeatherData* weather_array, int alti
     
     // Write waypoints to file
     write_waypoints_to_file(route);
-    printf(" Waypoints written to waypoints.txt\n");
+    printf(" Waypoints written to logs/waypoints.txt\n");
     
     // Call Python to fetch weather AT ALTITUDE
     //char command[512];

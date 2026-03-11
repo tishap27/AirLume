@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
     // *** WRITE FILES FOR ADA (single-point mode) ***
     
     // Write lightning_risk.txt
-    FILE* risk_file = fopen("lightning_risk.txt", "w");
+    FILE* risk_file = fopen("logs/lightning_risk.txt", "w");
     if (risk_file) {
         fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", risk.lightning_probability);
         fprintf(risk_file, "TEMPERATURE:%.1f\n", weather_data.temperature);
@@ -251,11 +251,11 @@ int main(int argc, char *argv[]) {
         fprintf(risk_file, "PRESSURE:%.1f\n", weather_data.pressure);
         fprintf(risk_file, "WIND_SPEED:%.1f\n", weather_data.wind_speed);
         fclose(risk_file);
-        printf(" Risk data written to lightning_risk.txt for Ada\n");
+        printf(" Risk data written to logs/lightning_risk.txt for Ada\n");
     }
     
     // Write route_risk.txt (with default CYOW->CYYZ for single-point mode)
-    FILE* route_file = fopen("route_risk.txt", "w");
+    FILE* route_file = fopen("logs/route_risk.txt", "w");
     if (route_file) {
         fprintf(route_file, "ORIGIN:CYOW\n");
         fprintf(route_file, "DESTINATION:CYYZ\n");
