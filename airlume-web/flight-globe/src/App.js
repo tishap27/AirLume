@@ -778,7 +778,7 @@
           {/* Three.js canvas */}
           <div ref={mountRef} style={{ width: "100%", height: "100%" }} />
 
-          {/* ── Professional top-down plane icon from free SVG source ── */}
+          {}
 <div
   ref={planeElRef}
   style={{
@@ -789,12 +789,12 @@
     height:         80,
     transformOrigin: "center center",
     transform:      "translate(-50%, -50%)",
-    filter:         "drop-shadow(0 0 12px rgba(0, 240, 255, 0.95)) brightness(1.15)",  // FR24-like cyan glow
+    filter:         "drop-shadow(0 0 12px rgba(0, 240, 255, 0.95)) brightness(1.15)",  
     zIndex:         10,
   }}
 >
   <img
-    src="/textures/aeroplane-icon.svg"   // ← change to your file path, e.g. /plane-icon.svg
+    src="/textures/aeroplane-icon.svg"   
     alt="Aircraft icon"
     style={{
       width: "100%",
