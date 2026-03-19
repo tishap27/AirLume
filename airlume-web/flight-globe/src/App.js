@@ -364,7 +364,7 @@
         "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_daymap.jpg",
       ]);
 
-      /* No atmosphere sphere — transparent meshes corrupt the depth buffer */
+     
 
 
       /* Overlay group (never rotates — markers & plane live here) */
@@ -785,7 +785,7 @@
     display:        "none",
     position:       "absolute",
     pointerEvents:  "none",
-    width:          80,                // adjust base size as needed (larger = better visibility when zoomed out)
+    width:          80,                // adjust base size (larger = better visibility when zoomed out)
     height:         80,
     transformOrigin: "center center",
     transform:      "translate(-50%, -50%)",
