@@ -1,4 +1,5 @@
-#include <Arduino.h>
+
+/*#include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <TFT_eSPI.h>
@@ -475,3 +476,4 @@ void loop() {
     handleButtons();
     delay(50);
 }
+*/
