@@ -91,6 +91,24 @@ void simulateMagnetometer() {
         mag_data.anomaly_detected = false;
     }
 }
+/*
+void simulateMagnetometer() {
+    if (tesla_coil_active) {
+        // HIGH field when coil is ON
+        mag_data.x = random(400, 700);
+        mag_data.y = random(400, 700);
+        mag_data.z = random(500, 800);
+    } else {
+        // LOW field when coil is OFF - near baseline
+        mag_data.x = baseline_magnetic_field + random(-10, 10);
+        mag_data.y = baseline_magnetic_field + random(-10, 10);
+        mag_data.z = baseline_magnetic_field + random(-10, 10);
+    }
+    mag_data.magnitude = sqrt(mag_data.x * mag_data.x +
+                              mag_data.y * mag_data.y +
+                              mag_data.z * mag_data.z);
+    mag_data.anomaly_detected = (mag_data.magnitude > baseline_magnetic_field + 50);
+}*/
  
 // Route data
 struct RoutePoint {
