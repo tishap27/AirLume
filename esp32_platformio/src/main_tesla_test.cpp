@@ -41,15 +41,22 @@ struct MagnetometerData {
 };
  
 MagnetometerData mag_data;
-float baseline_magnetic_field = 485.0;
+float baseline_magnetic_field = 350.0;
  
 // Simulated Tesla coil state
 bool tesla_coil_active = false;
  
 // Simulate magnetometer reading using LDR or simulation
 void readSensor() {
+
+    int total = 0;
+    for (int i = 0; i < 5; i++) {
+        total += analogRead(LDR_PIN);
+        delay(10);
+    }
+    int ldr_value = total / 5;
     // Read LDR analog value (0-4095 on ESP32)
-    int ldr_value = analogRead(LDR_PIN);
+    //int ldr_value = analogRead(LDR_PIN);
  
     // Map LDR brightness to simulated magnetic field magnitude
     // High light = Tesla coil active = high field
@@ -61,7 +68,7 @@ void readSensor() {
     mag_data.z = simulated_magnitude * 0.7;
     mag_data.magnitude = simulated_magnitude;
  
-    if (mag_data.magnitude > baseline_magnetic_field + 50) {
+    if (mag_data.magnitude > baseline_magnetic_field + 200) {
         mag_data.anomaly_detected = true;
         Serial.println("EM ANOMALY DETECTED");
     } else {
