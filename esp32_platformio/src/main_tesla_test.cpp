@@ -31,7 +31,7 @@ TFT_eSPI tft = TFT_eSPI();
 #define BTN_Y     14
  
 // LDR sensor pin
-#define LDR_PIN   36
+#define LDR_PIN   33
  
 // Simulated magnetometer data structure
 struct MagnetometerData {
@@ -53,8 +53,9 @@ void readSensor() {
  
     // Map LDR brightness to simulated magnetic field magnitude
     // High light = Tesla coil active = high field
-    float simulated_magnitude = map(ldr_value, 0, 4095, 400, 900);
+    float simulated_magnitude = map(ldr_value, 0, 4095, 200, 900);
  
+     Serial.printf("LDR raw: %d, magnitude: %.1f\n", ldr_value, simulated_magnitude);
     mag_data.x = simulated_magnitude * 0.5;
     mag_data.y = simulated_magnitude * 0.5;
     mag_data.z = simulated_magnitude * 0.7;
@@ -585,7 +586,8 @@ void setup() {
 void loop() {
     // Use real LDR if available, otherwise simulate
     int ldr_raw = analogRead(LDR_PIN);
-    if (ldr_raw > 100) {
+    
+    if (ldr_raw > 500) {
         // LDR is connected and reading something
         readSensor();
     } else {
