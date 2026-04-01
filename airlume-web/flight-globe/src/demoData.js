@@ -3,6 +3,7 @@ export const DEMO_AIRPORTS = {
   CYYC: { lat: 51.1215, lon: -114.0076 },
   CYEG: { lat: 53.3097, lon: -113.5797 },
   CYWG: { lat: 49.9100, lon: -97.2398  },
+  CYQM: { lat: 46.1122, lon: -64.6786  },
 };
 
 export const DEMO_ROUTES = [
@@ -61,9 +62,9 @@ export const DEMO_ROUTES = [
     }
   },
   {
-    label: "🟡 Mixed — CYEG → CYWG",
+    label: "🟡 Mixed — CYEG → CYQM",
     origin: "CYEG",
-    destination: "CYWG",
+    destination: "CYQM",
     data: {
       riskLevel: "MODERATE",
       lightningProbability: "38.5",
@@ -73,7 +74,7 @@ export const DEMO_ROUTES = [
       pressure: "1004",
       windSpeed: "14.2",
       averageRisk: "34.8",
-      totalDistance: 1180,
+      totalDistance: 2900,
       waypointCount: 5,
       newFlightLevel: "FL320",
       alternateAirport: null,
@@ -83,7 +84,8 @@ export const DEMO_ROUTES = [
         { name: "WP002", number: 2, distanceKm: 295,  riskPercent: "42.7", riskLevel: "MODERATE", latitude: 52.8,    longitude: -108.5    },
         { name: "WP003", number: 3, distanceKm: 590,  riskPercent: "61.2", riskLevel: "HIGH",     latitude: 52.1,    longitude: -103.2    },
         { name: "WP004", number: 4, distanceKm: 885,  riskPercent: "33.6", riskLevel: "MODERATE", latitude: 51.6,    longitude: -98.4     },
-        { name: "CYWG",  number: 5, distanceKm: 1180, riskPercent: "14.9", riskLevel: "LOW",      latitude: 49.9100, longitude: -97.2398  },
+        { name: "CYQM",  number: 5, distanceKm: 2900, riskPercent: "14.9", riskLevel: "LOW", latitude: 46.1122, longitude: -64.6786  },
+        //{ name: "CYWG",  number: 5, distanceKm: 1180, riskPercent: "14.9", riskLevel: "LOW",      latitude: 49.9100, longitude: -97.2398  },
       ]
     }
   }
