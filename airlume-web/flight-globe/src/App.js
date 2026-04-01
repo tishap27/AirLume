@@ -572,7 +572,7 @@ for (let i = 0; i <= 200; i++) {
   const arc = new THREE.Vector3()
     .copy(startPt).lerp(endPt, t)
     .normalize()
-    .multiplyScalar(EARTH_RADIUS + (0.18 * Math.sin(t * Math.PI)));
+    .multiplyScalar(EARTH_RADIUS + (0.5 * Math.sin(t * Math.PI)));
   arcPts.push(arc);
 }
 const arcGeo = new THREE.BufferGeometry().setFromPoints(arcPts);
@@ -632,7 +632,7 @@ if (!window._airPins) window._airPins = [];
 window._airPins.push(pinData);
 
 
-      const CW = 320, CH = 80;
+      const CW = 180, CH = 52;
       const canvas = document.createElement("canvas");
       canvas.width = CW; canvas.height = CH;
       const ctx = canvas.getContext("2d");
@@ -665,15 +665,15 @@ window._airPins.push(pinData);
       const worldUp = new THREE.Vector3(0,1,0);
       const sideDir = new THREE.Vector3().crossVectors(outward, worldUp).normalize();
       const labelPos = pos.clone()
-        .add(outward.clone().multiplyScalar(poleH + 0.22))
-        .add(sideDir.clone().multiplyScalar(isOrigin ? 0.20 : -0.20));
+       .add(outward.clone().multiplyScalar(poleH + 0.05))
+.add(sideDir.clone().multiplyScalar(isOrigin ? 0.06 : -0.06));
       lSprite.position.copy(labelPos);
-      lSprite.scale.set(0.28, 0.075, 1);
+      lSprite.scale.set(0.15, 0.06, 1);
       overlay.add(lSprite);
     };
 
     makeAirportPin(startPt, 0x00e676, oCode || "ORIG", true);
-    makeAirportPin(endPt,   0xff4444, dCode || "DEST", false);
+    makeAirportPin(endPt,   0x4444ff, dCode || "DEST", false);
 
     /* Activate plane HTML overlay */
     if (planeElRef.current) planeElRef.current.style.display = "block";
@@ -848,7 +848,7 @@ window._airPins.push(pinData);
   height="54"
   viewBox="0 0 54 54"
 >
-  <g transform="translate(0,7) rotate(-60 24 27)">
+  <g transform="translate(0,7) rotate(-60 27 27)">
   <path
     fill="#FFFFFF"
     d="M47.523 0.84C46.934 0.004 42.461 2.238 41.926 2.508C39.156 3.891 37.09 5.488 35.688 6.734C34.391 6.074 33.098 5.414 31.801 4.754C32.09 4.531 32.383 4.309 32.672 4.086C32.508 3.871 32.242 3.578 31.844 3.316C31.375 3.004 30.926 2.875 30.641 2.813C30.379 3.047 30.117 3.277 29.852 3.512C27.578 2.422 25.301 1.336 23.027 0.246C23.016 0.246 23.004 0.246 22.988 0.246C21.66 0.695 20.43 1.387 19.168 1.988C22.02 3.699 24.871 5.406 27.727 7.117L27.227 7.59C27.375 7.684 27.52 7.777 27.664 7.871C27.91 7.754 28.156 7.637 28.398 7.52C29.422 8.133 30.441 8.742 31.461 9.355L20.398 18.707C19.172 18.141 17.941 17.57 16.715 17.004C15.75 17.359 14.789 17.718 13.824 18.074L18.465 20.949C18.16 21.289 17.855 21.629 17.555 21.969C17.625 22.066 17.695 22.164 17.766 22.258C18.172 22.113 18.582 21.969 18.988 21.824C19.203 23.508 19.414 25.195 19.625 26.883C20.348 26.176 21.07 25.473 21.793 24.766C21.766 23.355 21.738 21.949 21.711 20.539L34.152 13.18L34.742 16.316L34.254 16.789L34.332 17.102C34.465 17.113 34.594 17.125 34.727 17.137C35.25 20.758 35.773 24.375 36.297 27.992C36.688 27.648 37 27.359 37.207 27.152C37.879 26.48 38.52 25.773 39.227 25.137C39.328 25.047 39.43 24.961 39.531 24.875C39.391 22.121 39.25 19.367 39.109 16.613C39.418 16.438 39.723 16.266 40.031 16.09C40.082 15.813 40.133 15.359 40.031 14.824C39.945 14.395 39.793 14.059 39.668 13.836C39.328 13.953 38.988 14.074 38.652 14.195C38.5 12.816 38.352 11.438 38.199 10.059C39.992 8.996 42.363 7.355 44.727 4.906C45.715 3.879 48 1.512 47.523 0.84Z"
