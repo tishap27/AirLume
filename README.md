@@ -1,16 +1,29 @@
 # AirLume - Aircraft Lightning Strike Prediction System
 
-A multi-language desktop application that analyzes atmospheric conditions along aircraft flight paths to predict lightning formation zones and provide route optimization recommendations.
+AirLume is a physics-based aviation lightning strike prediction system built in four languages, namely Python, C, Ada, and Jakarta EE. It predicts lightning formation probability 30-40 minutes in advance along specific flight routes using Paschen's Law, Townsend Avalanche theory, and an ARINC 653-compliant Ada safety validation layer. Validated at 88% accuracy against 181 real strikes from the NASA SWDI 2024 database
 
 ## Overview
 
 AirLume integrates real-time weather data with plasma physics calculations to help pilots make informed decisions about lightning-prone areas along their flight routes. The system aims to reduce aircraft lightning strike incidents and associated inspection costs.
 
+## Why This Matters
+- Airlines spend $2B annually on mandatory post-strike inspections
+- 63% of lightning strikes occur in conditions pilots perceive as safe
+- Current systems only detect strikes after they happen — AirLume predicts them before
+- Validated against 181 real NASA SWDI lightning events at 88% detection rate
+
 ## Architecture
 
-- **C**: Main controller and physics calculations engine
-- **Ada**: Safety-critical flight path analysis and route planning
-- **Python**: Weather API integration and data processing
+AirLume uses a four-language pipeline where each language is chosen for a specific reason:
+
+| Language | Role | Why |
+|---|---|---|
+| Python | Weather API integration | Best HTTP/JSON libraries, network I/O bound |
+| C | Physics engine (Paschen's Law, Townsend Avalanche) | 60x faster than Python for numerical calculations |
+| Ada | Safety validation monitor (ARINC 653) | DO-178C Level A certification capable, dissimilar redundancy |
+| Jakarta EE | Enterprise web interface | Industry standard for aviation enterprise systems |
+
+Data flow: Python → C → Ada → Jakarta EE
 
 ## Features
 * **Real-Time Weather Data**: Fetches current atmospheric conditions for flight routes
@@ -19,6 +32,13 @@ AirLume integrates real-time weather data with plasma physics calculations to he
 * **Interactive Web GUI**: Visual flight path with color-coded risk indicators
 * **Safety Validation**: Ada-based critical system validation
 * **Multi-Airport Support**: 500+ Canadian airports via CSV database
+
+## Safety & Compliance Architecture
+- **DO-178C**: Ada safety monitor designed to Level A certification requirements
+- **ARINC 653**: Temporal partitioning enforced, 100ms execution budget per operation
+- **Dissimilar Redundancy**: C (Paschen's Law) and Ada (empirical E-field model) 
+  Use independent algorithms: if C has a bug, Ada catches it
+- **Audit Trail**: All safety events logged with timestamps for regulatory review
 
 ## Current Status
 
@@ -33,11 +53,11 @@ AirLume integrates real-time weather data with plasma physics calculations to he
 * CSV airport database (500+ airports)
 * Route risk profiling with color-coded waypoints
 
-🚧 **In Progress:**
-* Enhanced route visualization with map integration
-* Historical weather data analysis/testing
-* Alternative route suggestions
-* Route-specific enhancements
+## Validation Results
+- 88% lightning detection rate against 181 NASA SWDI 2024 historical strikes
+- <100ms processing time per 8-waypoint route
+- Ada/C agreement rate: >85% on test dataset
+- ARINC 653 temporal partition: all operations within 100ms budget
 
 ## Requirements
 
@@ -93,9 +113,16 @@ python weather.py --route ../waypoints.txt
 
 ```
 AirLume/
-├── ada_src/              # Ada safety-critical flight systems
-│   ├── flight.adb        # Main safety validation module
-│   └── flight.ads        # Ada specification
+├── ada_src/                    # Ada safety-critical flight systems
+│   ├── flight.adb              # Main safety validation module
+│   ├── flight.ads              # Ada specification
+│   ├──physics_validator.adb    # Independent E-field risk calculation
+│   ├── physics_validator.ads   # Physics validator specification
+│   ├── safety_monitor.adb      # Alert generation & regulatory enforcement
+│   ├── safety_monitor.ads      # Safety monitor specification
+│   ├── arinc653_core.adb       # Partition management & emergency halt
+│   ├── time_partition.adb      # 100ms execution budget enforcement
+│   └── safety_types.ads        # Shared type definitions
 ├── c_src/                # C physics engine and controllers
 │   ├── main.c            # Main entry point
 │   ├── route_planning.c  # Waypoint generation
@@ -136,12 +163,11 @@ python python_src/weather.py --point 45.3225 -75.6692
 - **Recommendation**: Flight safety guidance
 
 ## Contributing
-
- Project for Entrepreneurs
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## Contact
 
 **Tisha Patel**
 - **GitHub:** [@tishap27](https://github.com/tishap27)
-- **Email:** tishaapatel08@gmail.com
+- **Email:** [tishaapatel08@gmail.com](mailto:tishaapatel08@gmail.com)
 

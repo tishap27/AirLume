@@ -12,7 +12,7 @@ import os
 def load_efield_csv():
     """Load your existing E-field data"""
     
-    csv_file = 'airlume_usa_efield_100.csv'
+    csv_file = 'data/airlume_usa_efield_100.csv'
     
     if not os.path.exists(csv_file):
         print(f"ERROR: {csv_file} not found!")
@@ -194,7 +194,7 @@ def balance_dataset(df):
 def main():
     print("="*70)
     print("AIRLUME REAL TRAINING DATA GENERATOR")
-    print("Using YOUR airlume_usa_efield_100.csv")
+    print("Using airlume_usa_efield_100.csv")
     print("="*70)
     
     # Load E-field data
@@ -212,7 +212,7 @@ def main():
     training_df = training_df.sample(frac=1, random_state=42).reset_index(drop=True)
     
     # Save
-    output_file = 'training_data_real.csv'
+    output_file = 'data/training_data_real.csv'
     training_df.to_csv(output_file, index=False)
     
     print("\n" + "="*70)

@@ -1,7 +1,7 @@
 with Ada.Real_Time; use Ada.Real_Time;
 
 package Time_Partition is
-   -- ARINC 653 §6: Time partitioning window
+   -- ARINC 653 ï¿½6: Time partitioning window
    -- 100ms budget ensures deterministic real-time behavior
    MAX_EXECUTION_TIME : constant Time_Span := Milliseconds(100);
 

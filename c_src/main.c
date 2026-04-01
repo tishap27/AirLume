@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
         // *** WRITE FILES FOR ADA ***
         
         // 1. Write route_risk.txt (for Ada to read route info)
-        FILE* route_file = fopen("route_risk.txt", "w");
+        FILE* route_file = fopen("logs/route_risk.txt", "w");
         if (route_file) {
             fprintf(route_file, "ORIGIN:%s\n", route.origin_name);
             fprintf(route_file, "DESTINATION:%s\n", route.destination_name);
@@ -96,12 +96,12 @@ int main(int argc, char *argv[]) {
             fprintf(route_file, "MAX_RISK:%.2f\n", assessment.max_risk);
             fprintf(route_file, "AVG_RISK:%.2f\n", assessment.avg_risk);
             fclose(route_file);
-            printf(" Route data written to route_risk.txt for Ada\n");
+            printf(" Route data written to logs/route_risk.txt for Ada\n");
         }
         
         // 2. Write lightning_risk.txt (for Ada to read weather/risk at max risk waypoint)
         WaypointRisk* max_wp = &assessment.waypoint_risks[assessment.max_risk_waypoint];
-        FILE* risk_file = fopen("lightning_risk.txt", "w");
+        FILE* risk_file = fopen("logs/lightning_risk.txt", "w");
         if (risk_file) {
             fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", assessment.max_risk);
             fprintf(risk_file, "TEMPERATURE:%.1f\n", max_wp->weather.temperature);
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
             fprintf(risk_file, "PRESSURE:%.1f\n", max_wp->weather.pressure);
             fprintf(risk_file, "WIND_SPEED:%.1f\n", max_wp->weather.wind_speed);
             fclose(risk_file);
-            printf(" Max waypoint weather written to lightning_risk.txt for Ada\n");
+            printf(" Max waypoint weather written to logs/lightning_risk.txt for Ada\n");
         }
         
         printf("\n=== Calling ML Enhancement Layer ===\n");
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     // Calculate lightning risk
     printf("\n2. Analyzing Lightning Risk via the CSV...\n");
     
-    EFieldRecord efield_data = find_nearest_efield("airlume_usa_efield_100.csv", 
+    EFieldRecord efield_data = find_nearest_efield("data/airlume_usa_efield_100.csv", 
                                                      query_lat, 
                                                      query_lon, 
                                                      query_altitude);
@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
     // *** WRITE FILES FOR ADA (single-point mode) ***
     
     // Write lightning_risk.txt
-    FILE* risk_file = fopen("lightning_risk.txt", "w");
+    FILE* risk_file = fopen("logs/lightning_risk.txt", "w");
     if (risk_file) {
         fprintf(risk_file, "LIGHTNING_RISK:%.2f\n", risk.lightning_probability);
         fprintf(risk_file, "TEMPERATURE:%.1f\n", weather_data.temperature);
@@ -251,11 +251,11 @@ int main(int argc, char *argv[]) {
         fprintf(risk_file, "PRESSURE:%.1f\n", weather_data.pressure);
         fprintf(risk_file, "WIND_SPEED:%.1f\n", weather_data.wind_speed);
         fclose(risk_file);
-        printf(" Risk data written to lightning_risk.txt for Ada\n");
+        printf(" Risk data written to logs/lightning_risk.txt for Ada\n");
     }
     
     // Write route_risk.txt (with default CYOW->CYYZ for single-point mode)
-    FILE* route_file = fopen("route_risk.txt", "w");
+    FILE* route_file = fopen("logs/route_risk.txt", "w");
     if (route_file) {
         fprintf(route_file, "ORIGIN:CYOW\n");
         fprintf(route_file, "DESTINATION:CYYZ\n");

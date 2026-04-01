@@ -71,7 +71,7 @@ begin
    Put_Line("[Step 1/5] Reading route information from C...");
 
  begin
-   Open(Route_File, In_File, "route_risk.txt");
+   Open(Route_File, In_File, "logs/route_risk.txt");
 
    -- Parse route data line by line
    while not End_Of_File(Route_File) loop
@@ -121,7 +121,7 @@ begin
    Put_Line("[Step 2/5] Reading physics calculation from C...");
 
    begin
-      Open(Risk_File, In_File, "lightning_risk.txt");
+      Open(Risk_File, In_File, "logs/lightning_risk.txt");
 
       -- Parse weather and risk data
       while not End_Of_File(Risk_File) loop
@@ -215,7 +215,7 @@ begin
    declare
       Output_File : File_Type;
    begin
-      Create(Output_File, Out_File, "safety_status.txt");
+      Create(Output_File, Out_File, "logs/safety_status.txt");
       Put_Line(Output_File, "SAFETY_STATUS:" & Safety_Status'Image(Status));
       Put(Output_File, "RISK_LEVEL:");
       Put(Output_File, Lightning_Risk, Fore => 1, Aft => 2);

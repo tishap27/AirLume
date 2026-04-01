@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import joblib
 import os
 
-def load_training_data(csv_file='training_data.csv'):
+def load_training_data(csv_file='data/training_data.csv'):
     """
     Load training data from CSV file
     
@@ -245,7 +245,7 @@ def create_sample_training_data():
         'pressure', 'wind_speed', 'altitude', 'latitude', 'longitude'
     ])
     
-    df.to_csv('training_data.csv', index=False)
+    df.to_csv('data/training_data.csv', index=False)
     print(f"  Created training_data.csv with {len(df)} samples")
     print(f"  Lightning events: {df['actual_lightning'].sum()}")
     
@@ -292,9 +292,7 @@ def main():
     print("NEXT STEPS")
     print("="*70)
     print("1. Collect REAL training data from pilot programs")
-    print("2. Update training_data.csv with actual flight outcomes")
-    print("3. Re-run this script: python python_src/train_ml_model.py")
-    print("4. Model will improve as you collect more real data!")
+
 
 if __name__ == "__main__":
     main()
