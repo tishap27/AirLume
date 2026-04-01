@@ -728,6 +728,7 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
       padding: "30px 24px", color: "white",
       background: "linear-gradient(160deg, #000d1a 0%, #001a2e 50%, #000814 100%)",
       minHeight: "100vh", fontFamily: "'Segoe UI', system-ui, sans-serif",
+      position: "relative"
     }}>
       <h1 style={{
         textAlign: "center", fontSize: "2rem", fontWeight: 700,
@@ -735,8 +736,31 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
         background: "linear-gradient(90deg, #00e0ff, #ffffff, #00e0ff)",
         WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
       }}>
-        ✈ AirLume Global Route Analyzer
+         AirLume Route Analyzer
       </h1>
+      <div style={{
+  position: "absolute",
+  top: 40,
+  left: 40,
+  width: 120,
+  height: 60,
+  zIndex: 100,
+  pointerEvents: "none", // doesn't block clicks
+}}>
+  <img 
+    src="/textures/logo.png"
+    alt="AirLume Logo"
+    style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "contain",
+      filter: "drop-shadow(0 4px 12px rgba(0,224,255,0.4)) drop-shadow(0 0 20px rgba(0,224,255,0.2))"
+    }}
+    onError={(e) => {
+      e.target.style.display = "none"; // hide if logo fails to load
+    }}
+  />
+</div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
         <input value={origin} onChange={e => onOriginChange(e.target.value.toUpperCase())}
