@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { DEMO_ROUTES, DEMO_AIRPORTS } from "./demoData";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/airlume-web/resources/analysis";
 const EARTH_RADIUS = 5;
@@ -21,7 +22,10 @@ const AIRPORTS = {
   ZBAA: { lat: 40.0799, lon: 116.603  },
   FAOR: { lat: -26.133, lon: 28.242   },
   SBGR: { lat: -23.435, lon: -46.473  },
+  ...DEMO_AIRPORTS,
 };
+
+
 
 /* ================================
    UTILITIES
@@ -261,6 +265,8 @@ function GlobeFlight({ origin, destination, onOriginChange, onDestinationChange,
   const animRef      = useRef();
   const spinRef      = useRef(true);
   const flyRef       = useRef(null);
+const [demoMode,  setDemoMode]  = useState(false);
+const [demoIndex, setDemoIndex] = useState(0);
 
   // Plane HTML overlay (avoids all WebGL blending issues)
   const planeElRef    = useRef(null);   // the <div> element
@@ -682,6 +688,21 @@ window._airPins.push(pinData);
 
   };
 
+  const runDemo = (index) => {
+  const route = DEMO_ROUTES[index];
+  setDemoMode(true);
+  setDemoIndex(index);
+  onOriginChange(route.origin);
+  onDestinationChange(route.destination);
+  const oInfo = AIRPORTS[route.origin];
+  const dInfo = AIRPORTS[route.destination];
+  if (oInfo && dInfo) {
+    drawRoute(oInfo.lat, oInfo.lon, dInfo.lat, dInfo.lon, null, route.origin, route.destination);
+    setHasRoute(true);
+  }
+  setAnalysis(route.data);
+};
+
   /* ================================
      SUBMIT / RESET
   ================================ */
@@ -817,6 +838,21 @@ window._airPins.push(pinData);
             borderRadius: 8, color: "#aaa", fontSize: "0.9rem", cursor: "pointer",
           }}>↺ Reset</button>
         )}
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 8, marginBottom: 8, flexWrap: "wrap" }}>
+        <span style={{ color: "#64748b", fontSize: "0.85rem", alignSelf: "center" }}>DEMO:</span>
+        {DEMO_ROUTES.map((r, i) => (
+          <button key={i} onClick={() => runDemo(i)} style={{
+            padding: "7px 14px",
+            background: demoMode && demoIndex === i ? "rgba(0,224,255,0.2)" : "rgba(255,255,255,0.05)",
+            border: demoMode && demoIndex === i ? "1px solid rgba(0,224,255,0.8)" : "1px solid rgba(255,255,255,0.15)",
+            borderRadius: 8,
+            color: demoMode && demoIndex === i ? "#00e0ff" : "#94a3b8",
+            fontSize: "0.8rem", cursor: "pointer",
+          }}>
+            {r.label}
+          </button>
+        ))}
       </div>
 
       {error && <div style={{ color: "#ff6b6b", textAlign: "center", marginBottom: 12 }}>⚠ {error}</div>}
