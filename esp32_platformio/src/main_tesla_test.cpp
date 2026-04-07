@@ -3,6 +3,7 @@
 #include <HTTPClient.h>
 #include <TFT_eSPI.h>
 #include "config.h"
+#include <esp_wpa2.h>  
 
 #define ESP32_BUILD
 
@@ -17,9 +18,14 @@ extern "C" {
 }
 
 // WiFi credentials
-const char* ssid     = WIFI_SSID;
-const char* password = WIFI_PASSWORD;
-const char* api_key  = WEATHER_API_KEY;
+//const char* ssid     = WIFI_SSID;
+//const char* password = EAP_PASSWORD;
+//const char* api_key  = WEATHER_API_KEY;
+
+const char* ssid = WIFI_SSID;
+const char* eap_identity = EAP_IDENTITY;
+const char* eap_password = EAP_PASSWORD;
+const char* api_key = WEATHER_API_KEY;
  
 // LCD
 TFT_eSPI tft = TFT_eSPI();
@@ -162,11 +168,23 @@ UIState currentState = SELECT_ORIGIN;
 // Connect to WiFi
 bool connect_wifi(unsigned long timeout_ms = 15000) {
     Serial.println("Starting WiFi");
+
     WiFi.disconnect(true);
     delay(100);
+
     WiFi.mode(WIFI_STA);
     delay(100);
-    WiFi.begin(ssid, password);
+
+    esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)eap_identity, strlen(eap_identity));
+    esp_wifi_sta_wpa2_ent_set_username((uint8_t *)eap_identity, strlen(eap_identity));
+    esp_wifi_sta_wpa2_ent_set_password((uint8_t *)eap_password, strlen(eap_password));
+    esp_wifi_sta_wpa2_ent_enable();
+
+    
+
+    // Connect
+    WiFi.begin(ssid , eap_password);
+
     Serial.print("Connecting");
     unsigned long start = millis();
     while (WiFi.status() != WL_CONNECTED && millis() - start < timeout_ms) {
@@ -174,11 +192,13 @@ bool connect_wifi(unsigned long timeout_ms = 15000) {
         delay(500);
     }
     Serial.println();
+
     if (WiFi.status() == WL_CONNECTED) {
         Serial.print("WiFi OK IP: ");
         Serial.println(WiFi.localIP());
         return true;
     }
+
     Serial.println("WiFi failed");
     return false;
 }
