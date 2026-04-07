@@ -84,7 +84,7 @@ void readSensor() {
     Serial.printf("LDR raw: %d, raw mag: %.1f, smoothed: %.1f\n", 
                    ldr_value, raw_magnitude, smoothed_magnitude);
 
-    if (mag_data.magnitude > baseline_magnetic_field + 200) {
+    if (mag_data.magnitude > baseline_magnetic_field + 300) {
         mag_data.anomaly_detected = true;
         Serial.println("EM ANOMALY DETECTED");
     } else {
