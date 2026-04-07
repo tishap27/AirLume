@@ -1,3 +1,14 @@
+// ESP32 compatibility layer
+#ifdef ESP32_BUILD
+    #include <Arduino.h>
+    #undef PI  // Remove Arduino's PI definition
+    #define PI 3.14159265358979323846  // Use our definition
+    #define fopen(name, mode) NULL
+    #define fclose(file)
+    #define fprintf(file, fmt, ...) do {} while(0)
+    #define fgets(buf, size, file) NULL
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

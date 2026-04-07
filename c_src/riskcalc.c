@@ -1,3 +1,13 @@
+// ESP32 compatibility layer
+#ifdef ESP32_BUILD
+    #include <Arduino.h>
+    // Don't redefine FILE - ESP32 already has it
+    // Just stub out file operations we don't need
+    #define fopen(name, mode) NULL
+    #define fclose(file)
+    #define fprintf(file, fmt, ...) do {} while(0)  // No-op
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,3 +1,13 @@
+// ESP32 compatibility layer
+#ifdef ESP32_BUILD
+    #include <Arduino.h>
+    #define fopen(name, mode) NULL
+    #define fclose(file)
+    #define fprintf(file, fmt, ...) do {} while(0)
+    #define fgets(buf, size, file) NULL
+    #define sscanf(...) 0
+#endif
+
 // ============================================================================
 // FILE: csv_reader.c
 // ============================================================================
