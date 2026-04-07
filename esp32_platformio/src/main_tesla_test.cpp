@@ -23,7 +23,8 @@ const char* api_key  = WEATHER_API_KEY;
  
 // LCD
 TFT_eSPI tft = TFT_eSPI();
- 
+
+#define SMOOTH_SAMPLES 10
 // Buttons
 #define BTN_A     27
 #define BTN_B     26
@@ -45,29 +46,38 @@ float baseline_magnetic_field = 350.0;
  
 // Simulated Tesla coil state
 bool tesla_coil_active = false;
+float magnitude_history[SMOOTH_SAMPLES] = {0};
+int history_index = 0;
+float smoothed_magnitude = 0;
  
 // Simulate magnetometer reading using LDR or simulation
 void readSensor() {
-
     int total = 0;
     for (int i = 0; i < 5; i++) {
         total += analogRead(LDR_PIN);
         delay(10);
     }
     int ldr_value = total / 5;
-    // Read LDR analog value (0-4095 on ESP32)
-    //int ldr_value = analogRead(LDR_PIN);
- 
-    // Map LDR brightness to simulated magnetic field magnitude
-    // High light = Tesla coil active = high field
-    float simulated_magnitude = map(ldr_value, 0, 4095, 200, 900);
- 
-     Serial.printf("LDR raw: %d, magnitude: %.1f\n", ldr_value, simulated_magnitude);
-    mag_data.x = simulated_magnitude * 0.5;
-    mag_data.y = simulated_magnitude * 0.5;
-    mag_data.z = simulated_magnitude * 0.7;
-    mag_data.magnitude = simulated_magnitude;
- 
+
+    float raw_magnitude = map(ldr_value, 0, 4095, 200, 900);
+
+    // Add to rolling history
+    magnitude_history[history_index] = raw_magnitude;
+    history_index = (history_index + 1) % SMOOTH_SAMPLES;
+
+    // Compute rolling average
+    float sum = 0;
+    for (int i = 0; i < SMOOTH_SAMPLES; i++) sum += magnitude_history[i];
+    smoothed_magnitude = sum / SMOOTH_SAMPLES;
+
+    mag_data.x = smoothed_magnitude * 0.5;
+    mag_data.y = smoothed_magnitude * 0.5;
+    mag_data.z = smoothed_magnitude * 0.7;
+    mag_data.magnitude = smoothed_magnitude;
+
+    Serial.printf("LDR raw: %d, raw mag: %.1f, smoothed: %.1f\n", 
+                   ldr_value, raw_magnitude, smoothed_magnitude);
+
     if (mag_data.magnitude > baseline_magnetic_field + 200) {
         mag_data.anomaly_detected = true;
         Serial.println("EM ANOMALY DETECTED");
