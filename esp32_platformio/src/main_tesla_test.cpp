@@ -46,6 +46,32 @@ struct MagnetometerData {
     float magnitude;
     bool anomaly_detected;
 };
+
+
+//fallbacck
+struct AirportWeather {
+    const char* icao;
+    float temp, humidity, pressure;
+};
+
+const AirportWeather fallback_weather[] = {
+    {"CYOW", 5.0,  70.0, 1015.0},  // Ottawa
+    {"CYUL", 6.0,  72.0, 1013.0},  // Montreal
+    {"CYVR", 10.0, 80.0, 1010.0},  // Vancouver
+    {"CYYZ", 7.0,  68.0, 1014.0},  // Toronto
+    {"CYYC", 2.0,  55.0, 1018.0},  // Calgary
+    {"CYEG", 1.0,  58.0, 1017.0},  // Edmonton
+};
+
+WeatherData get_fallback_weather(const char* icao) {
+    for (int i = 0; i < 6; i++) {
+        if (strcmp(fallback_weather[i].icao, icao) == 0) {
+            return {fallback_weather[i].temp, fallback_weather[i].humidity, 
+                    fallback_weather[i].pressure, 5.0, 0.0};
+        }
+    }
+    return {10.0, 65.0, 1013.0, 5.0, 0.0};  // generic default
+}
  
 MagnetometerData mag_data;
 float baseline_magnetic_field = 350.0;
@@ -207,7 +233,16 @@ bool connect_wifi(unsigned long timeout_ms = 15000) {
 WeatherData fetch_weather(double lat, double lon) {
     WeatherData weather = {20.0, 60.0, 1013.0, 5.0, 0.0};
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("No WiFi - using defaults");
+        Serial.println("No WiFi - fallback weather data");
+         const char* origin = origins[selectedOrigin];
+        const char* dest   = destinations[selectedDest];
+        WeatherData w1 = get_fallback_weather(origin);
+        WeatherData w2 = get_fallback_weather(dest);
+        // simple blend - you could weight by distance fraction too
+        weather.temperature = (w1.temperature + w2.temperature) / 2.0;
+        weather.humidity    = (w1.humidity    + w2.humidity)    / 2.0;
+        weather.pressure    = (w1.pressure    + w2.pressure)    / 2.0;
+        
         return weather;
     }
     HTTPClient http;
