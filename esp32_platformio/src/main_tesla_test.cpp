@@ -17,6 +17,11 @@ extern "C" {
     #include "../../c_src/csv_reader.c"
 }
 
+float dynamic_baseline = 0;
+bool baseline_calibrated = false;
+int calibration_count = 0;
+float calibration_sum = 0;
+
 // WiFi credentials
 //const char* ssid     = WIFI_SSID;
 //const char* password = EAP_PASSWORD;
@@ -82,6 +87,27 @@ float magnitude_history[SMOOTH_SAMPLES] = {0};
 int history_index = 0;
 float smoothed_magnitude = 0;
  
+
+void calibrateBaseline() {
+    if (baseline_calibrated) return;
+    
+    // Wait until rolling average has warmed up (history_index has wrapped at least once)
+    // Use a startup counter to skip the first SMOOTH_SAMPLES readings
+    static int warmup = 0;
+    if (warmup < SMOOTH_SAMPLES) {
+        warmup++;
+        return;  // Don't calibrate yet, smoother is still ramping
+    }
+    
+    calibration_sum += smoothed_magnitude;
+    calibration_count++;
+    
+    if (calibration_count >= 20) {
+        dynamic_baseline = calibration_sum / calibration_count;
+        baseline_calibrated = true;
+        Serial.printf("Baseline calibrated: %.1f\n", dynamic_baseline);
+    }
+}
 // Simulate magnetometer reading using LDR or simulation
 void readSensor() {
     int total = 0;
@@ -102,6 +128,8 @@ void readSensor() {
     for (int i = 0; i < SMOOTH_SAMPLES; i++) sum += magnitude_history[i];
     smoothed_magnitude = sum / SMOOTH_SAMPLES;
 
+     calibrateBaseline();  
+
     mag_data.x = smoothed_magnitude * 0.5;
     mag_data.y = smoothed_magnitude * 0.5;
     mag_data.z = smoothed_magnitude * 0.7;
@@ -110,10 +138,10 @@ void readSensor() {
     Serial.printf("LDR raw: %d, raw mag: %.1f, smoothed: %.1f\n", 
                    ldr_value, raw_magnitude, smoothed_magnitude);
 
-    if (mag_data.magnitude > baseline_magnetic_field + 300) {
-        mag_data.anomaly_detected = true;
-        Serial.println("EM ANOMALY DETECTED");
-    } else {
+    if (baseline_calibrated && mag_data.magnitude > dynamic_baseline * 1.15) {
+    mag_data.anomaly_detected = true;
+    Serial.println("EM ANOMALY DETECTED");
+}else {
         mag_data.anomaly_detected = false;
     }
 }
@@ -242,7 +270,7 @@ WeatherData fetch_weather(double lat, double lon) {
         weather.temperature = (w1.temperature + w2.temperature) / 2.0;
         weather.humidity    = (w1.humidity    + w2.humidity)    / 2.0;
         weather.pressure    = (w1.pressure    + w2.pressure)    / 2.0;
-        
+
         return weather;
     }
     HTTPClient http;
@@ -305,7 +333,7 @@ void loadWaypointData(int wp) {
     LightningRisk base_risk = calculate_lightning_risk(w);
     float em_contribution = 0.0;
     if (mag_data.anomaly_detected) {
-        float deviation = mag_data.magnitude - baseline_magnetic_field;
+        float deviation = mag_data.magnitude - dynamic_baseline;
         em_contribution = min(deviation / 5.0f, 40.0f);
         Serial.printf("  EM Anomaly: +%.1f mG -> +%.1f%% risk\n", deviation, em_contribution);
     }
@@ -417,9 +445,9 @@ void drawDemoMode() {
     tft.setCursor(10, 95);
     tft.printf("Field:    %.1f mG", mag_data.magnitude);
     tft.setCursor(10, 110);
-    tft.printf("Baseline: %.1f mG", baseline_magnetic_field);
+    tft.printf("Baseline: %.1f mG", dynamic_baseline);
     tft.setCursor(10, 125);
-    float deviation = mag_data.magnitude - baseline_magnetic_field;
+    float deviation = mag_data.magnitude - dynamic_baseline;
     tft.printf("Deviation:%+.1f mG", deviation);
     tft.setTextSize(2);
     tft.setCursor(20, 150);
