@@ -138,7 +138,7 @@ void readSensor() {
     Serial.printf("LDR raw: %d, raw mag: %.1f, smoothed: %.1f\n", 
                    ldr_value, raw_magnitude, smoothed_magnitude);
 
-    if (baseline_calibrated && mag_data.magnitude > dynamic_baseline * 1.15) {
+    if (baseline_calibrated && mag_data.magnitude > dynamic_baseline * 1.05) {
     mag_data.anomaly_detected = true;
     Serial.println("EM ANOMALY DETECTED");
 }else {
