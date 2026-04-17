@@ -1,8 +1,8 @@
 === AIRLUME SAFETY EVENT ===
-Timestamp: 2026-04-17 01:06:38
-Route: CYVR -> CYOW
-Lightning Risk: 4.51E+01%
-Safety Status: DANGER
+Timestamp: 2026-04-17 18:21:54
+Route: CYOW -> CYVR
+Lightning Risk: 3.17E+01%
+Safety Status: CAUTION
 Validation: PASSED
 Certified by: AirLume Safety System v1.0
 ---
