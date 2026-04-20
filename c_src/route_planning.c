@@ -207,6 +207,34 @@ void generate_waypoints(FlightRoute* route, double interval_km) {
     }
 }
 
+void apply_divert_from_waypoint(FlightRoute* route, DivertCommand divert) {
+    if (!divert.active) return;
+    if (divert.waypoint_index >= route->num_waypoints) return;
+
+    int start = divert.waypoint_index;
+    double heading_rad = divert.new_heading * M_PI / 180.0;
+
+    // Each subsequent waypoint flies ~50km along the new heading
+    for (int i = start + 1; i < route->num_waypoints; i++) {
+        double prev_lat = route->waypoints[i-1].latitude;
+        double prev_lon = route->waypoints[i-1].longitude;
+        double step_km = 50.0;
+
+        // Move along new heading from previous waypoint
+        double dlat = (step_km / 111.0) * cos(heading_rad);
+        double dlon = (step_km / (111.0 * cos(prev_lat * M_PI / 180.0))) * sin(heading_rad);
+
+        route->waypoints[i].latitude = prev_lat + dlat;
+        route->waypoints[i].longitude = prev_lon + dlon;
+
+        printf("  [DIVERT] Waypoint %d repositioned to (%.4f, %.4f)\n",
+               i, route->waypoints[i].latitude, route->waypoints[i].longitude);
+    }
+
+    printf("  [DIVERT] Route from WP%d now flying heading %.1f°\n",
+           start, divert.new_heading);
+}
+
 void print_route_summary(FlightRoute* route) {
     printf("\n=== Flight Route Summary ===\n");
     printf("Route: %s → %s\n", route->origin_name, route->destination_name);

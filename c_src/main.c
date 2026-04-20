@@ -72,6 +72,15 @@ int main(int argc, char *argv[]) {
         
         // Generate waypoints
         generate_waypoints(&route, 50.0);
+  
+DivertCommand divert = {0, 0, 0.0}; 
+if (divert.active) {
+    printf("\n*** DIVERSION ACTIVE: Heading %.1f° from waypoint %d ***\n",
+           divert.new_heading, divert.waypoint_index);
+    apply_divert_from_waypoint(&route, divert);
+}
+
+print_route_summary(&route);
         print_route_summary(&route);
         
         // Assess risk along route
@@ -84,6 +93,20 @@ int main(int argc, char *argv[]) {
         
         // Print results
         print_route_risk_profile(&assessment);
+
+        //DivertCommand divert = {0, 0, 0.0};  // default: no diversion
+
+for (int i = 3; i < argc; i++) {
+    if (strcmp(argv[i], "--divert") == 0 && i + 1 < argc) {
+        divert.new_heading = atof(argv[i + 1]);
+        divert.active = 1;
+        i++;
+    }
+    if (strcmp(argv[i], "--at") == 0 && i + 1 < argc) {
+        divert.waypoint_index = atoi(argv[i + 1]);
+        i++;
+    }
+}
         
         // *** WRITE FILES FOR ADA ***
         

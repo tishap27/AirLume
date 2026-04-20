@@ -26,6 +26,12 @@ typedef struct {
     double total_distance;  // km
 } FlightRoute;
 
+typedef struct {
+    int    active;           // 1 if a diversion is in effect
+    int    waypoint_index;   // which waypoint the turn happens at
+    double new_heading;      // degrees 0-360
+} DivertCommand;
+
 // Route calculation functions
 double haversine_distance(double lat1, double lon1, double lat2, double lon2);
 void generate_waypoints(FlightRoute* route, double interval_km);
@@ -34,5 +40,7 @@ void print_route_summary(FlightRoute* route);
 // Airport lookup (simplified - can expand later)
 int lookup_airport_coordinates(const char* icao_code, double* lat, double* lon);
 
+//diversion
+void apply_divert_from_waypoint(FlightRoute* route, DivertCommand divert);
 
 #endif
