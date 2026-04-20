@@ -52,6 +52,8 @@ Data flow: Python → C → Ada → Jakarta EE
 * Jakarta EE web interface with interactive visualization
 * CSV airport database (500+ airports)
 * Route risk profiling with color-coded waypoints
+* Altitude physics model (FL200-FL400) with cruise-specific E-field thresholds
+* Mid-route heading diversion via --divert and --at CLI flags
 
 ## Validation Results
 - 88% lightning detection rate against 181 NASA SWDI 2024 historical strikes
@@ -143,6 +145,9 @@ AirLume/
 ```bash
 # Single route analysis
 ./build/airlume.exe CYOW CYYZ
+
+# Route at cruise altitude with mid-route diversion
+./build/airlume CYOW CYYZ 30000 --divert 140 --at 3
 
 # Custom coordinates
 python python_src/weather.py --point 45.3225 -75.6692
